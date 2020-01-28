@@ -1,7 +1,10 @@
 
 # health-indicators
 
-This is a placeholder README.md for a new repository
+This service provides metrics about the health of a repository on the Platform.
+
+####How it works
+The service collects information from various sources which PlatOps deems important to services health, and stores it in a Mongo repository.
 
 ### License
 
