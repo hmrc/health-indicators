@@ -50,4 +50,3 @@ class HealthIndicatorsRepository @Inject()(
     Future.traverse(seqHealthIndicators)(insertOne)
   }
 }
-

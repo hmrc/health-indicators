@@ -35,22 +35,25 @@ class ReadMeRater @Inject()(githubConnector: GithubConnector)(implicit val ec: E
       response <- githubConnector.findReadMe(repo)
 
       result = response match {
+        // No README 404
         case response if response.status >= 400 =>
           ReadMeRating(
               rating  = 0
-            , length = 0
+            , length  = 0
             , message = "No README found"
           )
+        // README Contains Default Text
         case response if response.body.contains("This is a placeholder README.md for a new repository") =>
           ReadMeRating(
               rating  = 0
-            , length = response.body.length
+            , length  = response.body.length
             , message = "Default README found"
           )
+        // README Valid
         case _ =>
           ReadMeRating(
               rating  = 100
-            , length = response.body.length
+            , length  = response.body.length
             , message = "Valid README found"
           )
       }
@@ -58,4 +61,3 @@ class ReadMeRater @Inject()(githubConnector: GithubConnector)(implicit val ec: E
 
   }
 }
-

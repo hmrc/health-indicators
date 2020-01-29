@@ -23,3 +23,7 @@ import scala.concurrent.Future
 trait Rater {
   def rate(repo: String): Future[Rating]
 }
+
+trait Raters {
+  def raters: Seq[Rater]
+}

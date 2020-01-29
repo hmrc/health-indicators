@@ -17,28 +17,23 @@
 package uk.gov.hmrc.healthindicators.connectors
 
 import javax.inject.{Inject, Singleton}
-import play.api.libs.json.{Json, OFormat}
 import uk.gov.hmrc.healthindicators.configs.HealthIndicatorsConfig
+import uk.gov.hmrc.healthindicators.model.Report
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.http.HttpClient
 
 import scala.concurrent.{ExecutionContext, Future}
 
-case class Repository(
-   name: String
-)
-
 @Singleton
-class TeamsAndRepositoriesConnector @Inject()(
-    httpClient: HttpClient
-  , healthIndicatorsConfig: HealthIndicatorsConfig
-)(implicit val ec: ExecutionContext) {
+class LeakDetectionConnector @Inject()(httpClient: HttpClient, healthIndicatorsConfig: HealthIndicatorsConfig)(implicit val ec: ExecutionContext) {
 
-  private val teamsAndRepositoriesBaseUrl: String = healthIndicatorsConfig.teamsAndRepositoriesUrl
+  private val leakDetectionBaseUrl: String = healthIndicatorsConfig.leakDetectionUrl
 
-  private implicit val repositoryFormats: OFormat[Repository] =
-    Json.format[Repository]
-
-  def allRepositories(implicit hc: HeaderCarrier): Future[List[Repository]] =
-    httpClient.GET[List[Repository]](teamsAndRepositoriesBaseUrl + s"/api/repositories")
+  def findLatestMasterReport(repo: String)(implicit hc: HeaderCarrier): Future[Option[Report]] = {
+    httpClient.GET[Option[Report]](leakDetectionBaseUrl + s"/api/reports/repositories/$repo")
+      .map {
+        case Some(x) => Some(Report(x._id, x.inspectionResults))
+        case None => None
+      }
+  }
 }

@@ -20,14 +20,14 @@ import java.time.LocalDateTime
 
 import javax.inject.Inject
 import uk.gov.hmrc.healthindicators.model.HealthIndicators
-import uk.gov.hmrc.healthindicators.raters.{Rater, ReadMeRater}
+import uk.gov.hmrc.healthindicators.raters.{Rater, Raters}
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class RatingsService @Inject()(readMeRater: ReadMeRater)(implicit val ec: ExecutionContext) {
+class RatingsService @Inject()(_raters: Raters)(implicit val ec: ExecutionContext) {
 
-  val raters: Seq[Rater] = Seq(readMeRater)
+  val raters: Seq[Rater] = _raters.raters
 
   def repoRatings(repo: String)(implicit hc: HeaderCarrier): Future[HealthIndicators] = {
 

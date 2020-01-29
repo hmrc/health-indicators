@@ -1,1 +1,3 @@
 # microservice specific routes
+
+GET         /test/reports/:repo             @uk.gov.hmrc.healthindicators.controllers.LeakDetectionController.reports(repo)

@@ -33,9 +33,9 @@ class HealthIndicatorsService @Inject()(
   def insertRatings()(implicit hc: HeaderCarrier): Future[Seq[Completed]] = {
 
     for {
-      repos <- teamsAndRepositoriesConnector.allRepositories
+      repos   <- teamsAndRepositoriesConnector.allRepositories.map(_.take(50))
       ratings <- Future.sequence(repos.map(r => ratingsService.repoRatings(r.name)))
-      insert <- repository.insert(ratings)
+      insert  <- repository.insert(ratings)
     } yield insert
 
   }

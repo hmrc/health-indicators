@@ -69,4 +69,3 @@ class SchedulerConfigs @Inject()(configuration: Configuration) extends ConfigUti
     , initialDelayKey = "healthindicators.refresh.initialDelay"
   )
 }
-
