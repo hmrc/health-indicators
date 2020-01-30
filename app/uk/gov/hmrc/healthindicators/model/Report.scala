@@ -16,15 +16,7 @@
 
 package uk.gov.hmrc.healthindicators.model
 
-import org.joda.time.DateTime
 import play.api.libs.json.Json
-
-case class Match(
-                  start: Int,
-                  end: Int
-                ) {
-  def length: Int = end - start
-}
 
 case class ReportLine(
                        filePath: String,
@@ -33,18 +25,13 @@ case class ReportLine(
                        urlToSource: String,
                        ruleId: Option[String],
                        description: String,
-                       lineText: String,
-                       matches: List[Match]
+                       lineText: String
 )
 
 case class Report(
                    _id: String,
                    inspectionResults: Seq[ReportLine]
 )
-
-object Match {
-  implicit val matchFormats = Json.format[Match]
-}
 
 object ReportLine {
   implicit val reportLineFormats = Json.format[ReportLine]

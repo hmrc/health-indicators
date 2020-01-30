@@ -35,22 +35,23 @@ class LeakDetectionRater @Inject()(leakDetectionConnector: LeakDetectionConnecto
       report <- leakDetectionConnector.findLatestMasterReport(repo)
 
       result = report match {
+        // Report Exists
+        case Some(x) => x.inspectionResults.length match {
+          // 0 Violations
+          case 0 =>
+            LeakDetectionRating(100, x.inspectionResults.length)
+          // 1 Violation
+          case 1 =>
+            LeakDetectionRating(50, x.inspectionResults.length)
+          // 2+ Violations
+          case _ =>
+            LeakDetectionRating(0, x.inspectionResults.length)
+        }
+
         // No Report
         case None =>
           LeakDetectionRating(100, 0)
 
-        // Report Exists
-        case Some(x) => x match {
-          // 0 Violations
-          case x if x.inspectionResults.isEmpty =>
-            LeakDetectionRating(100, x.inspectionResults.length)
-          // 1 Violation
-          case x if x.inspectionResults.length == 1 =>
-            LeakDetectionRating(50, x.inspectionResults.length)
-          // 2+ Violations
-          case x if x.inspectionResults.length >= 2 =>
-            LeakDetectionRating(0, x.inspectionResults.length)
-        }
       }
     } yield result
 

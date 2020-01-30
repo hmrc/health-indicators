@@ -28,16 +28,19 @@ class HealthIndicatorsService @Inject()(
     repository: HealthIndicatorsRepository
   , teamsAndRepositoriesConnector: TeamsAndRepositoriesConnector
   , ratingsService: RatingsService
+  , weightService: WeightService
   )(implicit val ec: ExecutionContext) {
 
-  def insertRatings()(implicit hc: HeaderCarrier): Future[Seq[Completed]] = {
+  def repoScore(repo: String): Future[Option[Int]] = {
+     weightService.weightedScore(repo)
+  }
 
+  def insertRatings()(implicit hc: HeaderCarrier): Future[Seq[Completed]] = {
     for {
       repos   <- teamsAndRepositoriesConnector.allRepositories.map(_.take(50))
       ratings <- Future.sequence(repos.map(r => ratingsService.repoRatings(r.name)))
       insert  <- repository.insert(ratings)
     } yield insert
-
   }
 
 }

@@ -28,8 +28,6 @@ class GithubConnector @Inject()(
   , githubConfig: GithubConfig
   )(implicit ec: ExecutionContext) {
 
-  implicit val hc: HeaderCarrier = HeaderCarrier()
-
   private val configKey = githubConfig.token
 
   def findReadMe(repo: String): Future[HttpResponse] = {

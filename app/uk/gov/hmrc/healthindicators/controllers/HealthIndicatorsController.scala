@@ -16,19 +16,21 @@
 
 package uk.gov.hmrc.healthindicators.controllers
 
-import javax.inject.Inject
+import javax.inject.{Inject, Singleton}
 import play.api.libs.json.Json
-import play.api.mvc.{Action, AnyContent, ControllerComponents}
-import uk.gov.hmrc.healthindicators.connectors.LeakDetectionConnector
+import play.api.mvc.{Action, ControllerComponents}
+import uk.gov.hmrc.healthindicators.services.HealthIndicatorsService
 import uk.gov.hmrc.play.bootstrap.controller.BackendController
 
 import scala.concurrent.ExecutionContext
 
-class LeakDetectionController @Inject()(leakDetectionConnector: LeakDetectionConnector, cc: ControllerComponents)(implicit ec: ExecutionContext) extends BackendController(cc) {
+@Singleton
+class HealthIndicatorsController @Inject()(healthIndicatorsService: HealthIndicatorsService, cc: ControllerComponents)(implicit ec: ExecutionContext) extends BackendController(cc) {
 
-  def reports(repo: String): Action[AnyContent] = Action.async { implicit request =>
-    leakDetectionConnector.findLatestMasterReport(repo).map { reports =>
-      Ok(Json.toJson(reports))
-    }
+  def indicatorsScoreForRepo(repo: String) = Action.async { implicit request =>
+    for {
+      indicatorsScore <- healthIndicatorsService.repoScore(repo)
+      result = indicatorsScore.map(score => Ok(Json.toJson(score))).getOrElse(NoContent)
+    } yield result
   }
 }

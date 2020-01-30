@@ -29,7 +29,9 @@ class LeakDetectionConnector @Inject()(httpClient: HttpClient, healthIndicatorsC
 
   private val leakDetectionBaseUrl: String = healthIndicatorsConfig.leakDetectionUrl
 
-  def findLatestMasterReport(repo: String)(implicit hc: HeaderCarrier): Future[Option[Report]] = {
+  implicit val hc: HeaderCarrier = HeaderCarrier()
+
+  def findLatestMasterReport(repo: String): Future[Option[Report]] = {
     httpClient.GET[Option[Report]](leakDetectionBaseUrl + s"/api/reports/repositories/$repo")
       .map {
         case Some(x) => Some(Report(x._id, x.inspectionResults))
