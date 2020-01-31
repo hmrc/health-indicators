@@ -14,24 +14,21 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.healthindicators.raters
+package uk.gov.hmrc.healthindicators.raters.readme
 
 import org.mockito.MockitoSugar
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpec
-import uk.gov.hmrc.healthindicators.connectors.GithubConnector
-import uk.gov.hmrc.healthindicators.model.ReadMeRating
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
 
-
-class ReadMeRaterSpec extends AnyWordSpec with Matchers with MockitoSugar {
+class ReadMeCollectorSpec extends AnyWordSpec with Matchers with MockitoSugar {
 
   val mockGithubConnector = mock[GithubConnector]
-  val rater = new ReadMeRater(mockGithubConnector)
+  val rater = new ReadMeCollector(mockGithubConnector)
 
   implicit val hc = HeaderCarrier()
 
@@ -42,7 +39,7 @@ class ReadMeRaterSpec extends AnyWordSpec with Matchers with MockitoSugar {
 
       val result = rater.validateReadMe("foo")
 
-      Await.result(result, 5 seconds) mustBe ReadMeRating(0, 0, "No README found")
+      Await.result(result, 5 seconds) mustBe ReadMeRating(0, "No README found")
     }
 
     "Return ReadMeRating Object with 'Deafult README found message'" in {
@@ -50,7 +47,7 @@ class ReadMeRaterSpec extends AnyWordSpec with Matchers with MockitoSugar {
 
       val result = rater.validateReadMe("foo")
 
-      Await.result(result, 5 seconds) mustBe ReadMeRating(0, 52, "Default README found")
+      Await.result(result, 5 seconds) mustBe ReadMeRating(52, "Default README found")
     }
 
     "Return ReadMeRating Object with 'Valid README found message'" in {
@@ -58,7 +55,7 @@ class ReadMeRaterSpec extends AnyWordSpec with Matchers with MockitoSugar {
 
       val result = rater.validateReadMe("foo")
 
-      Await.result(result, 5 seconds) mustBe ReadMeRating(100, 25, "Valid README found")
+      Await.result(result, 5 seconds) mustBe ReadMeRating(25, "Valid README found")
     }
   }
 }

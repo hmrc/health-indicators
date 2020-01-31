@@ -14,23 +14,21 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.healthindicators.raters
+package uk.gov.hmrc.healthindicators.raters.leakdetection
 
 import org.mockito.MockitoSugar
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpec
-import uk.gov.hmrc.healthindicators.connectors.LeakDetectionConnector
-import uk.gov.hmrc.healthindicators.model.{LeakDetectionRating, Report, ReportLine}
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
 
-class LeakDetectionRaterSpec extends AnyWordSpec with Matchers with MockitoSugar {
+class LeakDetectionCollectorSpec extends AnyWordSpec with Matchers with MockitoSugar {
 
   val mockLeakDetectionConnector = mock[LeakDetectionConnector]
-  val rater = new LeakDetectionRater(mockLeakDetectionConnector)
+  val rater = new LeakDetectionCollector(mockLeakDetectionConnector)
 
   val reportLine = ReportLine("file-path", "scope", 1, "url-to-source", Some("rule-id"), "description", "line-text")
 
@@ -43,7 +41,7 @@ class LeakDetectionRaterSpec extends AnyWordSpec with Matchers with MockitoSugar
 
       val result = rater.countLeakDetections("foo")
 
-      Await.result(result, 5 seconds) mustBe LeakDetectionRating(100, 0)
+      Await.result(result, 5 seconds) mustBe LeakDetectionRating(0)
     }
 
     "Return LeakDetectionRating Object with 100 Rating when a Report with 0 Results is found" in {
@@ -51,7 +49,7 @@ class LeakDetectionRaterSpec extends AnyWordSpec with Matchers with MockitoSugar
 
       val result = rater.countLeakDetections("foo")
 
-      Await.result(result, 5 seconds) mustBe LeakDetectionRating(100, 0)
+      Await.result(result, 5 seconds) mustBe LeakDetectionRating(0)
     }
 
     "Return LeakDetectionRating Object with 50 Rating when a Report with 1 Result is found" in {
@@ -59,7 +57,7 @@ class LeakDetectionRaterSpec extends AnyWordSpec with Matchers with MockitoSugar
 
       val result = rater.countLeakDetections("foo")
 
-      Await.result(result, 5 seconds) mustBe LeakDetectionRating(50, 1)
+      Await.result(result, 5 seconds) mustBe LeakDetectionRating(1)
     }
 
     "Return LeakDetectionRating Object with 0 Rating when a Report with 2+ Results is found" in {
@@ -67,10 +65,7 @@ class LeakDetectionRaterSpec extends AnyWordSpec with Matchers with MockitoSugar
 
       val result = rater.countLeakDetections("foo")
 
-      Await.result(result, 5 seconds) mustBe LeakDetectionRating(0, 3)
+      Await.result(result, 5 seconds) mustBe LeakDetectionRating(3)
     }
-
   }
-
-
 }

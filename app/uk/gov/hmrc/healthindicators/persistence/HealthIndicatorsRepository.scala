@@ -21,7 +21,7 @@ import org.mongodb.scala.Completed
 import org.mongodb.scala.model.Filters.equal
 import org.mongodb.scala.model.Sorts._
 import org.mongodb.scala.model.{IndexModel, IndexOptions}
-import uk.gov.hmrc.healthindicators.model.HealthIndicators
+import uk.gov.hmrc.healthindicators.models.HealthIndicators
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.PlayMongoCollection
 

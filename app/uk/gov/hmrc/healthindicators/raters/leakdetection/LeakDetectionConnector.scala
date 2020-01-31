@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.healthindicators.connectors
+package uk.gov.hmrc.healthindicators.raters.leakdetection
 
 import javax.inject.{Inject, Singleton}
 import uk.gov.hmrc.healthindicators.configs.HealthIndicatorsConfig
-import uk.gov.hmrc.healthindicators.model.Report
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.http.HttpClient
 

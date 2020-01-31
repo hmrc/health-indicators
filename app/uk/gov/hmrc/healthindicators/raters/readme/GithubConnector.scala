@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.healthindicators.connectors
+package uk.gov.hmrc.healthindicators.raters.readme
 
 import javax.inject.Inject
 import uk.gov.hmrc.healthindicators.configs.GithubConfig

@@ -14,16 +14,15 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.healthindicators.raters
+package uk.gov.hmrc.healthindicators.raters.readme
 
 import javax.inject.Inject
-import uk.gov.hmrc.healthindicators.connectors.GithubConnector
-import uk.gov.hmrc.healthindicators.model.{Rating, ReadMeRating}
+import uk.gov.hmrc.healthindicators.models.{Collector, Rating}
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class ReadMeRater @Inject()(githubConnector: GithubConnector)(implicit val ec: ExecutionContext) extends Rater {
+class ReadMeCollector @Inject()(githubConnector: GithubConnector)(implicit val ec: ExecutionContext) extends Collector {
 
   implicit val hc: HeaderCarrier = HeaderCarrier()
 
@@ -38,22 +37,19 @@ class ReadMeRater @Inject()(githubConnector: GithubConnector)(implicit val ec: E
         // No README 404
         case response if response.status >= 400 =>
           ReadMeRating(
-              rating  = 0
-            , length  = 0
+              length  = 0
             , message = "No README found"
           )
         // README Contains Default Text
         case response if response.body.contains("This is a placeholder README.md for a new repository") =>
           ReadMeRating(
-              rating  = 0
-            , length  = response.body.length
+              length  = response.body.length
             , message = "Default README found"
           )
         // README Valid
         case _ =>
           ReadMeRating(
-              rating  = 100
-            , length  = response.body.length
+              length  = response.body.length
             , message = "Valid README found"
           )
       }

@@ -17,34 +17,28 @@
 package uk.gov.hmrc.healthindicators.services
 
 import javax.inject.{Inject, Singleton}
-import uk.gov.hmrc.healthindicators.model.Rating
+import uk.gov.hmrc.healthindicators.configs.WeightsConfig
 import uk.gov.hmrc.healthindicators.persistence.HealthIndicatorsRepository
 
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class WeightService @Inject()(healthIndicatorsRepository: HealthIndicatorsRepository)(implicit ec: ExecutionContext) {
+class WeightService @Inject()(healthIndicatorsRepository: HealthIndicatorsRepository, weightsConfig: WeightsConfig)(implicit ec: ExecutionContext) {
+
+  def weights: Map[String, Double] = weightsConfig.weightsLookup
 
   def weightedScore(repo: String): Future[Option[Int]] = {
     healthIndicatorsRepository.latestIndicators(repo).map {
-      case Some(x) => Some(x.ratings.map(r => WeightService.applyWeight(r)).sum.ceil.toInt)
+      case Some(x) => Some(x.ratings.map(r => applyWeight(r._type, r.calculateScore)).sum.ceil.toInt)
       case None => None
     }
   }
-}
 
-object WeightService {
-
-  val weightLookup = Map(
-    "ReadMeRating" -> 2.0
-  , "LeakDetectionRating" -> 1.0
-  )
-
-  def applyWeight(rating: Rating): Double = {
-    (weightLookup(rating._type) / weightsSum()) * rating.rating
+  def applyWeight(_type: String, score: Int): Double = {
+    (weights(_type) / weightsSum()) * score
   }
 
   def weightsSum(): Double = {
-    weightLookup.values.sum
+    weights.values.sum
   }
 }

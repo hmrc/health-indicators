@@ -14,16 +14,24 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.healthindicators.raters
+package uk.gov.hmrc.healthindicators.raters.readme
 
-import uk.gov.hmrc.healthindicators.model.Rating
+import uk.gov.hmrc.healthindicators.models.Rating
 
-import scala.concurrent.Future
-
-trait Rater {
-  def rate(repo: String): Future[Rating]
+case class ReadMeRating(
+    length: Int
+  , message: String
+  ) extends Rating {
+  override def _type: String = "ReadMeRating"
+  override def calculateScore: Int = ReadMeRating.calculate(this)
 }
 
-trait Raters {
-  def raters: Seq[Rater]
+object ReadMeRating {
+  def calculate(readMeRating: ReadMeRating): Int = {
+    readMeRating.message match {
+      case "No README found" => 0
+      case "Default README found" => 0
+      case "Valid README found" => 100
+    }
+  }
 }

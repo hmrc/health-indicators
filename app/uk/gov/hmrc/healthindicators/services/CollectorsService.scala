@@ -19,15 +19,14 @@ package uk.gov.hmrc.healthindicators.services
 import java.time.LocalDateTime
 
 import javax.inject.Inject
-import uk.gov.hmrc.healthindicators.model.HealthIndicators
-import uk.gov.hmrc.healthindicators.raters.{Rater, Raters}
+import uk.gov.hmrc.healthindicators.models.{Collector, Collectors, HealthIndicators}
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class RatingsService @Inject()(_raters: Raters)(implicit val ec: ExecutionContext) {
+class CollectorsService @Inject()(_raters: Collectors)(implicit val ec: ExecutionContext) {
 
-  val raters: Seq[Rater] = _raters.raters
+  val raters: Seq[Collector] = _raters.raters
 
   def repoRatings(repo: String)(implicit hc: HeaderCarrier): Future[HealthIndicators] = {
 

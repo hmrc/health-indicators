@@ -14,16 +14,15 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.healthindicators.raters
+package uk.gov.hmrc.healthindicators.raters.leakdetection
 
 import javax.inject.Inject
-import uk.gov.hmrc.healthindicators.connectors.LeakDetectionConnector
-import uk.gov.hmrc.healthindicators.model.{LeakDetectionRating, Rating}
+import uk.gov.hmrc.healthindicators.models.{Collector, Rating}
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class LeakDetectionRater @Inject()(leakDetectionConnector: LeakDetectionConnector)(implicit val ec: ExecutionContext) extends Rater {
+class LeakDetectionCollector @Inject()(leakDetectionConnector: LeakDetectionConnector)(implicit val ec: ExecutionContext) extends Collector {
 
   implicit val hc: HeaderCarrier = HeaderCarrier()
 
@@ -39,19 +38,18 @@ class LeakDetectionRater @Inject()(leakDetectionConnector: LeakDetectionConnecto
         case Some(x) => x.inspectionResults.length match {
           // 0 Violations
           case 0 =>
-            LeakDetectionRating(100, x.inspectionResults.length)
+            LeakDetectionRating(x.inspectionResults.length)
           // 1 Violation
           case 1 =>
-            LeakDetectionRating(50, x.inspectionResults.length)
+            LeakDetectionRating(x.inspectionResults.length)
           // 2+ Violations
           case _ =>
-            LeakDetectionRating(0, x.inspectionResults.length)
+            LeakDetectionRating(x.inspectionResults.length)
         }
 
         // No Report
         case None =>
-          LeakDetectionRating(100, 0)
-
+          LeakDetectionRating(0)
       }
     } yield result
 

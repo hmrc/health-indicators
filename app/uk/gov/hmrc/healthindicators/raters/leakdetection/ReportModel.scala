@@ -14,23 +14,23 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.healthindicators.model
+package uk.gov.hmrc.healthindicators.raters.leakdetection
 
 import play.api.libs.json.Json
 
 case class ReportLine(
-                       filePath: String,
-                       scope: String,
-                       lineNumber: Int,
-                       urlToSource: String,
-                       ruleId: Option[String],
-                       description: String,
-                       lineText: String
+    filePath: String
+  , scope: String
+  , lineNumber: Int
+  , urlToSource: String
+  , ruleId: Option[String]
+  , description: String
+  , lineText: String
 )
 
 case class Report(
-                   _id: String,
-                   inspectionResults: Seq[ReportLine]
+    _id: String
+  , inspectionResults: Seq[ReportLine]
 )
 
 object ReportLine {

@@ -27,7 +27,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class HealthIndicatorsService @Inject()(
     repository: HealthIndicatorsRepository
   , teamsAndRepositoriesConnector: TeamsAndRepositoriesConnector
-  , ratingsService: RatingsService
+  , ratingsService: CollectorsService
   , weightService: WeightService
   )(implicit val ec: ExecutionContext) {
 
@@ -37,10 +37,9 @@ class HealthIndicatorsService @Inject()(
 
   def insertRatings()(implicit hc: HeaderCarrier): Future[Seq[Completed]] = {
     for {
-      repos   <- teamsAndRepositoriesConnector.allRepositories.map(_.take(50))
+      repos   <- teamsAndRepositoriesConnector.allRepositories
       ratings <- Future.sequence(repos.map(r => ratingsService.repoRatings(r.name)))
       insert  <- repository.insert(ratings)
     } yield insert
   }
-
 }

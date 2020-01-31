@@ -18,7 +18,7 @@ package uk.gov.hmrc.healthindicators.controllers
 
 import javax.inject.{Inject, Singleton}
 import play.api.libs.json.Json
-import play.api.mvc.{Action, ControllerComponents}
+import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import uk.gov.hmrc.healthindicators.services.HealthIndicatorsService
 import uk.gov.hmrc.play.bootstrap.controller.BackendController
 
@@ -27,7 +27,7 @@ import scala.concurrent.ExecutionContext
 @Singleton
 class HealthIndicatorsController @Inject()(healthIndicatorsService: HealthIndicatorsService, cc: ControllerComponents)(implicit ec: ExecutionContext) extends BackendController(cc) {
 
-  def indicatorsScoreForRepo(repo: String) = Action.async { implicit request =>
+  def indicatorsScoreForRepo(repo: String): Action[AnyContent] = Action.async { implicit request =>
     for {
       indicatorsScore <- healthIndicatorsService.repoScore(repo)
       result = indicatorsScore.map(score => Ok(Json.toJson(score))).getOrElse(NoContent)
