@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.healthindicators.models
 
-import play.api.libs.json.{Format, JsError, JsResult, JsValue, Json, __}
+import play.api.libs.json._
 import uk.gov.hmrc.healthindicators.raters.leakdetection.LeakDetectionRating
 import uk.gov.hmrc.healthindicators.raters.readme.ReadMeRating
 
