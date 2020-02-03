@@ -18,7 +18,6 @@ package uk.gov.hmrc.healthindicators.configs
 
 import javax.inject.{Inject, Singleton}
 import play.api.Configuration
-import uk.gov.hmrc.healthindicators.utils.ConfigUtils
 
 import scala.concurrent.duration.FiniteDuration
 
@@ -30,7 +29,6 @@ case class SchedulerConfig(
 )
 
 object SchedulerConfig {
-  import ConfigUtils._
 
   def apply(
       configuration: Configuration
@@ -54,13 +52,13 @@ object SchedulerConfig {
     SchedulerConfig (
         enabledKey
       , enabled      = configuration.get[Boolean](enabledKey)
-      , frequency    = () => getDuration(configuration, frequencyKey)
-      , initialDelay = () => getDuration(configuration, initialDelayKey)
+      , frequency    = () => configuration.get[FiniteDuration](frequencyKey)
+      , initialDelay = () => configuration.get[FiniteDuration](initialDelayKey)
     )
 }
 
 @Singleton
-class SchedulerConfigs @Inject()(configuration: Configuration) extends ConfigUtils {
+class SchedulerConfigs @Inject()(configuration: Configuration) {
 
   val healthIndicatorsScheduler: SchedulerConfig = SchedulerConfig(
       configuration

@@ -19,7 +19,7 @@ package uk.gov.hmrc.healthindicators.persistence
 import javax.inject.Inject
 import org.mongodb.scala.Completed
 import org.mongodb.scala.model.Filters.equal
-import org.mongodb.scala.model.Sorts._
+import org.mongodb.scala.model.Indexes._
 import org.mongodb.scala.model.{IndexModel, IndexOptions}
 import uk.gov.hmrc.healthindicators.models.HealthIndicators
 import uk.gov.hmrc.mongo.MongoComponent
@@ -33,11 +33,11 @@ class HealthIndicatorsRepository @Inject()(
     extends PlayMongoCollection[HealthIndicators](
     collectionName = "healthIndicators"
   , mongoComponent = mongoComponent
-  , domainFormat = HealthIndicators.mongoFormats
-  , indexes = Seq(IndexModel(descending("repo"), IndexOptions().background(true)))
+  , domainFormat   = HealthIndicators.mongoFormats
+  , indexes        = Seq(IndexModel(hashed("repo"), IndexOptions().background(true)))
 ){
 
-  private implicit val healthIndicatorsFormat = HealthIndicators.mongoFormats
+  private implicit val hif = HealthIndicators.mongoFormats
 
   def latestIndicators(repo: String): Future[Option[HealthIndicators]] = {
     collection

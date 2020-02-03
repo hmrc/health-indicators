@@ -16,23 +16,26 @@
 
 package uk.gov.hmrc.healthindicators.models
 
-import java.time.LocalDateTime
-
-import org.joda.time
+import java.time.Instant
+import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats
+import play.api.libs.functional.syntax._
 import play.api.libs.json._
-import uk.gov.hmrc.http.controllers.RestFormats
 
 case class HealthIndicators(
-    repo: String
-  , date: LocalDateTime
+    repo   : String
+  , date   : Instant
   , ratings: Seq[Rating]
 )
 
 object HealthIndicators {
 
-   implicit val ratingFormat: Format[Rating] = Rating.format
-   implicit val localDateTimeFormat: Format[time.LocalDateTime] = RestFormats.localDateTimeFormats
-
-   val mongoFormats: OFormat[HealthIndicators] =
-      Json.format[HealthIndicators]
+   val mongoFormats: OFormat[HealthIndicators] = {
+      implicit val rF = Rating.format
+      implicit val iF = MongoJavatimeFormats.instantFormats
+      
+      ( (__ \ "repo"   ).format[String]
+      ~ (__ \ "date"   ).format[Instant]
+      ~ (__ \ "ratings").format[Seq[Rating]]
+      )(HealthIndicators.apply, unlift(HealthIndicators.unapply))
+   }
 }

@@ -17,6 +17,7 @@
 package uk.gov.hmrc.healthindicators.raters.leakdetection
 
 import javax.inject.{Inject, Singleton}
+import play.api.libs.json.Reads
 import uk.gov.hmrc.healthindicators.configs.HealthIndicatorsConfig
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.http.HttpClient
@@ -24,17 +25,22 @@ import uk.gov.hmrc.play.bootstrap.http.HttpClient
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class LeakDetectionConnector @Inject()(httpClient: HttpClient, healthIndicatorsConfig: HealthIndicatorsConfig)(implicit val ec: ExecutionContext) {
-
-  private val leakDetectionBaseUrl: String = healthIndicatorsConfig.leakDetectionUrl
+class LeakDetectionConnector @Inject()(
+    httpClient: HttpClient
+  , healthIndicatorsConfig: HealthIndicatorsConfig
+  )(implicit val ec: ExecutionContext) {
 
   implicit val hc: HeaderCarrier = HeaderCarrier()
+  private val leakDetectionBaseUrl: String = healthIndicatorsConfig.leakDetectionUrl
+
+  private implicit val repositoryFormats: Reads[Report] =
+    Report.reads
 
   def findLatestMasterReport(repo: String): Future[Option[Report]] = {
     httpClient.GET[Option[Report]](leakDetectionBaseUrl + s"/api/reports/repositories/$repo")
       .map {
-        case Some(x) => Some(Report(x._id, x.inspectionResults))
-        case None => None
+        case Some(x) => Some(Report(x.reportId, x.inspectionResults))
+        case None    => None
       }
   }
 }

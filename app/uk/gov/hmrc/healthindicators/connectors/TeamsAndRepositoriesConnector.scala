@@ -17,16 +17,13 @@
 package uk.gov.hmrc.healthindicators.connectors
 
 import javax.inject.{Inject, Singleton}
-import play.api.libs.json.{Json, OFormat}
+import play.api.libs.json.Reads
 import uk.gov.hmrc.healthindicators.configs.HealthIndicatorsConfig
+import uk.gov.hmrc.healthindicators.models.Repository
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.http.HttpClient
 
 import scala.concurrent.{ExecutionContext, Future}
-
-case class Repository(
-   name: String
-)
 
 @Singleton
 class TeamsAndRepositoriesConnector @Inject()(
@@ -36,8 +33,8 @@ class TeamsAndRepositoriesConnector @Inject()(
 
   private val teamsAndRepositoriesBaseUrl: String = healthIndicatorsConfig.teamsAndRepositoriesUrl
 
-  private implicit val repositoryFormats: OFormat[Repository] =
-    Json.format[Repository]
+  private implicit val repositoryFormats: Reads[Repository] =
+    Repository.reads
 
   def allRepositories(implicit hc: HeaderCarrier): Future[List[Repository]] =
     httpClient.GET[List[Repository]](teamsAndRepositoriesBaseUrl + s"/api/repositories")

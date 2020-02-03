@@ -24,20 +24,15 @@ import play.api.libs.json.Json
 class WeightsConfig @Inject()(configuration: Configuration) {
 
   lazy val weightsLookup: Map[String, Double] = {
-    val weightsConfigFilePath = configuration.getOptional[String]("weights.config.path")
+    val weightsConfigFilePath = configuration.get[String]("weights.config.path")
 
-    weightsConfigFilePath
-      .map { configFilePath =>
-        val stream = getClass.getResourceAsStream(configFilePath)
-        val json =
-          try {
-            Json.parse(stream)
-          } finally {
-            stream.close()
-          }
-        json.as[Map[String, Double]]
+    val stream = getClass.getResourceAsStream(weightsConfigFilePath)
+    val json =
+      try {
+        Json.parse(stream)
+      } finally {
+        stream.close()
       }
-      .getOrElse(throw new RuntimeException("Config Value Not Found: weights.config.path"))
+    json.as[Map[String, Double]]
   }
-
 }

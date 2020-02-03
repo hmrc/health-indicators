@@ -14,21 +14,17 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.healthindicators.utils
+package uk.gov.hmrc.healthindicators.models
 
-import play.api.Configuration
+import play.api.libs.json._
 
-import scala.concurrent.duration.{DurationLong, FiniteDuration}
+case class Repository(
+    name: String
+)
 
-trait ConfigUtils {
+object Repository {
 
-  def getOptDuration(configuration: Configuration, key: String): Option[FiniteDuration] =
-    Option(configuration.getMillis(key))
-      .map(_.milliseconds)
-
-  def getDuration(configuration: Configuration, key: String): FiniteDuration =
-    getOptDuration(configuration, key)
-      .getOrElse(sys.error(s"$key not specified"))
+  val reads: Reads[Repository] = {
+    (__ \ "name").read[String].map(Repository.apply)
+  }
 }
-
-object ConfigUtils extends ConfigUtils

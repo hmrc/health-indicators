@@ -30,15 +30,15 @@ class GithubConnector @Inject()(
 
   private val configKey = githubConfig.token
 
-  def findReadMe(repo: String): Future[HttpResponse] = {
+  def findReadMe(repo: String): Future[Option[String]] = {
 
     val url =
       s"${githubConfig.rawUrl}/hmrc/$repo/master/README.md"
     implicit val hc: HeaderCarrier = HeaderCarrier().withExtraHeaders(("Authorization", s"token $configKey"))
 
-    httpClient.GET[HttpResponse](url)
+    httpClient.GET[HttpResponse](url).map(r => Some(r.body))
   }
     .recoverWith {
-      case e: NotFoundException => Future.successful(HttpResponse(404))
+      case e: NotFoundException => Future.successful(None)
     }
 }

@@ -19,7 +19,7 @@ package uk.gov.hmrc.healthindicators.raters.readme
 import org.mockito.MockitoSugar
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpec
-import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
+import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
@@ -61,7 +61,7 @@ class ReadMeCollectorSpec extends AnyWordSpec with Matchers with MockitoSugar {
 }
 
 object TestData {
-  val readMe404     = HttpResponse(404, None, Map.empty, None)
-  val readMeDeafult = HttpResponse(200, None, Map.empty, Some("This is a placeholder README.md for a new repository"))
-  val readMeValid   = HttpResponse(200, None, Map.empty, Some("This is a valid README.md"))
+  val readMe404     = None
+  val readMeDeafult = Some("This is a placeholder README.md for a new repository")
+  val readMeValid   = Some("This is a valid README.md")
 }

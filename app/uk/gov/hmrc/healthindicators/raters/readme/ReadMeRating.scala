@@ -17,21 +17,29 @@
 package uk.gov.hmrc.healthindicators.raters.readme
 
 import uk.gov.hmrc.healthindicators.models.Rating
+import play.api.libs.functional.syntax._
+import play.api.libs.json._
 
 case class ReadMeRating(
-    length: Int
+    length : Int
   , message: String
   ) extends Rating {
-  override def _type: String = "ReadMeRating"
+  override def tpe: String = "ReadMeRating"
   override def calculateScore: Int = ReadMeRating.calculate(this)
 }
 
 object ReadMeRating {
   def calculate(readMeRating: ReadMeRating): Int = {
     readMeRating.message match {
-      case "No README found" => 0
+      case "No README found"      => 0
       case "Default README found" => 0
-      case "Valid README found" => 100
+      case "Valid README found"   => 100
     }
+  }
+
+  val format: OFormat[ReadMeRating] = {
+    ( (__ \ "length" ).format[Int]
+    ~ (__ \ "message").format[String]
+    )(ReadMeRating.apply, unlift(ReadMeRating.unapply))
   }
 }

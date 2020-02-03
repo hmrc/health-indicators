@@ -21,6 +21,7 @@ import org.mongodb.scala.Completed
 import uk.gov.hmrc.healthindicators.connectors.TeamsAndRepositoriesConnector
 import uk.gov.hmrc.healthindicators.persistence.HealthIndicatorsRepository
 import uk.gov.hmrc.http.HeaderCarrier
+import cats.implicits._
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -32,13 +33,16 @@ class HealthIndicatorsService @Inject()(
   )(implicit val ec: ExecutionContext) {
 
   def repoScore(repo: String): Future[Option[Int]] = {
-     weightService.weightedScore(repo)
+     repository.latestIndicators(repo).map {
+       case Some(x) => Some(weightService.weightedScore(x))
+       case None    => None
+     }
   }
 
   def insertRatings()(implicit hc: HeaderCarrier): Future[Seq[Completed]] = {
     for {
       repos   <- teamsAndRepositoriesConnector.allRepositories
-      ratings <- Future.sequence(repos.map(r => ratingsService.repoRatings(r.name)))
+      ratings <- repos.traverse(r => ratingsService.repoRatings(r.name))
       insert  <- repository.insert(ratings)
     } yield insert
   }

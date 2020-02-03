@@ -16,34 +16,33 @@
 
 package uk.gov.hmrc.healthindicators.models
 
-import play.api.libs.json.{Format, JsResult, JsValue, Json}
+import play.api.libs.json.{Format, JsError, JsResult, JsValue, Json, __}
 import uk.gov.hmrc.healthindicators.raters.leakdetection.LeakDetectionRating
 import uk.gov.hmrc.healthindicators.raters.readme.ReadMeRating
 
 trait Rating {
-  def _type : String
+  def tpe           : String
   def calculateScore: Int
 }
 
 object Rating {
   val format: Format[Rating] with Object = new Format[Rating] {
-    implicit val readMeRating = Json.format[ReadMeRating]
-    implicit val leakDetectionRating = Json.format[LeakDetectionRating]
+    implicit val rmf = ReadMeRating.format
+    implicit val ldf = LeakDetectionRating.format
 
     override def reads(json: JsValue): JsResult[Rating] = {
       val k  = (json \ "_type").as[String]
       k match {
-        case "ReadMeRating" => json.validate[ReadMeRating]
+        case "ReadMeRating"        => json.validate[ReadMeRating]
         case "LeakDetectionRating" => json.validate[LeakDetectionRating]
-        case _ => ???
+        case s                     => JsError(s"Invalid Rating: $s")
       }
     }
 
     override def writes(o: Rating): JsValue = {
       o match {
-        case r: ReadMeRating => Json.toJsObject(r) + ("_type" -> Json.toJson("ReadMeRating"))
+        case r: ReadMeRating        => Json.toJsObject(r) + ("_type" -> Json.toJson("ReadMeRating"))
         case r: LeakDetectionRating => Json.toJsObject(r) + ("_type" -> Json.toJson("LeakDetectionRating"))
-        case _ => ???
       }
     }
   }

@@ -16,54 +16,40 @@
 
 package uk.gov.hmrc.healthindicators.services
 
-import java.time.LocalDateTime
+import java.time.Instant
 
 import org.mockito.MockitoSugar
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import uk.gov.hmrc.healthindicators.configs.WeightsConfig
 import uk.gov.hmrc.healthindicators.models.HealthIndicators
-import uk.gov.hmrc.healthindicators.persistence.HealthIndicatorsRepository
 import uk.gov.hmrc.healthindicators.raters.leakdetection.LeakDetectionRating
 import uk.gov.hmrc.healthindicators.raters.readme.ReadMeRating
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.duration._
-import scala.concurrent.{Await, Future}
 
 class WeightServiceSpec extends AnyWordSpec with Matchers with MockitoSugar {
 
-  val mockHealthIndicatorsRepository = mock[HealthIndicatorsRepository]
   val mockWeightsConfig = mock[WeightsConfig]
 
-  val weightService = new WeightService(mockHealthIndicatorsRepository, mockWeightsConfig)
+  val weightService = new WeightService(mockWeightsConfig)
 
   "weightedScore" should {
 
-    "Return None when no indicators are found in the collection" in {
-      when(mockHealthIndicatorsRepository.latestIndicators("foo")) thenReturn Future.successful(None)
-
-      val result = weightService.weightedScore("foo")
-
-      Await.result(result, 5 seconds) mustBe None
-    }
-
     "Return a Weighted Score based on Ratings and Weights" in {
-      when(mockHealthIndicatorsRepository.latestIndicators("foo")) thenReturn Future.successful(Some(TestData.healthIndicator100))
-      when(mockHealthIndicatorsRepository.latestIndicators("bar")) thenReturn Future.successful(Some(TestData.healthIndicator67))
 
       when(mockWeightsConfig.weightsLookup) thenReturn Map("ReadMeRating" -> 2.0, "LeakDetectionRating" -> 1.0)
 
-      val result100 = weightService.weightedScore("foo")
-      val result67 = weightService.weightedScore("bar")
+      val result100 = weightService.weightedScore(TestData.healthIndicator100)
+      val result67  = weightService.weightedScore(TestData.healthIndicator67)
 
-      Await.result(result100, 5 seconds) mustBe Some(100)
-      Await.result(result67, 5 seconds) mustBe Some(67)
+      result100 mustBe 100
+      result67  mustBe 67
     }
   }
 }
 
 object TestData {
-  val healthIndicator100 = HealthIndicators("foo", LocalDateTime.now(), Seq(ReadMeRating(5000, "Valid README found"), LeakDetectionRating(0)))
-  val healthIndicator67 = HealthIndicators("bar", LocalDateTime.now(), Seq(ReadMeRating(3000, "Valid README found"), LeakDetectionRating(4)))
+  val healthIndicator100 = HealthIndicators("foo", Instant.now(), Seq(ReadMeRating(5000, "Valid README found"), LeakDetectionRating(0)))
+  val healthIndicator67  = HealthIndicators("bar", Instant.now(), Seq(ReadMeRating(3000, "Valid README found"), LeakDetectionRating(4)))
 }

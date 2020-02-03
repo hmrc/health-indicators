@@ -16,29 +16,43 @@
 
 package uk.gov.hmrc.healthindicators.raters.leakdetection
 
-import play.api.libs.json.Json
+import play.api.libs.functional.syntax._
+import play.api.libs.json._
 
 case class ReportLine(
-    filePath: String
-  , scope: String
-  , lineNumber: Int
+    filePath   : String
+  , scope      : String
+  , lineNumber : Int
   , urlToSource: String
-  , ruleId: Option[String]
+  , ruleId     : Option[String]
   , description: String
-  , lineText: String
+  , lineText   : String
 )
 
 case class Report(
-    _id: String
+    reportId         : String
   , inspectionResults: Seq[ReportLine]
 )
 
 object ReportLine {
-  implicit val reportLineFormats = Json.format[ReportLine]
+
+  implicit val reads: Reads[ReportLine] = {
+    ( (__ \ "filePath"   ).read[String]
+    ~ (__ \ "scope"      ).read[String]
+    ~ (__ \ "lineNumber" ).read[Int]
+    ~ (__ \ "urlToSource").read[String]
+    ~ (__ \ "ruleId"     ).readNullable[String]
+    ~ (__ \ "description").read[String]
+    ~ (__ \ "lineText"   ).read[String]
+    )(ReportLine.apply _)
+  }
 
 }
 
 object Report {
-  implicit val restDateTimeFormats  = uk.gov.hmrc.http.controllers.RestFormats.dateTimeFormats
-  implicit val reportFormats = Json.format[Report]
+  implicit val reads: Reads[Report] = {
+    ( (__ \ "_id"              ).read[String]
+    ~ (__ \ "inspectionResults").read[Seq[ReportLine]]
+    )(Report.apply _)
+  }
 }

@@ -22,7 +22,9 @@ import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class ReadMeCollector @Inject()(githubConnector: GithubConnector)(implicit val ec: ExecutionContext) extends Collector {
+class ReadMeCollector @Inject()(
+    githubConnector: GithubConnector
+  )(implicit val ec: ExecutionContext) extends Collector {
 
   implicit val hc: HeaderCarrier = HeaderCarrier()
 
@@ -35,21 +37,21 @@ class ReadMeCollector @Inject()(githubConnector: GithubConnector)(implicit val e
 
       result = response match {
         // No README 404
-        case response if response.status >= 400 =>
+        case None =>
           ReadMeRating(
-              length  = 0
+            length  = 0
             , message = "No README found"
           )
         // README Contains Default Text
-        case response if response.body.contains("This is a placeholder README.md for a new repository") =>
+        case Some(x) if x.contains("This is a placeholder README.md for a new repository") =>
           ReadMeRating(
-              length  = response.body.length
+              length  = x.length
             , message = "Default README found"
           )
         // README Valid
-        case _ =>
+        case Some(x) =>
           ReadMeRating(
-              length  = response.body.length
+              length  = x.length
             , message = "Valid README found"
           )
       }

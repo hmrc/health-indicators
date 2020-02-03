@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.healthindicators.services
 
-import java.time.LocalDateTime
+import java.time.Instant
 
 import javax.inject.Inject
 import uk.gov.hmrc.healthindicators.models.{Collector, Collectors, HealthIndicators}
@@ -33,7 +33,7 @@ class CollectorsService @Inject()(_raters: Collectors)(implicit val ec: Executio
     for {
       ratings <- Future.sequence(raters.map(_.rate(repo)))
 
-      indicators = HealthIndicators(repo, LocalDateTime.now(), ratings)
+      indicators = HealthIndicators(repo, Instant.now(), ratings)
     } yield indicators
 
   }

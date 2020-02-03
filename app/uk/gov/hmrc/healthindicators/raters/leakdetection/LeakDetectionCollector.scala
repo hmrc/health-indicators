@@ -22,7 +22,9 @@ import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class LeakDetectionCollector @Inject()(leakDetectionConnector: LeakDetectionConnector)(implicit val ec: ExecutionContext) extends Collector {
+class LeakDetectionCollector @Inject()(
+    leakDetectionConnector: LeakDetectionConnector
+  )(implicit val ec: ExecutionContext) extends Collector {
 
   implicit val hc: HeaderCarrier = HeaderCarrier()
 
