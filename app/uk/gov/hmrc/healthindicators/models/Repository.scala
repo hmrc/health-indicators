@@ -19,11 +19,10 @@ package uk.gov.hmrc.healthindicators.models
 import play.api.libs.json._
 
 case class Repository(
-    name: String
+  name: String
 )
 
 object Repository {
-
   val reads: Reads[Repository] = {
     (__ \ "name").read[String].map(Repository.apply)
   }

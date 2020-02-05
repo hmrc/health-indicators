@@ -23,15 +23,15 @@ import uk.gov.hmrc.http.HeaderCarrier
 import scala.concurrent.{ExecutionContext, Future}
 
 class ReadMeCollector @Inject()(
-    githubConnector: GithubConnector
-  )(implicit val ec: ExecutionContext) extends Collector {
+  githubConnector: GithubConnector
+)(implicit val ec: ExecutionContext)
+    extends Collector {
 
-  implicit val hc: HeaderCarrier = HeaderCarrier()
+  private implicit val hc = HeaderCarrier()
 
   override def rate(repo: String): Future[Rating] = validateReadMe(repo)
 
-  def validateReadMe(repo: String): Future[ReadMeRating] = {
-
+  def validateReadMe(repo: String): Future[ReadMeRating] =
     for {
       response <- githubConnector.findReadMe(repo)
 
@@ -39,23 +39,21 @@ class ReadMeCollector @Inject()(
         // No README 404
         case None =>
           ReadMeRating(
-            length  = 0
-            , message = "No README found"
+            length  = 0,
+            message = NoReadMe
           )
         // README Contains Default Text
         case Some(x) if x.contains("This is a placeholder README.md for a new repository") =>
           ReadMeRating(
-              length  = x.length
-            , message = "Default README found"
+            length  = x.length,
+            message = DefaultReadMe
           )
         // README Valid
         case Some(x) =>
           ReadMeRating(
-              length  = x.length
-            , message = "Valid README found"
+            length  = x.length,
+            message = ValidReadMe
           )
       }
     } yield result
-
-  }
 }

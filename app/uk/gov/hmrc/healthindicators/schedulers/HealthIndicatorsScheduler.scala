@@ -30,14 +30,13 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 @Singleton
 class HealthIndicatorsScheduler @Inject()(
-    healthIndicatorsService: HealthIndicatorsService
-  , config: SchedulerConfigs
-  , mongoLocks: MongoLocks
-  )(implicit actorSystem: ActorSystem
-  , applicationLifecycle: ApplicationLifecycle
-  ) extends SchedulerUtils {
+  healthIndicatorsService: HealthIndicatorsService,
+  config: SchedulerConfigs,
+  mongoLocks: MongoLocks
+)(implicit actorSystem: ActorSystem, applicationLifecycle: ApplicationLifecycle)
+    extends SchedulerUtils {
 
-  implicit val hc: HeaderCarrier = HeaderCarrier()
+  private implicit val hc = HeaderCarrier()
 
   scheduleWithLock("Health Indicators Reloader", config.healthIndicatorsScheduler, mongoLocks.healthIndicatorsMongoLock) {
 

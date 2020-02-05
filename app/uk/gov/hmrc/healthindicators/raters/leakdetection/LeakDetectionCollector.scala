@@ -19,41 +19,23 @@ package uk.gov.hmrc.healthindicators.raters.leakdetection
 import javax.inject.Inject
 import uk.gov.hmrc.healthindicators.models.{Collector, Rating}
 import uk.gov.hmrc.http.HeaderCarrier
+import cats.data.OptionT
+import cats.implicits._
 
 import scala.concurrent.{ExecutionContext, Future}
 
 class LeakDetectionCollector @Inject()(
-    leakDetectionConnector: LeakDetectionConnector
-  )(implicit val ec: ExecutionContext) extends Collector {
+  leakDetectionConnector: LeakDetectionConnector
+)(implicit val ec: ExecutionContext)
+    extends Collector {
 
-  implicit val hc: HeaderCarrier = HeaderCarrier()
+  private implicit val hc = HeaderCarrier()
 
   override def rate(repo: String): Future[Rating] = countLeakDetections(repo)
 
-  def countLeakDetections(repo: String): Future[LeakDetectionRating] = {
-
-    for {
-      report <- leakDetectionConnector.findLatestMasterReport(repo)
-
-      result = report match {
-        // Report Exists
-        case Some(x) => x.inspectionResults.length match {
-          // 0 Violations
-          case 0 =>
-            LeakDetectionRating(x.inspectionResults.length)
-          // 1 Violation
-          case 1 =>
-            LeakDetectionRating(x.inspectionResults.length)
-          // 2+ Violations
-          case _ =>
-            LeakDetectionRating(x.inspectionResults.length)
-        }
-
-        // No Report
-        case None =>
-          LeakDetectionRating(0)
-      }
-    } yield result
-
-  }
+  def countLeakDetections(repo: String): Future[LeakDetectionRating] =
+    OptionT(leakDetectionConnector.findLatestMasterReport(repo))
+      .map(_.inspectionResults.length)
+      .getOrElse(0)
+      .map(LeakDetectionRating(_))
 }

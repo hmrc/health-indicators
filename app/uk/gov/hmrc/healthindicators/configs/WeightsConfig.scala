@@ -33,6 +33,7 @@ class WeightsConfig @Inject()(configuration: Configuration) {
       } finally {
         stream.close()
       }
+
     json.as[Map[String, Double]]
   }
 }

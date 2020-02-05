@@ -21,17 +21,17 @@ import uk.gov.hmrc.healthindicators.raters.leakdetection.LeakDetectionRating
 import uk.gov.hmrc.healthindicators.raters.readme.ReadMeRating
 
 trait Rating {
-  def tpe           : String
+  def ratingType: String
   def calculateScore: Int
 }
 
 object Rating {
   val format: Format[Rating] with Object = new Format[Rating] {
-    implicit val rmf = ReadMeRating.format
-    implicit val ldf = LeakDetectionRating.format
+    implicit val rmF = ReadMeRating.format
+    implicit val ldF = LeakDetectionRating.format
 
     override def reads(json: JsValue): JsResult[Rating] = {
-      val k  = (json \ "_type").as[String]
+      val k = (json \ "type").as[String]
       k match {
         case "ReadMeRating"        => json.validate[ReadMeRating]
         case "LeakDetectionRating" => json.validate[LeakDetectionRating]
@@ -39,11 +39,10 @@ object Rating {
       }
     }
 
-    override def writes(o: Rating): JsValue = {
+    override def writes(o: Rating): JsValue =
       o match {
-        case r: ReadMeRating        => Json.toJsObject(r) + ("_type" -> Json.toJson("ReadMeRating"))
-        case r: LeakDetectionRating => Json.toJsObject(r) + ("_type" -> Json.toJson("LeakDetectionRating"))
+        case r: ReadMeRating        => Json.toJsObject(r) + ("type" -> Json.toJson("ReadMeRating"))
+        case r: LeakDetectionRating => Json.toJsObject(r) + ("type" -> Json.toJson("LeakDetectionRating"))
       }
-    }
   }
 }

@@ -26,21 +26,16 @@ import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class LeakDetectionConnector @Inject()(
-    httpClient: HttpClient
-  , healthIndicatorsConfig: HealthIndicatorsConfig
-  )(implicit val ec: ExecutionContext) {
+  httpClient: HttpClient,
+  healthIndicatorsConfig: HealthIndicatorsConfig
+)(implicit val ec: ExecutionContext) {
 
-  implicit val hc: HeaderCarrier = HeaderCarrier()
+  private implicit val hc = HeaderCarrier()
+
   private val leakDetectionBaseUrl: String = healthIndicatorsConfig.leakDetectionUrl
 
-  private implicit val repositoryFormats: Reads[Report] =
-    Report.reads
-
   def findLatestMasterReport(repo: String): Future[Option[Report]] = {
+    implicit val rF = Report.reads
     httpClient.GET[Option[Report]](leakDetectionBaseUrl + s"/api/reports/repositories/$repo")
-      .map {
-        case Some(x) => Some(Report(x.reportId, x.inspectionResults))
-        case None    => None
-      }
   }
 }

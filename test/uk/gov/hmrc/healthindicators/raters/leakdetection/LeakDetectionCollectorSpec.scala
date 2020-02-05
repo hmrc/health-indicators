@@ -28,7 +28,7 @@ import scala.concurrent.{Await, Future}
 class LeakDetectionCollectorSpec extends AnyWordSpec with Matchers with MockitoSugar {
 
   val mockLeakDetectionConnector = mock[LeakDetectionConnector]
-  val rater = new LeakDetectionCollector(mockLeakDetectionConnector)
+  val rater                      = new LeakDetectionCollector(mockLeakDetectionConnector)
 
   val reportLine = ReportLine("file-path", "scope", 1, "url-to-source", Some("rule-id"), "description", "line-text")
 
@@ -45,7 +45,8 @@ class LeakDetectionCollectorSpec extends AnyWordSpec with Matchers with MockitoS
     }
 
     "Return LeakDetectionRating Object with 100 Rating when a Report with 0 Results is found" in {
-      when(mockLeakDetectionConnector.findLatestMasterReport("foo")) thenReturn Future.successful(Some(Report("idx", Seq.empty)))
+      when(mockLeakDetectionConnector.findLatestMasterReport("foo")) thenReturn Future.successful(
+        Some(Report("idx", Seq.empty)))
 
       val result = rater.countLeakDetections("foo")
 
@@ -53,7 +54,8 @@ class LeakDetectionCollectorSpec extends AnyWordSpec with Matchers with MockitoS
     }
 
     "Return LeakDetectionRating Object with 50 Rating when a Report with 1 Result is found" in {
-      when(mockLeakDetectionConnector.findLatestMasterReport("foo")) thenReturn Future.successful(Some(Report("idx", Seq(reportLine))))
+      when(mockLeakDetectionConnector.findLatestMasterReport("foo")) thenReturn Future.successful(
+        Some(Report("idx", Seq(reportLine))))
 
       val result = rater.countLeakDetections("foo")
 
@@ -61,7 +63,8 @@ class LeakDetectionCollectorSpec extends AnyWordSpec with Matchers with MockitoS
     }
 
     "Return LeakDetectionRating Object with 0 Rating when a Report with 2+ Results is found" in {
-      when(mockLeakDetectionConnector.findLatestMasterReport("foo")) thenReturn Future.successful(Some(Report("idx", Seq(reportLine, reportLine, reportLine))))
+      when(mockLeakDetectionConnector.findLatestMasterReport("foo")) thenReturn Future.successful(
+        Some(Report("idx", Seq(reportLine, reportLine, reportLine))))
 
       val result = rater.countLeakDetections("foo")
 

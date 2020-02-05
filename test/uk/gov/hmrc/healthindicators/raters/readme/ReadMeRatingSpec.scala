@@ -21,9 +21,9 @@ import org.scalatest.wordspec.AnyWordSpec
 
 class ReadMeRatingSpec extends AnyWordSpec with Matchers {
 
-  val readMeRatingMissing = new ReadMeRating(0, "No README found")
-  val readMeRatingDefault = new ReadMeRating(220, "Default README found")
-  val readMeRatingValid   = new ReadMeRating(7265, "Valid README found")
+  val readMeRatingMissing = new ReadMeRating(0, NoReadMe)
+  val readMeRatingDefault = new ReadMeRating(220, DefaultReadMe)
+  val readMeRatingValid   = new ReadMeRating(7265, ValidReadMe)
 
   "calculate" should {
 

@@ -22,20 +22,18 @@ import play.api.libs.functional.syntax._
 import play.api.libs.json._
 
 case class HealthIndicators(
-    repo   : String
-  , date   : Instant
-  , ratings: Seq[Rating]
+  repo: String,
+  date: Instant,
+  ratings: Seq[Rating]
 )
 
 object HealthIndicators {
+  val mongoFormats: OFormat[HealthIndicators] = {
+    implicit val rF = Rating.format
+    implicit val iF = MongoJavatimeFormats.instantFormats
 
-   val mongoFormats: OFormat[HealthIndicators] = {
-      implicit val rF = Rating.format
-      implicit val iF = MongoJavatimeFormats.instantFormats
-      
-      ( (__ \ "repo"   ).format[String]
-      ~ (__ \ "date"   ).format[Instant]
-      ~ (__ \ "ratings").format[Seq[Rating]]
-      )(HealthIndicators.apply, unlift(HealthIndicators.unapply))
-   }
+    ((__ \ "repo").format[String]
+      ~ (__ \ "date").format[Instant]
+      ~ (__ \ "ratings").format[Seq[Rating]])(HealthIndicators.apply, unlift(HealthIndicators.unapply))
+  }
 }

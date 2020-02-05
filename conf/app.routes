@@ -1,3 +1,1 @@
-# microservice specific routes
-
 GET             /api/health-score/repository/:repo                 @uk.gov.hmrc.healthindicators.controllers.HealthIndicatorsController.indicatorsScoreForRepo(repo)

@@ -24,7 +24,7 @@ import org.scalatest.wordspec.AnyWordSpec
 import uk.gov.hmrc.healthindicators.configs.WeightsConfig
 import uk.gov.hmrc.healthindicators.models.HealthIndicators
 import uk.gov.hmrc.healthindicators.raters.leakdetection.LeakDetectionRating
-import uk.gov.hmrc.healthindicators.raters.readme.ReadMeRating
+import uk.gov.hmrc.healthindicators.raters.readme.{ReadMeRating, ValidReadMe}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -44,12 +44,14 @@ class WeightServiceSpec extends AnyWordSpec with Matchers with MockitoSugar {
       val result67  = weightService.weightedScore(TestData.healthIndicator67)
 
       result100 mustBe 100
-      result67  mustBe 67
+      result67 mustBe 67
     }
   }
 }
 
 object TestData {
-  val healthIndicator100 = HealthIndicators("foo", Instant.now(), Seq(ReadMeRating(5000, "Valid README found"), LeakDetectionRating(0)))
-  val healthIndicator67  = HealthIndicators("bar", Instant.now(), Seq(ReadMeRating(3000, "Valid README found"), LeakDetectionRating(4)))
+  val healthIndicator100 =
+    HealthIndicators("foo", Instant.now(), Seq(ReadMeRating(5000, ValidReadMe), LeakDetectionRating(0)))
+  val healthIndicator67 =
+    HealthIndicators("bar", Instant.now(), Seq(ReadMeRating(3000, ValidReadMe), LeakDetectionRating(4)))
 }

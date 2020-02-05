@@ -27,15 +27,12 @@ class WeightService @Inject()(weightsConfig: WeightsConfig)(implicit ec: Executi
 
   def weights: Map[String, Double] = weightsConfig.weightsLookup
 
-  def weightedScore(healthIndicators: HealthIndicators): Int = {
-    healthIndicators.ratings.map(r => applyWeight(r.tpe, r.calculateScore)).sum.ceil.toInt
-  }
+  def weightedScore(healthIndicators: HealthIndicators): Int =
+    healthIndicators.ratings.map(r => applyWeight(r.ratingType, r.calculateScore)).sum.ceil.toInt
 
-  def applyWeight(_type: String, score: Int): Double = {
+  def applyWeight(_type: String, score: Int): Double =
     (weights(_type) / weightsSum()) * score
-  }
 
-  def weightsSum(): Double = {
+  def weightsSum(): Double =
     weights.values.sum
-  }
 }
