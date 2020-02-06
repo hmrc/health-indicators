@@ -19,6 +19,7 @@ package uk.gov.hmrc.healthindicators.raters.readme
 import org.mockito.MockitoSugar
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpec
+import uk.gov.hmrc.healthindicators.raters.readme.ReadMeType.{DefaultReadMe, NoReadMe, ValidReadMe}
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -39,7 +40,7 @@ class ReadMeCollectorSpec extends AnyWordSpec with Matchers with MockitoSugar {
 
       val result = rater.validateReadMe("foo")
 
-      Await.result(result, 5 seconds) mustBe ReadMeRating(0, NoReadMe)
+      Await.result(result, 5 seconds) mustBe ReadMeRating(NoReadMe)
     }
 
     "Return ReadMeRating Object with 'Deafult README found message'" in {
@@ -47,7 +48,7 @@ class ReadMeCollectorSpec extends AnyWordSpec with Matchers with MockitoSugar {
 
       val result = rater.validateReadMe("foo")
 
-      Await.result(result, 5 seconds) mustBe ReadMeRating(TestData.readMeDeafult.length, DefaultReadMe)
+      Await.result(result, 5 seconds) mustBe ReadMeRating(DefaultReadMe)
     }
 
     "Return ReadMeRating Object with 'Valid README found message'" in {
@@ -55,7 +56,7 @@ class ReadMeCollectorSpec extends AnyWordSpec with Matchers with MockitoSugar {
 
       val result = rater.validateReadMe("foo")
 
-      Await.result(result, 5 seconds) mustBe ReadMeRating(25, ValidReadMe)
+      Await.result(result, 5 seconds) mustBe ReadMeRating(ValidReadMe)
     }
   }
 }

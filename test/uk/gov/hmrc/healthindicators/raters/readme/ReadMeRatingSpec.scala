@@ -18,25 +18,37 @@ package uk.gov.hmrc.healthindicators.raters.readme
 
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpec
+import play.api.libs.json.{JsString, JsSuccess, Json}
+import uk.gov.hmrc.healthindicators.raters.readme.ReadMeType.{DefaultReadMe, NoReadMe, ValidReadMe}
 
 class ReadMeRatingSpec extends AnyWordSpec with Matchers {
 
-  val readMeRatingMissing = new ReadMeRating(0, NoReadMe)
-  val readMeRatingDefault = new ReadMeRating(220, DefaultReadMe)
-  val readMeRatingValid   = new ReadMeRating(7265, ValidReadMe)
+  implicit val f = ReadMeType.format
 
-  "calculate" should {
-
-    "Return 0 when no README is found" in {
-      ReadMeRating.calculate(readMeRatingMissing) mustBe 0
+  "ReadMeType" should {
+    "Should parse NoReadMe" in {
+      JsString("NoReadMe").validate[ReadMeType] mustBe JsSuccess(NoReadMe)
     }
 
-    "Return 0 when default README is found" in {
-      ReadMeRating.calculate(readMeRatingDefault) mustBe 0
+    "Should parse DefaultReadMe" in {
+      JsString("DefaultReadMe").validate[ReadMeType] mustBe JsSuccess(DefaultReadMe)
     }
 
-    "Return 100 when valid README is found" in {
-      ReadMeRating.calculate(readMeRatingValid) mustBe 100
+    "Should parse ValidReadMe" in {
+      JsString("ValidReadMe").validate[ReadMeType] mustBe JsSuccess(ValidReadMe)
+    }
+
+    "Should write NoReadMe" in {
+      Json.toJson(NoReadMe) mustBe JsString("NoReadMe")
+    }
+
+    "Should write DefaultReadMe" in {
+      Json.toJson(DefaultReadMe) mustBe JsString("DefaultReadMe")
+    }
+
+    "Should write ValidReadMe" in {
+      Json.toJson(ValidReadMe) mustBe JsString("ValidReadMe")
     }
   }
+
 }
