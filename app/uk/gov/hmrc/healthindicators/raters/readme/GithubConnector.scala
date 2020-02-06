@@ -24,9 +24,9 @@ import uk.gov.hmrc.play.bootstrap.http.HttpClient
 import scala.concurrent.{ExecutionContext, Future}
 
 class GithubConnector @Inject()(
-    httpClient: HttpClient
-  , githubConfig: GithubConfig
-  )(implicit ec: ExecutionContext) {
+  httpClient: HttpClient,
+  githubConfig: GithubConfig
+)(implicit ec: ExecutionContext) {
 
   private val configKey = githubConfig.token
 
@@ -37,8 +37,7 @@ class GithubConnector @Inject()(
     implicit val hc: HeaderCarrier = HeaderCarrier().withExtraHeaders(("Authorization", s"token $configKey"))
 
     httpClient.GET[HttpResponse](url).map(r => Some(r.body))
+  }.recoverWith {
+    case e: NotFoundException => Future.successful(None)
   }
-    .recoverWith {
-      case e: NotFoundException => Future.successful(None)
-    }
 }

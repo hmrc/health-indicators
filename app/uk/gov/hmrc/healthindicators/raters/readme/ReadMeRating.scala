@@ -16,30 +16,60 @@
 
 package uk.gov.hmrc.healthindicators.raters.readme
 
-import uk.gov.hmrc.healthindicators.models.Rating
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
+import uk.gov.hmrc.healthindicators.models.{Rating, RatingType}
+import uk.gov.hmrc.healthindicators.raters.readme.ReadMeType.{DefaultReadMe, NoReadMe, ValidReadMe}
+
+sealed trait ReadMeType { def asString: String }
+
+object ReadMeType {
+
+  case object NoReadMe extends ReadMeType {
+    def asString = "NoReadMe"
+  }
+
+  case object DefaultReadMe extends ReadMeType {
+    def asString = "DefaultReadMe"
+  }
+
+  case object ValidReadMe extends ReadMeType {
+    def asString = "ValidReadMe"
+  }
+
+  private val values = Seq(NoReadMe, DefaultReadMe, ValidReadMe)
+
+  val format: Format[ReadMeType] = new Format[ReadMeType] {
+
+    override def reads(json: JsValue): JsResult[ReadMeType] =
+      json.validate[String].flatMap { s =>
+        values
+          .find(_.asString == s)
+          .fold[JsResult[ReadMeType]](JsError(s"Invalid Result: $s"))(v => JsSuccess(v))
+      }
+
+    override def writes(o: ReadMeType): JsValue =
+      Json.toJson(o.asString)
+  }
+}
 
 case class ReadMeRating(
-    length : Int
-  , message: String
-  ) extends Rating {
-  override def tpe: String = "ReadMeRating"
-  override def calculateScore: Int = ReadMeRating.calculate(this)
+  readMeType: ReadMeType
+) extends Rating {
+  override def ratingType: RatingType = RatingType.ReadMe
+  override def calculateScore: Int    = ReadMeRating.calculate(this.readMeType)
 }
 
 object ReadMeRating {
-  def calculate(readMeRating: ReadMeRating): Int = {
-    readMeRating.message match {
-      case "No README found"      => 0
-      case "Default README found" => 0
-      case "Valid README found"   => 100
+  def calculate(readMeType: ReadMeType): Int =
+    readMeType match {
+      case NoReadMe      => 0
+      case DefaultReadMe => 0
+      case ValidReadMe   => 100
     }
-  }
 
   val format: OFormat[ReadMeRating] = {
-    ( (__ \ "length" ).format[Int]
-    ~ (__ \ "message").format[String]
-    )(ReadMeRating.apply, unlift(ReadMeRating.unapply))
+    implicit val rmtF = ReadMeType.format
+    (__ \ "readMeType").format[ReadMeType].inmap(ReadMeRating.apply, unlift(ReadMeRating.unapply))
   }
 }

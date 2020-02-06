@@ -22,38 +22,38 @@ import play.api.Configuration
 import scala.concurrent.duration.FiniteDuration
 
 case class SchedulerConfig(
-   enabledKey  : String
- , enabled     : Boolean
- , frequency   : () => FiniteDuration
- , initialDelay: () => FiniteDuration
+  enabledKey: String,
+  enabled: Boolean,
+  frequency: () => FiniteDuration,
+  initialDelay: () => FiniteDuration
 )
 
 object SchedulerConfig {
 
   def apply(
-      configuration: Configuration
-    , enabledKey   : String
-    , frequency    : => FiniteDuration
-    , initialDelay : => FiniteDuration
+    configuration: Configuration,
+    enabledKey: String,
+    frequency:    => FiniteDuration,
+    initialDelay: => FiniteDuration
   ): SchedulerConfig =
-    SchedulerConfig (
-        enabledKey
-      , enabled      = configuration.get[Boolean](enabledKey)
-      , frequency    = () => frequency
-      , initialDelay = () => initialDelay
+    SchedulerConfig(
+      enabledKey,
+      enabled      = configuration.get[Boolean](enabledKey),
+      frequency    = () => frequency,
+      initialDelay = () => initialDelay
     )
 
   def apply(
-      configuration  : Configuration
-    , enabledKey     : String
-    , frequencyKey   : String
-    , initialDelayKey: String
+    configuration: Configuration,
+    enabledKey: String,
+    frequencyKey: String,
+    initialDelayKey: String
   ): SchedulerConfig =
-    SchedulerConfig (
-        enabledKey
-      , enabled      = configuration.get[Boolean](enabledKey)
-      , frequency    = () => configuration.get[FiniteDuration](frequencyKey)
-      , initialDelay = () => configuration.get[FiniteDuration](initialDelayKey)
+    SchedulerConfig(
+      enabledKey,
+      enabled      = configuration.get[Boolean](enabledKey),
+      frequency    = () => configuration.get[FiniteDuration](frequencyKey),
+      initialDelay = () => configuration.get[FiniteDuration](initialDelayKey)
     )
 }
 
@@ -61,9 +61,9 @@ object SchedulerConfig {
 class SchedulerConfigs @Inject()(configuration: Configuration) {
 
   val healthIndicatorsScheduler: SchedulerConfig = SchedulerConfig(
-      configuration
-    , enabledKey      = "healthindicators.refresh.enabled"
-    , frequencyKey    = "healthindicators.refresh.interval"
-    , initialDelayKey = "healthindicators.refresh.initialDelay"
+    configuration,
+    enabledKey      = "healthindicators.refresh.enabled",
+    frequencyKey    = "healthindicators.refresh.interval",
+    initialDelayKey = "healthindicators.refresh.initialDelay"
   )
 }

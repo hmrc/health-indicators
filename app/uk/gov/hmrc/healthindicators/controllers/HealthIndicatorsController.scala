@@ -26,9 +26,10 @@ import scala.concurrent.ExecutionContext
 
 @Singleton
 class HealthIndicatorsController @Inject()(
-    healthIndicatorsService: HealthIndicatorsService
-  , cc: ControllerComponents
-  )(implicit ec: ExecutionContext) extends BackendController(cc) {
+  healthIndicatorsService: HealthIndicatorsService,
+  cc: ControllerComponents
+)(implicit ec: ExecutionContext)
+    extends BackendController(cc) {
 
   def indicatorsScoreForRepo(repo: String): Action[AnyContent] = Action.async { implicit request =>
     for {

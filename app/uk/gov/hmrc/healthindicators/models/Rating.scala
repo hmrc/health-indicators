@@ -20,30 +20,59 @@ import play.api.libs.json._
 import uk.gov.hmrc.healthindicators.raters.leakdetection.LeakDetectionRating
 import uk.gov.hmrc.healthindicators.raters.readme.ReadMeRating
 
+sealed trait RatingType { def asString: String }
+
+object RatingType {
+  case object ReadMe extends RatingType {
+    def asString = "ReadMeRating"
+  }
+  case object LeakDetection extends RatingType {
+    def asString = "LeakDetectionRating"
+  }
+
+  private val values = Seq(ReadMe, LeakDetection)
+
+  def parse(s: String): Option[RatingType] =
+    values
+      .find(_.asString == s)
+
+  val format: Format[RatingType] = new Format[RatingType] {
+
+    override def reads(json: JsValue): JsResult[RatingType] =
+      json.validate[String].flatMap { s =>
+        parse(s)
+          .fold[JsResult[RatingType]](JsError(s"Invalid Rating: $s"))(v => JsSuccess(v))
+      }
+
+    override def writes(o: RatingType): JsValue =
+      Json.toJson(o.asString)
+  }
+}
+
 trait Rating {
-  def tpe           : String
+  def ratingType: RatingType
   def calculateScore: Int
 }
 
 object Rating {
-  val format: Format[Rating] with Object = new Format[Rating] {
-    implicit val rmf = ReadMeRating.format
-    implicit val ldf = LeakDetectionRating.format
+  val format: Format[Rating] = new Format[Rating] {
+    implicit val rtF = RatingType.format
+    implicit val rmF = ReadMeRating.format
+    implicit val ldF = LeakDetectionRating.format
 
-    override def reads(json: JsValue): JsResult[Rating] = {
-      val k  = (json \ "_type").as[String]
-      k match {
-        case "ReadMeRating"        => json.validate[ReadMeRating]
-        case "LeakDetectionRating" => json.validate[LeakDetectionRating]
-        case s                     => JsError(s"Invalid Rating: $s")
-      }
-    }
+    override def reads(json: JsValue): JsResult[Rating] =
+      (json \ "type")
+        .validate[RatingType]
+        .flatMap {
+          case RatingType.ReadMe        => json.validate[ReadMeRating]
+          case RatingType.LeakDetection => json.validate[LeakDetectionRating]
+          case s                        => JsError(s"Invalid Rating: $s")
+        }
 
-    override def writes(o: Rating): JsValue = {
+    override def writes(o: Rating): JsValue =
       o match {
-        case r: ReadMeRating        => Json.toJsObject(r) + ("_type" -> Json.toJson("ReadMeRating"))
-        case r: LeakDetectionRating => Json.toJsObject(r) + ("_type" -> Json.toJson("LeakDetectionRating"))
+        case r: ReadMeRating        => Json.toJsObject(r) + ("type" -> Json.toJson(r.ratingType))
+        case r: LeakDetectionRating => Json.toJsObject(r) + ("type" -> Json.toJson(r.ratingType))
       }
-    }
   }
 }

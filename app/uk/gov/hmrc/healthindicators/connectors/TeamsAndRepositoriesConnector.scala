@@ -17,7 +17,6 @@
 package uk.gov.hmrc.healthindicators.connectors
 
 import javax.inject.{Inject, Singleton}
-import play.api.libs.json.Reads
 import uk.gov.hmrc.healthindicators.configs.HealthIndicatorsConfig
 import uk.gov.hmrc.healthindicators.models.Repository
 import uk.gov.hmrc.http.HeaderCarrier
@@ -27,15 +26,14 @@ import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class TeamsAndRepositoriesConnector @Inject()(
-    httpClient: HttpClient
-  , healthIndicatorsConfig: HealthIndicatorsConfig
+  httpClient: HttpClient,
+  healthIndicatorsConfig: HealthIndicatorsConfig
 )(implicit val ec: ExecutionContext) {
 
   private val teamsAndRepositoriesBaseUrl: String = healthIndicatorsConfig.teamsAndRepositoriesUrl
 
-  private implicit val repositoryFormats: Reads[Repository] =
-    Repository.reads
-
-  def allRepositories(implicit hc: HeaderCarrier): Future[List[Repository]] =
+  def allRepositories(implicit hc: HeaderCarrier): Future[List[Repository]] = {
+    implicit val rF = Repository.reads
     httpClient.GET[List[Repository]](teamsAndRepositoriesBaseUrl + s"/api/repositories")
+  }
 }

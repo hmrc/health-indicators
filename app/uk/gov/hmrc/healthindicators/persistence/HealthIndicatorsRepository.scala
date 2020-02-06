@@ -28,34 +28,29 @@ import uk.gov.hmrc.mongo.play.json.PlayMongoCollection
 import scala.concurrent.{ExecutionContext, Future}
 
 class HealthIndicatorsRepository @Inject()(
-    mongoComponent: MongoComponent
-  )(implicit ec: ExecutionContext)
+  mongoComponent: MongoComponent
+)(implicit ec: ExecutionContext)
     extends PlayMongoCollection[HealthIndicators](
-    collectionName = "healthIndicators"
-  , mongoComponent = mongoComponent
-  , domainFormat   = HealthIndicators.mongoFormats
-  , indexes        = Seq(IndexModel(hashed("repo"), IndexOptions().background(true)))
-){
+      collectionName = "healthIndicators",
+      mongoComponent = mongoComponent,
+      domainFormat   = HealthIndicators.mongoFormats,
+      indexes        = Seq(IndexModel(hashed("repo"), IndexOptions().background(true)))
+    ) {
 
-  private implicit val hif = HealthIndicators.mongoFormats
-
-  def latestIndicators(repo: String): Future[Option[HealthIndicators]] = {
+  def latestIndicators(repo: String): Future[Option[HealthIndicators]] =
     collection
       .find(equal("repo", repo))
       .sort(descending("date"))
       .toFuture()
       .map(_.headOption)
-  }
 
-  def insertOne(healthIndicators: HealthIndicators): Future[Completed] = {
-    collection.
-      insertOne(
+  def insertOne(healthIndicators: HealthIndicators): Future[Completed] =
+    collection
+      .insertOne(
         healthIndicators
       )
       .toFuture()
-  }
 
-  def insert(seqHealthIndicators: Seq[HealthIndicators]): Future[Seq[Completed]] = {
+  def insert(seqHealthIndicators: Seq[HealthIndicators]): Future[Seq[Completed]] =
     Future.traverse(seqHealthIndicators)(insertOne)
-  }
 }

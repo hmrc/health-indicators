@@ -18,44 +18,31 @@ package uk.gov.hmrc.healthindicators.raters.readme
 
 import javax.inject.Inject
 import uk.gov.hmrc.healthindicators.models.{Collector, Rating}
-import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.healthindicators.raters.readme.ReadMeType.{DefaultReadMe, NoReadMe, ValidReadMe}
 
 import scala.concurrent.{ExecutionContext, Future}
 
 class ReadMeCollector @Inject()(
-    githubConnector: GithubConnector
-  )(implicit val ec: ExecutionContext) extends Collector {
-
-  implicit val hc: HeaderCarrier = HeaderCarrier()
+  githubConnector: GithubConnector
+)(implicit val ec: ExecutionContext)
+    extends Collector {
 
   override def rate(repo: String): Future[Rating] = validateReadMe(repo)
 
-  def validateReadMe(repo: String): Future[ReadMeRating] = {
-
+  def validateReadMe(repo: String): Future[ReadMeRating] =
     for {
       response <- githubConnector.findReadMe(repo)
 
-      result = response match {
+      readMeType = response match {
         // No README 404
-        case None =>
-          ReadMeRating(
-            length  = 0
-            , message = "No README found"
-          )
+        case None => NoReadMe
         // README Contains Default Text
         case Some(x) if x.contains("This is a placeholder README.md for a new repository") =>
-          ReadMeRating(
-              length  = x.length
-            , message = "Default README found"
-          )
+          DefaultReadMe
         // README Valid
-        case Some(x) =>
-          ReadMeRating(
-              length  = x.length
-            , message = "Valid README found"
-          )
+        case Some(x) => ValidReadMe
       }
-    } yield result
 
-  }
+      result = ReadMeRating(readMeType)
+    } yield result
 }

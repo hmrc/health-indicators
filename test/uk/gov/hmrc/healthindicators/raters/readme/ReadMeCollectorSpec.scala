@@ -19,6 +19,7 @@ package uk.gov.hmrc.healthindicators.raters.readme
 import org.mockito.MockitoSugar
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpec
+import uk.gov.hmrc.healthindicators.raters.readme.ReadMeType.{DefaultReadMe, NoReadMe, ValidReadMe}
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -28,40 +29,39 @@ import scala.concurrent.{Await, Future}
 class ReadMeCollectorSpec extends AnyWordSpec with Matchers with MockitoSugar {
 
   val mockGithubConnector = mock[GithubConnector]
-  val rater = new ReadMeCollector(mockGithubConnector)
+  val rater               = new ReadMeCollector(mockGithubConnector)
 
   implicit val hc = HeaderCarrier()
 
   "ReadMeRater" should {
 
     "Return ReadMeRating Object with 'No README found message'" in {
-      when(mockGithubConnector.findReadMe("foo")) thenReturn Future.successful(TestData.readMe404)
+      when(mockGithubConnector.findReadMe("foo")) thenReturn Future.successful(None)
 
       val result = rater.validateReadMe("foo")
 
-      Await.result(result, 5 seconds) mustBe ReadMeRating(0, "No README found")
+      Await.result(result, 5 seconds) mustBe ReadMeRating(NoReadMe)
     }
 
     "Return ReadMeRating Object with 'Deafult README found message'" in {
-      when(mockGithubConnector.findReadMe("foo")) thenReturn Future.successful(TestData.readMeDeafult)
+      when(mockGithubConnector.findReadMe("foo")) thenReturn Future.successful(Some(TestData.readMeDeafult))
 
       val result = rater.validateReadMe("foo")
 
-      Await.result(result, 5 seconds) mustBe ReadMeRating(52, "Default README found")
+      Await.result(result, 5 seconds) mustBe ReadMeRating(DefaultReadMe)
     }
 
     "Return ReadMeRating Object with 'Valid README found message'" in {
-      when(mockGithubConnector.findReadMe("foo")) thenReturn Future.successful(TestData.readMeValid)
+      when(mockGithubConnector.findReadMe("foo")) thenReturn Future.successful(Some(TestData.readMeValid))
 
       val result = rater.validateReadMe("foo")
 
-      Await.result(result, 5 seconds) mustBe ReadMeRating(25, "Valid README found")
+      Await.result(result, 5 seconds) mustBe ReadMeRating(ValidReadMe)
     }
   }
 }
 
 object TestData {
-  val readMe404     = None
-  val readMeDeafult = Some("This is a placeholder README.md for a new repository")
-  val readMeValid   = Some("This is a valid README.md")
+  val readMeDeafult = "This is a placeholder README.md for a new repository"
+  val readMeValid   = "This is a valid README.md"
 }

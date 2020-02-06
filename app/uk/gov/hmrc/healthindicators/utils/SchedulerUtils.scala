@@ -27,18 +27,19 @@ import scala.util.control.NonFatal
 
 trait SchedulerUtils {
   def schedule(
-      label          : String
-    , schedulerConfig: SchedulerConfig
+    label: String,
+    schedulerConfig: SchedulerConfig
   )(f: => Future[Unit])(
     implicit
-        actorSystem         : ActorSystem
-      , applicationLifecycle: ApplicationLifecycle
-      , ec                  : ExecutionContext
-    ): Unit = if (schedulerConfig.enabled) {
+    actorSystem: ActorSystem,
+    applicationLifecycle: ApplicationLifecycle,
+    ec: ExecutionContext
+  ): Unit =
+    if (schedulerConfig.enabled) {
 
       val initialDelay = schedulerConfig.initialDelay()
 
-      val frequency    = schedulerConfig.frequency()
+      val frequency = schedulerConfig.frequency()
       Logger.info(s"Enabling $label scheduler, running every $frequency (after initial delay $initialDelay)")
 
       val cancellable =
@@ -51,27 +52,31 @@ trait SchedulerUtils {
 
       applicationLifecycle.addStopHook(() => Future(cancellable.cancel()))
     } else {
-      Logger.info(s"$label scheduler is DISABLED. to enable, configure configure ${schedulerConfig.enabledKey}=true in config.")
+      Logger.info(
+        s"$label scheduler is DISABLED. to enable, configure configure ${schedulerConfig.enabledKey}=true in config.")
     }
 
   def scheduleWithLock(
-      label          : String
-    , schedulerConfig: SchedulerConfig
-    , lock           : MongoLockService
+    label: String,
+    schedulerConfig: SchedulerConfig,
+    lock: MongoLockService
   )(f: => Future[Unit])(
     implicit
-        actorSystem         : ActorSystem
-      , applicationLifecycle: ApplicationLifecycle
-      , ec                  : ExecutionContext
-    ): Unit = schedule(label, schedulerConfig) {
+    actorSystem: ActorSystem,
+    applicationLifecycle: ApplicationLifecycle,
+    ec: ExecutionContext
+  ): Unit = schedule(label, schedulerConfig) {
 
-      lock.attemptLockWithRelease(f).map {
+    lock
+      .attemptLockWithRelease(f)
+      .map {
         case Some(_) => Logger.debug(s"$label finished - releasing lock")
         case None    => Logger.debug(s"$label cannot run - lock ${lock.lockId} is taken... skipping update")
-      }.recover {
+      }
+      .recover {
         case NonFatal(e) => Logger.error(s"$label interrupted because: ${e.getMessage}", e)
       }
-    }
+  }
 }
 
 object SchedulerUtils extends SchedulerUtils

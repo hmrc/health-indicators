@@ -19,6 +19,8 @@ package uk.gov.hmrc.healthindicators.configs
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import play.api.Configuration
+import play.api.libs.json.{JsError, Json, __}
+import uk.gov.hmrc.healthindicators.models.RatingType
 
 class WeightsConfigSpec extends AnyWordSpec with Matchers {
 
@@ -29,7 +31,37 @@ class WeightsConfigSpec extends AnyWordSpec with Matchers {
       val weightsConfig =
         new WeightsConfig(Configuration("weights.config.path" -> "/config/test-config.json"))
 
-      weightsConfig.weightsLookup mustBe Map("test1" -> 1.0, "test2" -> 2.0)
+      weightsConfig.weightsLookup mustBe Map(RatingType.ReadMe -> 1.0, RatingType.LeakDetection -> 2.0)
+    }
+
+    implicit val wF = WeightsConfig.reads
+
+    "Return a JsError if trying to parse an invalid Double in Map" in {
+
+      Json
+        .parse(
+          """
+          {
+            "ReadMeRating": 1.0,
+            "LeakDetectionRating": "Test"
+          }
+          """
+        )
+        .validate[Map[RatingType, Double]] mustBe JsError(__ \ "LeakDetectionRating", "error.expected.jsnumber")
+    }
+
+    "Return a JsError if trying to parse an invalid Key in Map" in {
+
+      Json
+        .parse(
+          """
+          {
+            "Test": 1.0,
+            "LeakDetectionRating": 2.0
+          }
+          """
+        )
+        .validate[Map[RatingType, Double]] mustBe JsError(__, "Invalid Rating: Test")
     }
   }
 }
