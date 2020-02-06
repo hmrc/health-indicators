@@ -18,20 +18,18 @@ package uk.gov.hmrc.healthindicators.services
 
 import java.time.Instant
 
-import javax.inject.Inject
-import uk.gov.hmrc.healthindicators.models.{Collector, Collectors, HealthIndicators}
-import uk.gov.hmrc.http.HeaderCarrier
 import cats.implicits._
+import javax.inject.Inject
+import uk.gov.hmrc.healthindicators.models.{Collectors, HealthIndicators}
+import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class CollectorsService @Inject()(_raters: Collectors)(implicit val ec: ExecutionContext) {
-
-  private val raters: Seq[Collector] = _raters.raters
+class CollectorsService @Inject()(collectors: Collectors)(implicit val ec: ExecutionContext) {
 
   def repoRatings(repo: String)(implicit hc: HeaderCarrier): Future[HealthIndicators] =
     for {
-      ratings <- raters.toList.traverse(_.rate(repo))
+      ratings <- collectors.collect.toList.traverse(_.rate(repo))
       indicators = HealthIndicators(repo, Instant.now(), ratings)
     } yield indicators
 

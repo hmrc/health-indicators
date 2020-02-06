@@ -33,5 +33,5 @@ class Module() extends AbstractModule {
 @Singleton
 class CollectorsProvider @Inject()(readMeCollector: ReadMeCollector, leakDetectionCollector: LeakDetectionCollector)
     extends Collectors {
-  override def raters: Seq[Collector] = Seq(readMeCollector, leakDetectionCollector)
+  override def collect: Seq[Collector] = Seq(readMeCollector, leakDetectionCollector)
 }

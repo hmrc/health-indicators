@@ -23,5 +23,5 @@ trait Collector {
 }
 
 trait Collectors {
-  def raters: Seq[Collector]
+  def collect: Seq[Collector]
 }

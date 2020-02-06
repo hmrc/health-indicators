@@ -30,14 +30,17 @@ class WeightsConfig @Inject()(configuration: Configuration) {
 
   lazy val weightsLookup: Map[RatingType, Double] = {
     implicit val wF = reads
-    readJson("weights.config.path")
+    val path        = configuration.get[String]("weights.config.path")
+    readJson(path)
       .validate[Map[RatingType, Double]]
-      .getOrElse(sys.error("Invalid Json"))
+      .recoverTotal(e => sys.error(s"Invalid Json when reading from $path: $e"))
   }
+}
+
+object WeightsConfig {
 
   def readJson(path: String): JsValue = {
-    val weightsConfigFilePath = configuration.get[String](path)
-    val stream                = getClass.getResourceAsStream(weightsConfigFilePath)
+    val stream = getClass.getResourceAsStream(path)
 
     try {
       Json.parse(stream)
@@ -45,14 +48,11 @@ class WeightsConfig @Inject()(configuration: Configuration) {
       stream.close()
     }
   }
-}
-
-object WeightsConfig {
 
   val reads: Reads[Map[RatingType, Double]] = {
     implicit val rtF = RatingType.format
 
-    implicit val rtA: cats.Applicative[JsResult] = new Applicative[JsResult] {
+    implicit val rtA: Applicative[JsResult] = new Applicative[JsResult] {
       override def pure[A](x: A): JsResult[A] = JsSuccess(x)
 
       override def ap[A, B](ff: JsResult[A => B])(fa: JsResult[A]): JsResult[B] =
