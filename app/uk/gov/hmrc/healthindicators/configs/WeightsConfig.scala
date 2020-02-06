@@ -16,24 +16,62 @@
 
 package uk.gov.hmrc.healthindicators.configs
 
+import cats.Applicative
+import cats.implicits._
 import javax.inject.{Inject, Singleton}
 import play.api.Configuration
-import play.api.libs.json.Json
+import play.api.libs.json._
+import uk.gov.hmrc.healthindicators.models.RatingType
 
 @Singleton
 class WeightsConfig @Inject()(configuration: Configuration) {
 
-  lazy val weightsLookup: Map[String, Double] = {
-    val weightsConfigFilePath = configuration.get[String]("weights.config.path")
+  import WeightsConfig._
 
-    val stream = getClass.getResourceAsStream(weightsConfigFilePath)
-    val json =
-      try {
-        Json.parse(stream)
-      } finally {
-        stream.close()
-      }
+  lazy val weightsLookup: Map[RatingType, Double] = {
+    implicit val wF = reads
+    readJson("weights.config.path")
+      .validate[Map[RatingType, Double]]
+      .getOrElse(sys.error("Invalid Json"))
+  }
 
-    json.as[Map[String, Double]]
+  def readJson(path: String): JsValue = {
+    val weightsConfigFilePath = configuration.get[String](path)
+    val stream                = getClass.getResourceAsStream(weightsConfigFilePath)
+
+    try {
+      Json.parse(stream)
+    } finally {
+      stream.close()
+    }
+  }
+}
+
+object WeightsConfig {
+
+  val reads: Reads[Map[RatingType, Double]] = {
+    implicit val rtF = RatingType.format
+
+    implicit val rtA: cats.Applicative[JsResult] = new Applicative[JsResult] {
+      override def pure[A](x: A): JsResult[A] = JsSuccess(x)
+
+      override def ap[A, B](ff: JsResult[A => B])(fa: JsResult[A]): JsResult[B] =
+        (ff, fa) match {
+          case (JsSuccess(f, p), JsSuccess(a, _)) => JsSuccess(f(a), p)
+          case (e: JsError, _)                    => e
+          case (_, e: JsError)                    => e
+        }
+    }
+
+    Reads
+      .of[Map[String, Double]]
+      .flatMap(
+        m =>
+          Reads(_ =>
+            m.toList
+              .traverse {
+                case (k, v) => JsString(k).validate[RatingType].map((_, v))
+              }
+              .map(_.toMap)))
   }
 }

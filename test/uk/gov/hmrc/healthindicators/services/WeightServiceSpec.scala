@@ -21,26 +21,21 @@ import java.time.Instant
 import org.mockito.MockitoSugar
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpec
-import uk.gov.hmrc.healthindicators.configs.WeightsConfig
-import uk.gov.hmrc.healthindicators.models.HealthIndicators
+import uk.gov.hmrc.healthindicators.models.{HealthIndicators, RatingType}
 import uk.gov.hmrc.healthindicators.raters.leakdetection.LeakDetectionRating
 import uk.gov.hmrc.healthindicators.raters.readme.ReadMeRating
 import uk.gov.hmrc.healthindicators.raters.readme.ReadMeType.ValidReadMe
 
 class WeightServiceSpec extends AnyWordSpec with Matchers with MockitoSugar {
 
-  val mockWeightsConfig = mock[WeightsConfig]
-
-  val weightService = new WeightService(mockWeightsConfig)
-
   "weightedScore" should {
 
     "Return a Weighted Score based on Ratings and Weights" in {
 
-      when(mockWeightsConfig.weightsLookup) thenReturn Map("ReadMeRating" -> 2.0, "LeakDetectionRating" -> 1.0)
+      val weights = Map[RatingType, Double](RatingType.ReadMe -> 2.0, RatingType.LeakDetection -> 1.0)
 
-      val result100 = weightService.weightedScore(TestData.healthIndicator100)
-      val result67  = weightService.weightedScore(TestData.healthIndicator67)
+      val result100 = WeightService.weightedScoreInternal(weights)(TestData.healthIndicator100)
+      val result67  = WeightService.weightedScoreInternal(weights)(TestData.healthIndicator67)
 
       result100 mustBe 100
       result67 mustBe 67

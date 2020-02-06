@@ -26,27 +26,27 @@ class ReadMeRatingSpec extends AnyWordSpec with Matchers {
   implicit val f = ReadMeType.format
 
   "ReadMeType" should {
-    "Should parse NoReadMe" in {
+    "Parse NoReadMe" in {
       JsString("NoReadMe").validate[ReadMeType] mustBe JsSuccess(NoReadMe)
     }
 
-    "Should parse DefaultReadMe" in {
+    "Parse DefaultReadMe" in {
       JsString("DefaultReadMe").validate[ReadMeType] mustBe JsSuccess(DefaultReadMe)
     }
 
-    "Should parse ValidReadMe" in {
+    "Parse ValidReadMe" in {
       JsString("ValidReadMe").validate[ReadMeType] mustBe JsSuccess(ValidReadMe)
     }
 
-    "Should write NoReadMe" in {
+    "Write NoReadMe" in {
       Json.toJson(NoReadMe) mustBe JsString("NoReadMe")
     }
 
-    "Should write DefaultReadMe" in {
+    "Write DefaultReadMe" in {
       Json.toJson(DefaultReadMe) mustBe JsString("DefaultReadMe")
     }
 
-    "Should write ValidReadMe" in {
+    "Write ValidReadMe" in {
       Json.toJson(ValidReadMe) mustBe JsString("ValidReadMe")
     }
   }

@@ -32,12 +32,15 @@ object RatingType {
 
   private val values = Seq(ReadMe, LeakDetection)
 
+  def parse(s: String): Option[RatingType] =
+    values
+      .find(_.asString == s)
+
   val format: Format[RatingType] = new Format[RatingType] {
 
     override def reads(json: JsValue): JsResult[RatingType] =
       json.validate[String].flatMap { s =>
-        values
-          .find(_.asString == s)
+        parse(s)
           .fold[JsResult[RatingType]](JsError(s"Invalid Rating: $s"))(v => JsSuccess(v))
       }
 

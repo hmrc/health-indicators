@@ -17,7 +17,6 @@
 package uk.gov.hmrc.healthindicators.connectors
 
 import javax.inject.{Inject, Singleton}
-import play.api.libs.json.Reads
 import uk.gov.hmrc.healthindicators.configs.HealthIndicatorsConfig
 import uk.gov.hmrc.healthindicators.models.Repository
 import uk.gov.hmrc.http.HeaderCarrier

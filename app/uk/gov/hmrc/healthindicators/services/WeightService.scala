@@ -18,19 +18,20 @@ package uk.gov.hmrc.healthindicators.services
 
 import javax.inject.{Inject, Singleton}
 import uk.gov.hmrc.healthindicators.configs.WeightsConfig
-import uk.gov.hmrc.healthindicators.models.HealthIndicators
+import uk.gov.hmrc.healthindicators.models.{HealthIndicators, RatingType}
 
 @Singleton
 class WeightService @Inject()(weightsConfig: WeightsConfig) {
 
-  def weights: Map[String, Double] = weightsConfig.weightsLookup
-
   def weightedScore(healthIndicators: HealthIndicators): Int =
-    healthIndicators.ratings.map(r => applyWeight(r.ratingType.asString, r.calculateScore)).sum.ceil.toInt
+    WeightService.weightedScoreInternal(weightsConfig.weightsLookup)(healthIndicators)
+}
 
-  def applyWeight(ratingType: String, score: Int): Double =
-    (weights(ratingType) / weightsSum()) * score
+object WeightService {
 
-  def weightsSum(): Double =
-    weights.values.sum
+  def weightedScoreInternal(weights: Map[RatingType, Double])(healthIndicators: HealthIndicators): Int =
+    healthIndicators.ratings.map(r => applyWeight(weights)(r.ratingType, r.calculateScore)).sum.ceil.toInt
+
+  private def applyWeight(weights: Map[RatingType, Double])(ratingType: RatingType, score: Int): Double =
+    (weights(ratingType) / weights.values.sum) * score
 }
