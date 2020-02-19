@@ -70,8 +70,8 @@ trait SchedulerUtils {
     lock
       .attemptLockWithRelease(f)
       .map {
-        case Some(_) => Logger.debug(s"$label finished - releasing lock")
-        case None    => Logger.debug(s"$label cannot run - lock ${lock.lockId} is taken... skipping update")
+        case Some(_) => Logger.info(s"$label finished - releasing lock")
+        case None    => Logger.info(s"$label cannot run - lock ${lock.lockId} is taken... skipping update")
       }
       .recover {
         case NonFatal(e) => Logger.error(s"$label interrupted because: ${e.getMessage}", e)
