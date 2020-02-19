@@ -16,6 +16,8 @@
 
 package uk.gov.hmrc.healthindicators.services
 
+import java.util.concurrent.Executors
+
 import javax.inject.Inject
 import org.mongodb.scala.Completed
 import uk.gov.hmrc.healthindicators.connectors.TeamsAndRepositoriesConnector
@@ -31,7 +33,9 @@ class HealthIndicatorsService @Inject()(
   teamsAndRepositoriesConnector: TeamsAndRepositoriesConnector,
   ratingsService: CollectorsService,
   weightService: WeightService
-)(implicit val ec: ExecutionContext) {
+) {
+
+  implicit val ec: ExecutionContext = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(2))
 
   def repoScore(repo: String): Future[Option[Int]] =
     OptionT(repository.latestIndicators(repo))
