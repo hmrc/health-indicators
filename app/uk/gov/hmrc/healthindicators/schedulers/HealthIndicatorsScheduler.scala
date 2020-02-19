@@ -41,7 +41,9 @@ class HealthIndicatorsScheduler @Inject()(
   scheduleWithLock("Health Indicators Reloader", config.healthIndicatorsScheduler, mongoLocks.healthIndicatorsMongoLock) {
 
     for {
-      _ <- healthIndicatorsService.insertRatings
+      _ <- healthIndicatorsService.insertRatings.recover {
+            case e: Throwable => e.printStackTrace()
+          }
       _ = Logger.info("Finished inserting Health Indicators")
     } yield ()
 

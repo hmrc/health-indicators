@@ -17,7 +17,6 @@
 package uk.gov.hmrc.healthindicators.controllers
 
 import javax.inject.Inject
-import play.api.Logger
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import uk.gov.hmrc.healthindicators.services.HealthIndicatorsService
 import uk.gov.hmrc.http.HeaderCarrier
@@ -32,7 +31,9 @@ class AdminController @Inject()(healthIndicatorsService: HealthIndicatorsService
   implicit val hc = HeaderCarrier()
 
   def rerun(): Action[AnyContent] = Action.async {
-    healthIndicatorsService.insertRatings()
+    healthIndicatorsService.insertRatings().recover {
+      case e: Throwable => e.printStackTrace()
+    }
     Future.successful(Accepted)
   }
 }
