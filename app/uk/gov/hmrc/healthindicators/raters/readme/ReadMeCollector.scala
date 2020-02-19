@@ -17,6 +17,7 @@
 package uk.gov.hmrc.healthindicators.raters.readme
 
 import javax.inject.Inject
+import play.api.Logger
 import uk.gov.hmrc.healthindicators.models.{Collector, Rating}
 import uk.gov.hmrc.healthindicators.raters.readme.ReadMeType.{DefaultReadMe, NoReadMe, ValidReadMe}
 
@@ -27,7 +28,10 @@ class ReadMeCollector @Inject()(
 )(implicit val ec: ExecutionContext)
     extends Collector {
 
-  override def rate(repo: String): Future[Rating] = validateReadMe(repo)
+  override def rate(repo: String): Future[Rating] = {
+    Logger.info(s"Rating ReadMe for: $repo")
+    validateReadMe(repo)
+  }
 
   def validateReadMe(repo: String): Future[ReadMeRating] =
     for {

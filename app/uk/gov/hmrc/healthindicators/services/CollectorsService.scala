@@ -20,6 +20,7 @@ import java.time.Instant
 
 import cats.implicits._
 import javax.inject.Inject
+import play.api.Logger
 import uk.gov.hmrc.healthindicators.models.{Collectors, HealthIndicators}
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -27,10 +28,11 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class CollectorsService @Inject()(collectors: Collectors)(implicit val ec: ExecutionContext) {
 
-  def repoRatings(repo: String)(implicit hc: HeaderCarrier): Future[HealthIndicators] =
+  def repoRatings(repo: String)(implicit hc: HeaderCarrier): Future[HealthIndicators] = {
+    Logger.info(s"Rating Repository: $repo")
     for {
       ratings <- collectors.collect.toList.traverse(_.rate(repo))
       indicators = HealthIndicators(repo, Instant.now(), ratings)
     } yield indicators
-
+  }
 }

@@ -21,6 +21,7 @@ import uk.gov.hmrc.healthindicators.models.{Collector, Rating}
 import uk.gov.hmrc.http.HeaderCarrier
 import cats.data.OptionT
 import cats.implicits._
+import play.api.Logger
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -31,7 +32,10 @@ class LeakDetectionCollector @Inject()(
 
   private implicit val hc = HeaderCarrier()
 
-  override def rate(repo: String): Future[Rating] = countLeakDetections(repo)
+  override def rate(repo: String): Future[Rating] = {
+    Logger.info(s"Rating LeakDetection for: $repo")
+    countLeakDetections(repo)
+  }
 
   def countLeakDetections(repo: String): Future[LeakDetectionRating] =
     OptionT(leakDetectionConnector.findLatestMasterReport(repo))
