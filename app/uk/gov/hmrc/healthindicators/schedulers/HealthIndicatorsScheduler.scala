@@ -42,7 +42,7 @@ class HealthIndicatorsScheduler @Inject()(
 
     for {
       _ <- healthIndicatorsService.insertRatings.recover {
-            case e: Throwable => e.printStackTrace()
+            case e: Throwable => Logger.error("Error inserting Health Indicators", e)
           }
       _ = Logger.info("Finished inserting Health Indicators")
     } yield ()
