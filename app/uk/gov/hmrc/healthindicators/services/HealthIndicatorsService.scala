@@ -25,6 +25,7 @@ import uk.gov.hmrc.healthindicators.persistence.HealthIndicatorsRepository
 import uk.gov.hmrc.http.HeaderCarrier
 import cats.data.OptionT
 import cats.implicits._
+import uk.gov.hmrc.healthindicators.models.HealthIndicators
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -33,9 +34,7 @@ class HealthIndicatorsService @Inject()(
   teamsAndRepositoriesConnector: TeamsAndRepositoriesConnector,
   ratingsService: CollectorsService,
   weightService: WeightService
-) {
-
-  implicit val ec: ExecutionContext = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(2))
+)(implicit val ec: ExecutionContext) {
 
   def repoScore(repo: String): Future[Option[Int]] =
     OptionT(repository.latestIndicators(repo))
@@ -44,8 +43,9 @@ class HealthIndicatorsService @Inject()(
 
   def insertRatings()(implicit hc: HeaderCarrier): Future[Seq[Completed]] =
     for {
-      repos   <- teamsAndRepositoriesConnector.allRepositories
-      ratings <- repos.traverse(r => ratingsService.repoRatings(r.name))
-      insert  <- repository.insert(ratings)
+      repos <- teamsAndRepositoriesConnector.allRepositories
+      ratings <- repos.foldLeftM(List.empty[HealthIndicators])((acc, r) =>
+                  ratingsService.repoRatings(r.name).map(acc :+ _))
+      insert <- repository.insert(ratings)
     } yield insert
 }
