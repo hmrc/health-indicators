@@ -26,15 +26,16 @@ import org.mongodb.scala.model.Aggregates._
 import org.mongodb.scala.model.Filters.{equal, gt}
 import org.mongodb.scala.model.Indexes._
 import org.mongodb.scala.model.{IndexModel, IndexOptions}
+import uk.gov.hmrc.healthindicators.configs.SchedulerConfigs
 import uk.gov.hmrc.healthindicators.models.HealthIndicators
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.PlayMongoCollection
-import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats
 
 import scala.concurrent.{ExecutionContext, Future}
 
 class HealthIndicatorsRepository @Inject()(
-  mongoComponent: MongoComponent
+  mongoComponent: MongoComponent,
+  config: SchedulerConfigs
 )(implicit ec: ExecutionContext)
     extends PlayMongoCollection[HealthIndicators](
       collectionName = "healthIndicators",
@@ -54,7 +55,8 @@ class HealthIndicatorsRepository @Inject()(
 
   def latestIndicatorsAllRepos(): Future[Seq[HealthIndicators]] = {
     val agg = List(
-      `match`(gt("date", Instant.now.minus(48, ChronoUnit.HOURS))),
+      `match`(
+        gt("date", Instant.now.minus(2 * config.healthIndicatorsScheduler.frequency().toMillis, ChronoUnit.MILLIS))),
       sort(descending("date")),
       group("$repo", first("obj", "$$ROOT")),
       replaceRoot("$obj")
@@ -65,13 +67,10 @@ class HealthIndicatorsRepository @Inject()(
       .toFuture()
   }
 
-  def insertOne(healthIndicators: HealthIndicators): Future[Completed] =
+  def insert(healthIndicators: HealthIndicators): Future[Completed] =
     collection
       .insertOne(
         healthIndicators
       )
       .toFuture()
-
-  def insert(seqHealthIndicators: Seq[HealthIndicators]): Future[Seq[Completed]] =
-    Future.traverse(seqHealthIndicators)(insertOne)
 }
