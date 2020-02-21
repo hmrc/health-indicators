@@ -37,4 +37,11 @@ class HealthIndicatorsController @Inject()(
       result = score.map(s => Ok(Json.toJson(s))).getOrElse(NotFound)
     } yield result
   }
+
+  def indicatorsScoresAllRepos(): Action[AnyContent] = Action.async { implicit request =>
+    for {
+      mapScores <- healthIndicatorsService.repoScoreAllRepos()
+      result = Ok(Json.toJson(mapScores))
+    } yield result
+  }
 }
