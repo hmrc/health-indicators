@@ -16,14 +16,20 @@
 
 package uk.gov.hmrc.healthindicators.persistence
 
+import java.time.Instant
+import java.time.temporal.ChronoUnit
+
 import javax.inject.Inject
 import org.mongodb.scala.Completed
-import org.mongodb.scala.model.Filters.equal
+import org.mongodb.scala.model.Accumulators._
+import org.mongodb.scala.model.Aggregates._
+import org.mongodb.scala.model.Filters.{equal, gt}
 import org.mongodb.scala.model.Indexes._
 import org.mongodb.scala.model.{IndexModel, IndexOptions}
 import uk.gov.hmrc.healthindicators.models.HealthIndicators
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.PlayMongoCollection
+import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -34,7 +40,9 @@ class HealthIndicatorsRepository @Inject()(
       collectionName = "healthIndicators",
       mongoComponent = mongoComponent,
       domainFormat   = HealthIndicators.mongoFormats,
-      indexes        = Seq(IndexModel(hashed("repo"), IndexOptions().background(true)))
+      indexes = Seq(
+        IndexModel(hashed("repo"), IndexOptions().background(true)),
+        IndexModel(descending("date"), IndexOptions().background(true)))
     ) {
 
   def latestIndicators(repo: String): Future[Option[HealthIndicators]] =
@@ -43,6 +51,19 @@ class HealthIndicatorsRepository @Inject()(
       .sort(descending("date"))
       .toFuture()
       .map(_.headOption)
+
+  def latestIndicatorsAllRepos(): Future[Seq[HealthIndicators]] = {
+    val agg = List(
+      `match`(gt("date", Instant.now.minus(48, ChronoUnit.HOURS))),
+      sort(descending("date")),
+      group("$repo", first("obj", "$$ROOT")),
+      replaceRoot("$obj")
+    )
+
+    collection
+      .aggregate(agg)
+      .toFuture()
+  }
 
   def insertOne(healthIndicators: HealthIndicators): Future[Completed] =
     collection

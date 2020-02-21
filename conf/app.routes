@@ -1,3 +1,4 @@
-GET             /api/health-score/repository/:repo                 @uk.gov.hmrc.healthindicators.controllers.HealthIndicatorsController.indicatorsScoreForRepo(repo)
+GET             /api/health-score/repositories/:repo               @uk.gov.hmrc.healthindicators.controllers.HealthIndicatorsController.indicatorsScoreForRepo(repo)
+GET             /api/health-score/repositories                     @uk.gov.hmrc.healthindicators.controllers.HealthIndicatorsController.indicatorsScoresAllRepos()
 
 POST            /admin/rerun                                       @uk.gov.hmrc.healthindicators.controllers.AdminController.rerun

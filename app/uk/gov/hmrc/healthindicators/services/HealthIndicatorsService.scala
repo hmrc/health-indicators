@@ -16,16 +16,14 @@
 
 package uk.gov.hmrc.healthindicators.services
 
-import java.util.concurrent.Executors
-
+import cats.data.OptionT
+import cats.implicits._
 import javax.inject.Inject
 import org.mongodb.scala.Completed
 import uk.gov.hmrc.healthindicators.connectors.TeamsAndRepositoriesConnector
+import uk.gov.hmrc.healthindicators.models.HealthIndicators
 import uk.gov.hmrc.healthindicators.persistence.HealthIndicatorsRepository
 import uk.gov.hmrc.http.HeaderCarrier
-import cats.data.OptionT
-import cats.implicits._
-import uk.gov.hmrc.healthindicators.models.HealthIndicators
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -40,6 +38,12 @@ class HealthIndicatorsService @Inject()(
     OptionT(repository.latestIndicators(repo))
       .map(weightService.weightedScore)
       .value
+
+  def repoScoreAllRepos(): Future[Seq[Map[String, Int]]] =
+    for {
+      indicators <- repository.latestIndicatorsAllRepos()
+      scores = indicators.map(h => Map(h.repo -> weightService.weightedScore(h)))
+    } yield scores
 
   def insertRatings()(implicit hc: HeaderCarrier): Future[Seq[Completed]] =
     for {
