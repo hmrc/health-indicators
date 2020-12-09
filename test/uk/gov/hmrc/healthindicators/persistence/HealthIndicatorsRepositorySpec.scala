@@ -25,7 +25,7 @@ import org.mongodb.scala.model.IndexModel
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import uk.gov.hmrc.healthindicators.models.HealthIndicators
-import uk.gov.hmrc.mongo.test.DefaultMongoCollectionSupport
+import uk.gov.hmrc.mongo.test.DefaultPlayMongoRepositorySupport
 import cats.implicits._
 import play.api.Configuration
 import uk.gov.hmrc.healthindicators.configs.SchedulerConfigs
@@ -37,7 +37,7 @@ class HealthIndicatorsRepositorySpec
     extends AnyWordSpec
     with Matchers
     with MockitoSugar
-    with DefaultMongoCollectionSupport {
+    with DefaultPlayMongoRepositorySupport[HealthIndicators] {
 
   val config = Configuration(
     "healthindicators.refresh.enabled"      -> "false",
@@ -47,21 +47,15 @@ class HealthIndicatorsRepositorySpec
 
   val schedulerConfigs = new SchedulerConfigs(config)
 
-  private lazy val repo = new HealthIndicatorsRepository(mongoComponent, schedulerConfigs) {
-    def findAll(): Future[Seq[HealthIndicators]] =
-      collection.withReadPreference(ReadPreference.secondaryPreferred).find().toFuture().map(_.toList)
-  }
-
-  override protected def collectionName: String   = repo.collectionName
-  override protected def indexes: Seq[IndexModel] = repo.indexes
+  override protected val repository = new HealthIndicatorsRepository(mongoComponent, schedulerConfigs)
 
   "HealthIndicatorsRepository.insert" should {
 
     val healthIndicators = HealthIndicators("test", Instant.now, Seq.empty)
 
     "insert correctly" in {
-      repo.insert(healthIndicators)
-      repo.findAll().futureValue mustBe Seq(healthIndicators)
+      repository.insert(healthIndicators)
+      repository.findAll().futureValue mustBe Seq(healthIndicators)
     }
   }
 
@@ -72,13 +66,13 @@ class HealthIndicatorsRepositorySpec
     val oldest = HealthIndicators("test", Instant.now.minus(2, ChronoUnit.DAYS), Seq.empty)
 
     "return the latest indicators for repo" in {
-      List(latest, older, oldest).traverse(repo.insert).futureValue
-      repo.latestIndicators("test").futureValue mustBe Some(latest)
+      List(latest, older, oldest).traverse(repository.insert).futureValue
+      repository.latestIndicators("test").futureValue mustBe Some(latest)
     }
 
     "return none if no indicators are found for repo" in {
-      List(latest, older, oldest).traverse(repo.insert).futureValue
-      repo.latestIndicators("notfound").futureValue mustBe None
+      List(latest, older, oldest).traverse(repository.insert).futureValue
+      repository.latestIndicators("notfound").futureValue mustBe None
     }
   }
 
@@ -93,8 +87,8 @@ class HealthIndicatorsRepositorySpec
     val barOldest = HealthIndicators("bar", Instant.now.minus(2, ChronoUnit.DAYS), Seq.empty)
 
     "return the latest indicators for all repos" in {
-      List(fooLatest, fooOlder, fooOldest, barLatest, barOlder, barOldest).traverse(repo.insert).futureValue
-      repo.latestIndicatorsAllRepos().futureValue must contain theSameElementsAs Seq(fooLatest, barLatest)
+      List(fooLatest, fooOlder, fooOldest, barLatest, barOlder, barOldest).traverse(repository.insert).futureValue
+      repository.latestIndicatorsAllRepos().futureValue must contain theSameElementsAs Seq(fooLatest, barLatest)
     }
   }
 }
