@@ -16,24 +16,14 @@
 
 package uk.gov.hmrc.healthindicators.models
 
-import java.time.Instant
-import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats
-import play.api.libs.functional.syntax._
 import play.api.libs.json._
 
-case class HealthIndicators(
-  repo: String,
-  date: Instant,
-  ratings: Seq[Rating]
+case class TeamsAndRepos(
+  name: String
 )
 
-object HealthIndicators {
-  val mongoFormats: OFormat[HealthIndicators] = {
-    implicit val rF = Rating.format
-    implicit val iF = MongoJavatimeFormats.instantFormats
-
-    ((__ \ "repo").format[String]
-      ~ (__ \ "date").format[Instant]
-      ~ (__ \ "ratings").format[Seq[Rating]])(HealthIndicators.apply, unlift(HealthIndicators.unapply))
+object TeamsAndRepos {
+  val reads: Reads[TeamsAndRepos] = {
+    (__ \ "name").read[String].map(TeamsAndRepos.apply)
   }
 }

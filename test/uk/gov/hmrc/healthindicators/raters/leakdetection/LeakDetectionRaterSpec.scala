@@ -25,10 +25,10 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
 
-class LeakDetectionCollectorSpec extends AnyWordSpec with Matchers with MockitoSugar {
+class LeakDetectionRaterSpec extends AnyWordSpec with Matchers with MockitoSugar {
 
   val mockLeakDetectionConnector = mock[LeakDetectionConnector]
-  val rater                      = new LeakDetectionCollector(mockLeakDetectionConnector)
+  val rater                      = new LeakDetectionRater(mockLeakDetectionConnector)
 
   val reportLine = ReportLine("file-path", "scope", 1, "url-to-source", Some("rule-id"), "description", "line-text")
 

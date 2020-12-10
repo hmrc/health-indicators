@@ -25,5 +25,5 @@ import scala.concurrent.duration._
 @Singleton
 class MongoLocks @Inject()(mongoLockRepository: MongoLockRepository)(implicit ec: ExecutionContext) {
 
-  val healthIndicatorsMongoLock = mongoLockRepository.toService("health-indicators-lock", 1.hour)
+  val repoRatingsMongoLock = mongoLockRepository.toService("repo-ratings-lock", 1.hour)
 }

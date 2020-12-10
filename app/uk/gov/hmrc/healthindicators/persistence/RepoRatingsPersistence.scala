@@ -26,36 +26,36 @@ import org.mongodb.scala.model.Filters.{equal, gt}
 import org.mongodb.scala.model.Indexes._
 import org.mongodb.scala.model.{IndexModel, IndexOptions}
 import uk.gov.hmrc.healthindicators.configs.SchedulerConfigs
-import uk.gov.hmrc.healthindicators.models.HealthIndicators
+import uk.gov.hmrc.healthindicators.models.RepoRatings
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class HealthIndicatorsRepository @Inject()(
+class RepoRatingsPersistence @Inject()(
   mongoComponent: MongoComponent,
   config: SchedulerConfigs
 )(implicit ec: ExecutionContext)
-    extends PlayMongoRepository[HealthIndicators](
-      collectionName = "healthIndicators",
+    extends PlayMongoRepository[RepoRatings](
+      collectionName = "repoRatings",
       mongoComponent = mongoComponent,
-      domainFormat   = HealthIndicators.mongoFormats,
+      domainFormat   = RepoRatings.mongoFormats,
       indexes = Seq(
         IndexModel(hashed("repo"), IndexOptions().background(true)),
         IndexModel(descending("date"), IndexOptions().background(true)))
     ) {
 
-  def latestIndicators(repo: String): Future[Option[HealthIndicators]] =
+  def latestRatingsForRepo(repo: String): Future[Option[RepoRatings]] =
     collection
       .find(equal("repo", repo))
       .sort(descending("date"))
       .toFuture()
       .map(_.headOption)
 
-  def latestIndicatorsAllRepos(): Future[Seq[HealthIndicators]] = {
+  def latestRatings(): Future[Seq[RepoRatings]] = {
     val agg = List(
       `match`(
-        gt("date", Instant.now.minus(2 * config.healthIndicatorsScheduler.frequency().toMillis, ChronoUnit.MILLIS))),
+        gt("date", Instant.now.minus(2 * config.repoRatingsScheduler.frequency().toMillis, ChronoUnit.MILLIS))),
       sort(descending("date")),
       group("$repo", first("obj", "$$ROOT")),
       replaceRoot("$obj")
@@ -66,14 +66,14 @@ class HealthIndicatorsRepository @Inject()(
       .toFuture()
   }
 
-  def insert(healthIndicators: HealthIndicators): Future[Unit] =
+  def insert(repoRatings: RepoRatings): Future[Unit] =
     collection
       .insertOne(
-        healthIndicators
+        repoRatings
       )
       .toFuture()
       .map(_ => ())
 
-  def findAll(): Future[Seq[HealthIndicators]] =
+  def findAll(): Future[Seq[RepoRatings]] =
     collection.find().toFuture().map(_.toList)
 }

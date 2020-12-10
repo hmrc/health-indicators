@@ -19,37 +19,25 @@ package uk.gov.hmrc.healthindicators.services
 import cats.data.OptionT
 import cats.implicits._
 import javax.inject.Inject
-import uk.gov.hmrc.healthindicators.connectors.TeamsAndRepositoriesConnector
-import uk.gov.hmrc.healthindicators.persistence.HealthIndicatorsRepository
-import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.healthindicators.persistence.RepoRatingsPersistence
+
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class HealthIndicatorsService @Inject()(
-  repository: HealthIndicatorsRepository,
-  teamsAndRepositoriesConnector: TeamsAndRepositoriesConnector,
-  ratingsService: CollectorsService,
-  weightService: WeightService
-)(implicit val ec: ExecutionContext) {
+class WeightedRepoScorerService @Inject()(repository: RepoRatingsPersistence,
+                                          weightService: WeightService)(implicit val ec: ExecutionContext) {
+
 
   def repoScore(repo: String): Future[Option[Int]] =
-    OptionT(repository.latestIndicators(repo))
+    OptionT(repository.latestRatingsForRepo(repo))
       .map(weightService.weightedScore)
       .value
 
   def repoScoreAllRepos(): Future[Map[String, Int]] =
     for {
-      indicators <- repository.latestIndicatorsAllRepos()
+      indicators <- repository.latestRatings()
       scores = indicators.map(h => (h.repo, weightService.weightedScore(h))).toMap
     } yield scores
 
-  def insertRatings()(implicit hc: HeaderCarrier): Future[Unit] =
-    for {
-      repos <- teamsAndRepositoriesConnector.allRepositories
-      _ <- repos.foldLeftM(())((_, r) =>
-            for {
-              indicators <- ratingsService.repoRatings(r.name)
-              _          <- repository.insert(indicators)
-            } yield ())
-    } yield ()
+
 }

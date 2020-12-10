@@ -21,7 +21,7 @@ import java.time.Instant
 import org.mockito.MockitoSugar
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpec
-import uk.gov.hmrc.healthindicators.models.{HealthIndicators, RatingType}
+import uk.gov.hmrc.healthindicators.models.{RepoRatings, RatingType}
 import uk.gov.hmrc.healthindicators.raters.leakdetection.LeakDetectionRating
 import uk.gov.hmrc.healthindicators.raters.readme.ReadMeRating
 import uk.gov.hmrc.healthindicators.raters.readme.ReadMeType.ValidReadMe
@@ -45,7 +45,7 @@ class WeightServiceSpec extends AnyWordSpec with Matchers with MockitoSugar {
 
 object TestData {
   val healthIndicator100 =
-    HealthIndicators("foo", Instant.now(), Seq(ReadMeRating(ValidReadMe), LeakDetectionRating(0)))
+    RepoRatings("foo", Instant.now(), Seq(ReadMeRating(ValidReadMe), LeakDetectionRating(0)))
   val healthIndicator67 =
-    HealthIndicators("bar", Instant.now(), Seq(ReadMeRating(ValidReadMe), LeakDetectionRating(4)))
+    RepoRatings("bar", Instant.now(), Seq(ReadMeRating(ValidReadMe), LeakDetectionRating(4)))
 }

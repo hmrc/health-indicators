@@ -26,6 +26,9 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.util.control.NonFatal
 
 trait SchedulerUtils {
+
+  private val logger = Logger(this.getClass)
+
   def schedule(
     label: String,
     schedulerConfig: SchedulerConfig
@@ -40,19 +43,19 @@ trait SchedulerUtils {
       val initialDelay = schedulerConfig.initialDelay()
 
       val frequency = schedulerConfig.frequency()
-      Logger.info(s"Enabling $label scheduler, running every $frequency (after initial delay $initialDelay)")
+      logger.info(s"Enabling $label scheduler, running every $frequency (after initial delay $initialDelay)")
 
       val cancellable =
         actorSystem.scheduler.schedule(initialDelay, frequency) {
-          Logger.info(s"Running $label scheduler")
+          logger.info(s"Running $label scheduler")
           f.recover {
-            case e => Logger.error(s"$label interrupted because: ${e.getMessage}", e)
+            case e => logger.error(s"$label interrupted because: ${e.getMessage}", e)
           }
         }
 
       applicationLifecycle.addStopHook(() => Future(cancellable.cancel()))
     } else {
-      Logger.info(
+      logger.info(
         s"$label scheduler is DISABLED. to enable, configure configure ${schedulerConfig.enabledKey}=true in config.")
     }
 
@@ -70,11 +73,11 @@ trait SchedulerUtils {
     lock
       .attemptLockWithRelease(f)
       .map {
-        case Some(_) => Logger.info(s"$label finished - releasing lock")
-        case None    => Logger.info(s"$label cannot run - lock ${lock.lockId} is taken... skipping update")
+        case Some(_) => logger.info(s"$label finished - releasing lock")
+        case None    => logger.info(s"$label cannot run - lock ${lock.lockId} is taken... skipping update")
       }
       .recover {
-        case NonFatal(e) => Logger.error(s"$label interrupted because: ${e.getMessage}", e)
+        case NonFatal(e) => logger.error(s"$label interrupted because: ${e.getMessage}", e)
       }
   }
 }

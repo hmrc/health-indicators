@@ -18,10 +18,10 @@ package uk.gov.hmrc.healthindicators.models
 
 import scala.concurrent.Future
 
-trait Collector {
+trait Rater {
   def rate(repo: String): Future[Rating]
 }
 
-trait Collectors {
-  def collect: Seq[Collector]
+trait Raters {
+  def allRaters: Seq[Rater]
 }
