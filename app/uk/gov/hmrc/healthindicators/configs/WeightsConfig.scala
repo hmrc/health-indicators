@@ -49,6 +49,7 @@ object WeightsConfig {
     }
   }
 
+  //TODO Delete this and understand what is going on. Hard code weights for now
   val reads: Reads[Map[RatingType, Double]] = {
     implicit val rtF = RatingType.format
 

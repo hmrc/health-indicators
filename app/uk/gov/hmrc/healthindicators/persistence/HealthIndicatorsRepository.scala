@@ -20,7 +20,6 @@ import java.time.Instant
 import java.time.temporal.ChronoUnit
 
 import javax.inject.Inject
-import org.mongodb.scala.Completed
 import org.mongodb.scala.model.Accumulators._
 import org.mongodb.scala.model.Aggregates._
 import org.mongodb.scala.model.Filters.{equal, gt}
@@ -29,7 +28,7 @@ import org.mongodb.scala.model.{IndexModel, IndexOptions}
 import uk.gov.hmrc.healthindicators.configs.SchedulerConfigs
 import uk.gov.hmrc.healthindicators.models.HealthIndicators
 import uk.gov.hmrc.mongo.MongoComponent
-import uk.gov.hmrc.mongo.play.json.PlayMongoCollection
+import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -37,7 +36,7 @@ class HealthIndicatorsRepository @Inject()(
   mongoComponent: MongoComponent,
   config: SchedulerConfigs
 )(implicit ec: ExecutionContext)
-    extends PlayMongoCollection[HealthIndicators](
+    extends PlayMongoRepository[HealthIndicators](
       collectionName = "healthIndicators",
       mongoComponent = mongoComponent,
       domainFormat   = HealthIndicators.mongoFormats,
@@ -67,10 +66,14 @@ class HealthIndicatorsRepository @Inject()(
       .toFuture()
   }
 
-  def insert(healthIndicators: HealthIndicators): Future[Completed] =
+  def insert(healthIndicators: HealthIndicators): Future[Unit] =
     collection
       .insertOne(
         healthIndicators
       )
       .toFuture()
+      .map(_ => ())
+
+  def findAll(): Future[Seq[HealthIndicators]] =
+    collection.find().toFuture().map(_.toList)
 }
