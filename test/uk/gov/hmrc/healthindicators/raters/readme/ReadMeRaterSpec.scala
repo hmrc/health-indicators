@@ -26,10 +26,10 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
 
-class ReadMeCollectorSpec extends AnyWordSpec with Matchers with MockitoSugar {
+class ReadMeRaterSpec extends AnyWordSpec with Matchers with MockitoSugar {
 
   val mockGithubConnector = mock[GithubConnector]
-  val rater               = new ReadMeCollector(mockGithubConnector)
+  val rater               = new ReadMeRater(mockGithubConnector)
 
   implicit val hc = HeaderCarrier()
 

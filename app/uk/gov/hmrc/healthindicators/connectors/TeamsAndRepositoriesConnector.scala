@@ -17,23 +17,23 @@
 package uk.gov.hmrc.healthindicators.connectors
 
 import javax.inject.{Inject, Singleton}
-import uk.gov.hmrc.healthindicators.configs.HealthIndicatorsConfig
-import uk.gov.hmrc.healthindicators.models.Repository
+import uk.gov.hmrc.healthindicators.configs.RatersConfig
+import uk.gov.hmrc.healthindicators.models.TeamsAndRepos
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.play.bootstrap.http.HttpClient
+import uk.gov.hmrc.http.HttpClient
 
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class TeamsAndRepositoriesConnector @Inject()(
   httpClient: HttpClient,
-  healthIndicatorsConfig: HealthIndicatorsConfig
+  healthIndicatorsConfig: RatersConfig
 )(implicit val ec: ExecutionContext) {
 
   private val teamsAndRepositoriesBaseUrl: String = healthIndicatorsConfig.teamsAndRepositoriesUrl
 
-  def allRepositories(implicit hc: HeaderCarrier): Future[List[Repository]] = {
-    implicit val rF = Repository.reads
-    httpClient.GET[List[Repository]](teamsAndRepositoriesBaseUrl + s"/api/repositories")
+  def allRepositories(implicit hc: HeaderCarrier): Future[List[TeamsAndRepos]] = {
+    implicit val rF = TeamsAndRepos.reads
+    httpClient.GET[List[TeamsAndRepos]](teamsAndRepositoriesBaseUrl + s"/api/repositories")
   }
 }

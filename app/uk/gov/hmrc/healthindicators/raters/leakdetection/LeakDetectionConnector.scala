@@ -17,16 +17,17 @@
 package uk.gov.hmrc.healthindicators.raters.leakdetection
 
 import javax.inject.{Inject, Singleton}
-import uk.gov.hmrc.healthindicators.configs.HealthIndicatorsConfig
+import uk.gov.hmrc.healthindicators.configs.RatersConfig
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.play.bootstrap.http.HttpClient
+import uk.gov.hmrc.http.HttpClient
+import uk.gov.hmrc.http.HttpReads.Implicits._
 
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class LeakDetectionConnector @Inject()(
   httpClient: HttpClient,
-  healthIndicatorsConfig: HealthIndicatorsConfig
+  healthIndicatorsConfig: RatersConfig
 )(implicit val ec: ExecutionContext) {
 
   private implicit val hc = HeaderCarrier()

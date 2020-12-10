@@ -22,29 +22,30 @@ import play.api.Logger
 import play.api.inject.ApplicationLifecycle
 import uk.gov.hmrc.healthindicators.configs.SchedulerConfigs
 import uk.gov.hmrc.healthindicators.persistence.MongoLocks
-import uk.gov.hmrc.healthindicators.services.HealthIndicatorsService
+import uk.gov.hmrc.healthindicators.services.{RatingService}
 import uk.gov.hmrc.healthindicators.utils.SchedulerUtils
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
 @Singleton
-class HealthIndicatorsScheduler @Inject()(
-  healthIndicatorsService: HealthIndicatorsService,
-  config: SchedulerConfigs,
-  mongoLocks: MongoLocks
+class RepoRatingsScheduler @Inject()(
+                                      ratingService: RatingService,
+                                      config: SchedulerConfigs,
+                                      mongoLocks: MongoLocks
 )(implicit actorSystem: ActorSystem, applicationLifecycle: ApplicationLifecycle)
     extends SchedulerUtils {
 
+  private val logger = Logger(this.getClass)
   private implicit val hc = HeaderCarrier()
 
-  scheduleWithLock("Health Indicators Reloader", config.healthIndicatorsScheduler, mongoLocks.healthIndicatorsMongoLock) {
+  scheduleWithLock("Repo Ratings Reloader", config.repoRatingsScheduler, mongoLocks.repoRatingsMongoLock) {
 
     for {
-      _ <- healthIndicatorsService.insertRatings.recover {
-            case e: Throwable => Logger.error("Error inserting Health Indicators", e)
+      _ <- ratingService.insertRatings.recover {
+            case e: Throwable => logger.error("Error inserting Repo Ratings", e)
           }
-      _ = Logger.info("Finished inserting Health Indicators")
+      _ = logger.info("Finished inserting Repo Ratings")
     } yield ()
 
   }

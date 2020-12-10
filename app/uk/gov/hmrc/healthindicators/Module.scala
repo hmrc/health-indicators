@@ -18,20 +18,20 @@ package uk.gov.hmrc.healthindicators
 
 import com.google.inject.AbstractModule
 import javax.inject.{Inject, Singleton}
-import uk.gov.hmrc.healthindicators.models.{Collector, Collectors}
-import uk.gov.hmrc.healthindicators.raters.leakdetection.LeakDetectionCollector
-import uk.gov.hmrc.healthindicators.raters.readme.ReadMeCollector
+import uk.gov.hmrc.healthindicators.models.{Rater, Raters}
+import uk.gov.hmrc.healthindicators.raters.leakdetection.LeakDetectionRater
+import uk.gov.hmrc.healthindicators.raters.readme.ReadMeRater
 
 class Module() extends AbstractModule {
 
   override def configure(): Unit = {
-    bind(classOf[Collectors]).to(classOf[CollectorsProvider])
-    bind(classOf[schedulers.HealthIndicatorsScheduler]).asEagerSingleton()
+    bind(classOf[Raters]).to(classOf[RatersProvider])
+    bind(classOf[schedulers.RepoRatingsScheduler]).asEagerSingleton()
   }
 }
 
 @Singleton
-class CollectorsProvider @Inject()(readMeCollector: ReadMeCollector, leakDetectionCollector: LeakDetectionCollector)
-    extends Collectors {
-  override def collect: Seq[Collector] = Seq(readMeCollector, leakDetectionCollector)
+class RatersProvider @Inject()(readMeRater: ReadMeRater, leakDetectionRater: LeakDetectionRater)
+    extends Raters {
+  override def allRaters: Seq[Rater] = Seq(readMeRater, leakDetectionRater)
 }

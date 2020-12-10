@@ -17,7 +17,7 @@
 package uk.gov.hmrc.healthindicators.raters.leakdetection
 
 import javax.inject.Inject
-import uk.gov.hmrc.healthindicators.models.{Collector, Rating}
+import uk.gov.hmrc.healthindicators.models.{Rater, Rating}
 import uk.gov.hmrc.http.HeaderCarrier
 import cats.data.OptionT
 import cats.implicits._
@@ -25,10 +25,10 @@ import play.api.Logger
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class LeakDetectionCollector @Inject()(
+class LeakDetectionRater @Inject()(
   leakDetectionConnector: LeakDetectionConnector
 )(implicit val ec: ExecutionContext)
-    extends Collector {
+    extends Rater {
 
   private implicit val hc = HeaderCarrier()
 
