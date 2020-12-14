@@ -51,7 +51,7 @@ object RatingType {
 
 trait Rating {
   def ratingType: RatingType
-  def calculateScore: Int
+  def rating: Int
 }
 
 object Rating {

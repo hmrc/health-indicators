@@ -57,7 +57,7 @@ case class ReadMeRating(
   readMeType: ReadMeType
 ) extends Rating {
   override def ratingType: RatingType = RatingType.ReadMe
-  override def calculateScore: Int    = ReadMeRating.calculate(this.readMeType)
+  override def rating: Int    = ReadMeRating.calculate(this.readMeType)
 }
 
 object ReadMeRating {

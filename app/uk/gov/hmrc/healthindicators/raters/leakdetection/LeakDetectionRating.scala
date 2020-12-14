@@ -24,7 +24,7 @@ case class LeakDetectionRating(
   count: Int
 ) extends Rating {
   override def ratingType: RatingType = RatingType.LeakDetection
-  override def calculateScore: Int    = LeakDetectionRating.calculate(this)
+  override def rating: Int    = LeakDetectionRating.calculate(this)
 }
 
 object LeakDetectionRating {
