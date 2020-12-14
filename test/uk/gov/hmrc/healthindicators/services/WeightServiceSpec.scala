@@ -45,7 +45,7 @@ class WeightServiceSpec extends AnyWordSpec with Matchers with MockitoSugar {
 
 object TestData {
   val healthIndicator100 =
-    RepoRatings("foo", Instant.now(), Seq(ReadMeRating(ValidReadMe), LeakDetectionRating(0)))
+    RepoRatings("foo", Instant.now(), Seq(ReadMeRating(ValidReadMe), LeakDetectionRating(count = 0)))
   val healthIndicator67 =
-    RepoRatings("bar", Instant.now(), Seq(ReadMeRating(ValidReadMe), LeakDetectionRating(4)))
+    RepoRatings("bar", Instant.now(), Seq(ReadMeRating(ValidReadMe), LeakDetectionRating(count = 4)))
 }
