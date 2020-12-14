@@ -41,6 +41,18 @@ class WeightServiceSpec extends AnyWordSpec with Matchers with MockitoSugar {
       result67 mustBe 67
     }
   }
+
+  "weightedScore with a weight set to Zero" should {
+
+    "Return a Weighted Score based on Ratings and Weights" in {
+
+      val weights = Map[RatingType, Double](RatingType.ReadMe -> 1.0, RatingType.LeakDetection -> 0.0)
+
+      val result100 = WeightService.weightedScoreInternal(weights)(TestData.healthIndicator100)
+
+      result100 mustBe 100
+    }
+  }
 }
 
 object TestData {
