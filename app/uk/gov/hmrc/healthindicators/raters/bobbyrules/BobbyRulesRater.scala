@@ -17,6 +17,7 @@
 package uk.gov.hmrc.healthindicators.raters.bobbyrules
 
 import cats.data.OptionT
+import cats.implicits.catsStdInstancesForFuture
 import javax.inject.Inject
 import uk.gov.hmrc.healthindicators.models.{Rater, Rating}
 import uk.gov.hmrc.http.HeaderCarrier
@@ -32,18 +33,29 @@ extends Rater {
 
     private implicit val hc = HeaderCarrier()
 
-    override def rate(repo: String): Int = {//Future[Rating] = {
-        Logger.info(s"Rating LeakDetection for: $repo")
-        countViolationsForRepo(repo)
-}
+    override def rate(repo: String): Future[Rating] = ???
+//    {
+//        Logger.info(s"Rating LeakDetection for: $repo")
+//        countViolationsForRepo(repo)
+//}
 
-    def countViolationsForRepo(repo: String): Int = {
-        val result = bobbyRuleConnector.findLatestMasterReport(repo)
+    def countViolationsForRepo(repo: String): Future[Any] = {
         var count = 0
-        val report = Await.result(result, 10 seconds).get
-        report.libraryDependencies.foreach(dependencies => {
-            count += dependencies.bobbyRuleViolations.length
-        })
-        count
+        val bobbyRuleReport = OptionT(bobbyRuleConnector.findLatestMasterReport(repo))
+
+        bobbyRuleReport
+            .map(_.sbtPluginsDependencies
+                .map(_.bobbyRuleViolations.size))
+            .map(_.sum)
+            .getOrElse(0)
+
+
+        //var count = 0
+        //val report = Await.result(result, 10 seconds).get
+//        report.libraryDependencies.foreach(dependencies => {
+//            count += dependencies.bobbyRuleViolations.length
+//        })
+//        count
+
     }
 }
