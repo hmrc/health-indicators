@@ -24,4 +24,5 @@ class RatersConfig @Inject()(servicesConfig: ServicesConfig) {
 
   lazy val teamsAndRepositoriesUrl: String = servicesConfig.baseUrl("teams-and-repositories")
   lazy val leakDetectionUrl: String        = servicesConfig.baseUrl("leak-detection")
+  lazy val bobbyRuleUrl: String        = servicesConfig.baseUrl("service-dependencies")
 }
