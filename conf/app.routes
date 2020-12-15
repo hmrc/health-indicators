@@ -3,4 +3,4 @@ GET             /api/health-score/repositories                     @uk.gov.hmrc.
 
 POST            /admin/rerun                                       @uk.gov.hmrc.healthindicators.controllers.AdminController.rerun
 
-GET             /test/bobby-rules                                  @uk.gov.hmrc.healthindicators.raters.bobbyrules.BobbyRuleConnector.testEndPoint()
+GET             /test/bobby-rules                                  @uk.gov.hmrc.healthindicators.raters.bobbyrules.TestTesterson.testEndPoint()

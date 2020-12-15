@@ -31,28 +31,20 @@ import scala.concurrent.duration.DurationInt
 class BobbyRuleConnector @Inject()(
   httpClient: HttpClient,
   healthIndicatorsConfig: RatersConfig
+
 )(implicit val ec: ExecutionContext) {
 
     private implicit val hc = HeaderCarrier()
 
     private val bobbyRuleBaseURL: String = healthIndicatorsConfig.bobbyRuleUrl
 
-    def findLatestMasterReport(): Report = {
+    def findLatestMasterReport(repo: String): Future[Option[Report]] = {
         implicit val rF = Report.reads
-        val result = httpClient.GET[Option[Report]](bobbyRuleBaseURL + s"/api/dependencies/sacore-perf-test-stubs")
-        val report = Await.result(result, 10 seconds)
-        report.get
+        httpClient.GET[Option[Report]](
+            bobbyRuleBaseURL
+                + s"/api/dependencies/"
+                + repo)
     }
 
-    def testEndPoint(): Action[AnyContent] = Action {
-        val result = findLatestMasterReport()
-        var count = 0
-        result.libraryDependencies.foreach(dependencies => {
-            count += dependencies.bobbyRuleViolations.length
-        })
 
-        Ok(count.toString
-            + " ")
-            //result.libraryDependencies)
-    }
 }

@@ -16,11 +16,14 @@
 
 package uk.gov.hmrc.healthindicators.raters.bobbyrules
 
+import cats.data.OptionT
 import javax.inject.Inject
 import uk.gov.hmrc.healthindicators.models.{Rater, Rating}
 import uk.gov.hmrc.http.HeaderCarrier
+import play.api.Logger
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.duration.DurationInt
+import scala.concurrent.{Await, ExecutionContext, Future}
 
 class BobbyRulesRater @Inject()(
    bobbyRuleConnector: BobbyRuleConnector
@@ -29,14 +32,16 @@ extends Rater {
 
     private implicit val hc = HeaderCarrier()
 
-    override def rate(repo: String): Future[Rating] = {
-    Logger.info(s"Rating LeakDetection for: $repo")
-    countViolationsForRepo(repo)
+    override def rate(repo: String): Int = {//Future[Rating] = {
+        Logger.info(s"Rating LeakDetection for: $repo")
+        countViolationsForRepo(repo)
 }
-    def countViolationsForRepo(): Int = {
-        val result = bobbyRuleConnector.findLatestMasterReport()
+
+    def countViolationsForRepo(repo: String): Int = {
+        val result = bobbyRuleConnector.findLatestMasterReport(repo)
         var count = 0
-        result.libraryDependencies.foreach(dependencies => {
+        val report = Await.result(result, 10 seconds).get
+        report.libraryDependencies.foreach(dependencies => {
             count += dependencies.bobbyRuleViolations.length
         })
         count
