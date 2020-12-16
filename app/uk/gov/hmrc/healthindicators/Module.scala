@@ -19,6 +19,7 @@ package uk.gov.hmrc.healthindicators
 import com.google.inject.AbstractModule
 import javax.inject.{Inject, Singleton}
 import uk.gov.hmrc.healthindicators.models.{Rater, Raters}
+import uk.gov.hmrc.healthindicators.raters.bobbyrules.BobbyRulesRater
 import uk.gov.hmrc.healthindicators.raters.leakdetection.LeakDetectionRater
 import uk.gov.hmrc.healthindicators.raters.readme.ReadMeRater
 
@@ -31,7 +32,10 @@ class Module() extends AbstractModule {
 }
 
 @Singleton
-class RatersProvider @Inject()(readMeRater: ReadMeRater, leakDetectionRater: LeakDetectionRater)
+class RatersProvider @Inject()(
+    readMeRater: ReadMeRater,
+    leakDetectionRater: LeakDetectionRater,
+    bobbyRulesRater: BobbyRulesRater)
     extends Raters {
-  override def allRaters: Seq[Rater] = Seq(readMeRater, leakDetectionRater)
+  override def allRaters: Seq[Rater] = Seq(readMeRater, leakDetectionRater, bobbyRulesRater)
 }

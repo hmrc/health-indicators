@@ -17,6 +17,7 @@
 package uk.gov.hmrc.healthindicators.models
 
 import play.api.libs.json._
+import uk.gov.hmrc.healthindicators.raters.bobbyrules.BobbyRulesRating
 import uk.gov.hmrc.healthindicators.raters.leakdetection.LeakDetectionRating
 import uk.gov.hmrc.healthindicators.raters.readme.ReadMeRating
 
@@ -30,7 +31,11 @@ object RatingType {
     def asString = "LeakDetectionRating"
   }
 
-  private val values = Seq(ReadMe, LeakDetection)
+  case object BobbyRules extends RatingType {
+    def asString = "BobbyRulesRating"
+  }
+
+  private val values = Seq(ReadMe, LeakDetection, BobbyRules)
 
   def parse(s: String): Option[RatingType] =
     values
@@ -59,6 +64,7 @@ object Rating {
     implicit val rtF = RatingType.format
     implicit val rmF = ReadMeRating.format
     implicit val ldF = LeakDetectionRating.format
+    implicit val brF = BobbyRulesRating.format
 
     override def reads(json: JsValue): JsResult[Rating] =
       (json \ "type")
@@ -66,6 +72,7 @@ object Rating {
         .flatMap {
           case RatingType.ReadMe        => json.validate[ReadMeRating]
           case RatingType.LeakDetection => json.validate[LeakDetectionRating]
+          case RatingType.BobbyRules    => json.validate[BobbyRulesRating]
           case s                        => JsError(s"Invalid Rating: $s")
         }
 
@@ -73,6 +80,7 @@ object Rating {
       o match {
         case r: ReadMeRating        => Json.toJsObject(r) + ("type" -> Json.toJson(r.ratingType))
         case r: LeakDetectionRating => Json.toJsObject(r) + ("type" -> Json.toJson(r.ratingType))
+        case r: BobbyRulesRating    => Json.toJsObject(r) + ("type" -> Json.toJson(r.ratingType))
       }
   }
 }

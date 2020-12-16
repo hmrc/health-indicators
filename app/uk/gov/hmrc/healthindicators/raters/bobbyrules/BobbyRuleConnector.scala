@@ -17,9 +17,7 @@
 package uk.gov.hmrc.healthindicators.raters.bobbyrules
 
 import javax.inject.{Inject, Singleton}
-import play.api.libs.json.JsValue
 import uk.gov.hmrc.healthindicators.configs.RatersConfig
-import uk.gov.hmrc.healthindicators.raters.bobbyrules.Report
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -44,6 +42,4 @@ class BobbyRuleConnector @Inject()(
                 + repo)
 
     }
-
-
 }
