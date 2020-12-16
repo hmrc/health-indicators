@@ -16,16 +16,11 @@
 
 package uk.gov.hmrc.healthindicators.raters.bobbyrules
 
-import controllers.Assets.Ok
 import javax.inject.{Inject, Singleton}
-import play.api.mvc.{Action, AnyContent}
 import uk.gov.hmrc.healthindicators.configs.RatersConfig
-import uk.gov.hmrc.healthindicators.raters.bobbyrules.Report
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
 
-import scala.collection.mutable.ArrayBuffer
-import scala.concurrent.{Await, ExecutionContext, Future}
-import scala.concurrent.duration.DurationInt
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class BobbyRuleConnector @Inject()(
@@ -40,11 +35,11 @@ class BobbyRuleConnector @Inject()(
 
     def findLatestMasterReport(repo: String): Future[Option[Report]] = {
         implicit val rF = Report.reads
+
         httpClient.GET[Option[Report]](
             bobbyRuleBaseURL
                 + s"/api/dependencies/"
                 + repo)
+
     }
-
-
 }
