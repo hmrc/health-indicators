@@ -39,23 +39,14 @@ extends Rater {
 //        countViolationsForRepo(repo)
 //}
 
-    def countViolationsForRepo(repo: String): Future[Any] = {
-        var count = 0
-        val bobbyRuleReport = OptionT(bobbyRuleConnector.findLatestMasterReport(repo))
+    def countViolationsForRepo(repo: String): Future[Int] = {
+        for {
+            bobbyRuleReport: Option[Report] <- bobbyRuleConnector.findLatestMasterReport(repo)
+            dependencies: Seq[Dependencies] = bobbyRuleReport.map(b => {
+                b.libraryDependencies ++ b.sbtPluginsDependencies ++ b.otherDependencies
+            }).getOrElse(Seq())
+            violationCount: Int = dependencies.map(_.bobbyRuleViolations.size).sum
 
-        bobbyRuleReport
-            .map(_.sbtPluginsDependencies
-                .map(_.bobbyRuleViolations.size))
-            .map(_.sum)
-            .getOrElse(0)
-
-
-        //var count = 0
-        //val report = Await.result(result, 10 seconds).get
-//        report.libraryDependencies.foreach(dependencies => {
-//            count += dependencies.bobbyRuleViolations.length
-//        })
-//        count
-
+        } yield violationCount
     }
 }
