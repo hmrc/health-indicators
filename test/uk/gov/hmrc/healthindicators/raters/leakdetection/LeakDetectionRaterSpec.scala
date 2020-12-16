@@ -30,7 +30,13 @@ class LeakDetectionRaterSpec extends AnyWordSpec with Matchers with MockitoSugar
   val mockLeakDetectionConnector = mock[LeakDetectionConnector]
   val rater                      = new LeakDetectionRater(mockLeakDetectionConnector)
 
-  val reportLine = ReportLine("file-path", "scope", 1, "url-to-source", Some("rule-id"), "description", "line-text")
+  val reportLine = ReportLine("file-path",
+                    "scope",
+                    1,
+                    "url-to-source",
+                    Some("rule-id"),
+                    "description",
+                    "line-text")
 
   implicit val hc = HeaderCarrier()
 
