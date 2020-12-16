@@ -28,12 +28,13 @@ import scala.concurrent.{ExecutionContext, Future}
 class LeakDetectionRater @Inject()(
   leakDetectionConnector: LeakDetectionConnector
 )(implicit val ec: ExecutionContext)
-    extends Rater {
+  extends Rater {
 
   private implicit val hc = HeaderCarrier()
+  private val logger = Logger(this.getClass)
 
   override def rate(repo: String): Future[Rating] = {
-    Logger.info(s"Rating LeakDetection for: $repo")
+    logger.info(s"Rating LeakDetection for: $repo")
     countLeakDetections(repo)
   }
 
