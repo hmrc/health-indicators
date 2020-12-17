@@ -35,6 +35,8 @@ class BobbyRulesRater @Inject()(
         countViolationsForRepo(repo)
     }
 
+
+
     def countViolationsForRepo(repo: String): Future[BobbyRulesRating] = {
         for {
             bobbyRuleReport: Option[Report] <- bobbyRuleConnector.findLatestMasterReport(repo)
