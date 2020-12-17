@@ -18,8 +18,7 @@ package uk.gov.hmrc.healthindicators.raters.bobbyrules
 
 import javax.inject.{Inject, Singleton}
 import uk.gov.hmrc.healthindicators.configs.RatersConfig
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
-
+import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, InternalServerException}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
@@ -39,7 +38,9 @@ class BobbyRuleConnector @Inject()(
         httpClient.GET[Option[Report]](
             bobbyRuleBaseURL
                 + s"/api/dependencies/"
-                + repo)
+                + repo).recoverWith {
+            case e: InternalServerException => Future.successful(None)
+        }
 
     }
 }

@@ -18,8 +18,8 @@ package uk.gov.hmrc.healthindicators.raters.readme
 
 import javax.inject.Inject
 import uk.gov.hmrc.healthindicators.configs.GithubConfig
-import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, NotFoundException}
-import uk.gov.hmrc.play.bootstrap.http.HttpClient
+import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse, NotFoundException}
+
 
 import scala.concurrent.{ExecutionContext, Future}
 
