@@ -49,6 +49,7 @@ object BobbyRulesRating {
             case 0 => 100
             case 1 => 50
             case _ => 0
+                //TODO: 0 -> 100, 1->0
         }
 
     val format: OFormat[BobbyRulesRating] =
