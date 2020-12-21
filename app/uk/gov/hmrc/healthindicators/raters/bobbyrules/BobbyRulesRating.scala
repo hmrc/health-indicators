@@ -40,7 +40,7 @@ case class BobbyRulesRating(
       count: Int
   ) extends Rating {
     override def ratingType: RatingType = RatingType.BobbyRules
-    override def calculateScore: Int    = BobbyRulesRating.calculate(this)
+    override def rating: Int    = BobbyRulesRating.calculate(this)
 }
 
 object BobbyRulesRating {
