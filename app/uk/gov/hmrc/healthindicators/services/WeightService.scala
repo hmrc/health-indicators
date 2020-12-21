@@ -18,7 +18,7 @@ package uk.gov.hmrc.healthindicators.services
 
 import javax.inject.{Inject, Singleton}
 import uk.gov.hmrc.healthindicators.configs.WeightsConfig
-import uk.gov.hmrc.healthindicators.models.{RepoRatings, RatingType}
+import uk.gov.hmrc.healthindicators.models.{Rating, RatingType, RepoRatings}
 
 @Singleton
 class WeightService @Inject()(weightsConfig: WeightsConfig) {
@@ -27,11 +27,19 @@ class WeightService @Inject()(weightsConfig: WeightsConfig) {
     WeightService.weightedScoreInternal(weightsConfig.weightsLookup)(healthIndicators)
 }
 
+
 object WeightService {
 
-  def weightedScoreInternal(weights: Map[RatingType, Double])(healthIndicators: RepoRatings): Int =
-    healthIndicators.ratings.map(r => applyWeight(weights)(r.ratingType, r.calculateScore)).sum.ceil.toInt
+  def weightedScoreInternal(weightsConfig: Map[RatingType, Double])(healthIndicators: RepoRatings): Int = {
+    val repoRatings = healthIndicators.ratings
+    val weightedRatings = repoRatings.map(r => applyWeight(weightsConfig)(r))
+    weightedRatings.sum
+      .ceil.toInt
+  }
 
-  private def applyWeight(weights: Map[RatingType, Double])(ratingType: RatingType, score: Int): Double =
-    (weights(ratingType) / weights.values.sum) * score
+  private def applyWeight(weights: Map[RatingType, Double])(rating: Rating): Double = {
+    val weightForRatingType: Double = weights(rating.ratingType)
+    val sumOfAllWeights: Double = weights.values.sum
+    (weightForRatingType / sumOfAllWeights) * rating.rating
+  }
 }
