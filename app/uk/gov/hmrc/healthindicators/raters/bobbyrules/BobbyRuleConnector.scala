@@ -17,8 +17,11 @@
 package uk.gov.hmrc.healthindicators.raters.bobbyrules
 
 import javax.inject.{Inject, Singleton}
+import play.api.Logger
+import play.api.libs.json.Reads
 import uk.gov.hmrc.healthindicators.configs.RatersConfig
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, InternalServerException}
+import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, InternalServerException, Upstream5xxResponse, UpstreamErrorResponse}
+
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
@@ -28,19 +31,20 @@ class BobbyRuleConnector @Inject()(
 
 )(implicit val ec: ExecutionContext) {
 
-    private implicit val hc = HeaderCarrier()
+    private implicit val hc: HeaderCarrier = HeaderCarrier()
 
     private val bobbyRuleBaseURL: String = healthIndicatorsConfig.bobbyRuleUrl
 
     def findLatestMasterReport(repo: String): Future[Option[Report]] = {
-        implicit val rF = Report.reads
-
+        implicit val rF: Reads[Report] = Report.reads
+        val logger = Logger(this.getClass)
         httpClient.GET[Option[Report]](
             bobbyRuleBaseURL
                 + s"/api/dependencies/"
                 + repo).recoverWith {
-            case e: InternalServerException => Future.successful(None)
-        }
-
+            case UpstreamErrorResponse.Upstream5xxResponse(x) =>
+                logger.error(s"An error occurred when connecting to $repo: ${x.getMessage()}", x)
+                Future.successful(None)
+            }
     }
 }
