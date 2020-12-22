@@ -14,15 +14,8 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.healthindicators.configs
+package uk.gov.hmrc.healthindicators.raters.bobbyrules
 
-import javax.inject.{Inject, Singleton}
-import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
+class BobbyRuleConnectorSpec {
 
-@Singleton
-class RatersConfig @Inject()(servicesConfig: ServicesConfig) {
-
-  lazy val teamsAndRepositoriesUrl: String = servicesConfig.baseUrl("teams-and-repositories")
-  lazy val leakDetectionUrl: String        = servicesConfig.baseUrl("leak-detection")
-  lazy val bobbyRuleUrl: String        = servicesConfig.baseUrl("service-dependencies")
 }
