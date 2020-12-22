@@ -60,6 +60,15 @@ trait Rating {
 }
 
 object Rating {
+
+  val apiWrites: Writes[Rating] = (o: Rating) => {
+    implicit val rtF = RatingType.format
+    Json.obj("ratingType" -> o.ratingType, "rating" -> o.rating)
+  }
+
+
+
+
   val format: Format[Rating] = new Format[Rating] {
     implicit val rtF = RatingType.format
     implicit val rmF = ReadMeRating.format

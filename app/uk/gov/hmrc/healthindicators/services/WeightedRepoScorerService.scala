@@ -19,19 +19,57 @@ package uk.gov.hmrc.healthindicators.services
 import cats.data.OptionT
 import cats.implicits._
 import javax.inject.Inject
+import uk.gov.hmrc.healthindicators.models.{Rating, RepoRatings, RepoScoreBreakdown}
 import uk.gov.hmrc.healthindicators.persistence.RepoRatingsPersistence
 
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.duration.DurationInt
+import scala.concurrent.{Await, ExecutionContext, Future}
+
 
 class WeightedRepoScorerService @Inject()(repository: RepoRatingsPersistence,
-                                          weightService: WeightService)(implicit val ec: ExecutionContext) {
+                                          weightService: WeightService,
+                                         )(implicit val ec: ExecutionContext) {
 
 
-  def repoScore(repo: String): Future[Option[Int]] =
-    OptionT(repository.latestRatingsForRepo(repo))
-      .map(weightService.weightedScore)
-      .value
+
+
+
+  def repoScore(repo: String): Future[Option[RepoScoreBreakdown]] = {
+
+
+    repository.latestRatingsForRepo(repo).map(_.map(repoRating => {
+      RepoScoreBreakdown(repo, weightService.weightedScore(repoRating), repoRating.ratings)
+    }))
+
+//    for {
+//      repoRating <- repository.latestRatingsForRepo(repo)
+//      ratings: Map[Nothing, Nothing] = repoRating.map(_.ratings)
+//      weightedRepoScore = repoRating.map(weightService.weightedScore)
+//      ratingBreakdown =
+//    }ratingBreakdown
+
+
+
+
+
+
+//    val repoRating: Future[Option[RepoRatings]] = repository.latestRatingsForRepo(repo)
+//
+//    val ratings: Future[Option[Seq[Rating]]] = repoRating.map(_.map(_.ratings))
+//
+//    val repoWeightedScore: Future[Option[Int]] = OptionT(repository.latestRatingsForRepo(repo))
+//      .map(weightService.weightedScore)
+//      .value
+//
+//    val ratingBreakdown: Future[Option[Map[String, Int]]] = ratings.map(_.map(_.map(h => (h.ratingType.toString, h.rating)).toMap))
+//
+//    ratingBreakdown
+
+
+  }
+
+
 
   def repoScoreAllRepos(): Future[Map[String, Int]] =
     for {

@@ -20,7 +20,7 @@ import javax.inject.{Inject, Singleton}
 import play.api.Logger
 import play.api.libs.json.Reads
 import uk.gov.hmrc.healthindicators.configs.RatersConfig
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, InternalServerException, Upstream5xxResponse, UpstreamErrorResponse}
+import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, UpstreamErrorResponse}
 
 import scala.concurrent.{ExecutionContext, Future}
 
