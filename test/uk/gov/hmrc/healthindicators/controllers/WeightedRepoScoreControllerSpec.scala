@@ -39,14 +39,24 @@ class WeightedRepoScoreControllerSpec
 
     val repoBreakDown1: RepoScoreBreakdown = RepoScoreBreakdown("repo1", 100, Seq())
 
+    val allRepoScores = Map("repo1" -> 100, "repo2" -> 100, "repo3" -> 100, "repo4" -> 100, "repo5" -> 100)
+
     "WeightedRepoScoreController.scoreForRepo" should {
         "get score for individual repo" in {
             val fakeRequest = FakeRequest("GET", "/api/health-score/repositories/repo1")
             when(mockWeightedRepoScorerService.repoScore("repo1"))
                 .thenReturn(Future.successful(Some(repoBreakDown1)))
 
-            val futureResult = weightedRepoScoreController.scoreForRepo("repo1")(fakeRequest)
-            contentAsJson(futureResult).toString() shouldBe s"""{"repo":"repo1","weightedScore":100,"ratings":[]}"""
+            val result = weightedRepoScoreController.scoreForRepo("repo1")(fakeRequest)
+            contentAsJson(result).toString() shouldBe s"""{"repo":"repo1","weightedScore":100,"ratings":[]}"""
+        }
+        "get scores for all repos" in {
+            val fakeRequest = FakeRequest("GET", "/api/health-score/repositories/repo1")
+            when(mockWeightedRepoScorerService.repoScoreAllRepos())
+                .thenReturn(Future.successful(allRepoScores))
+            val result = weightedRepoScoreController.scoreAllRepos()(fakeRequest)
+            val expectedResult = s"""{"repo2":100,"repo4":100,"repo5":100,"repo1":100,"repo3":100}"""
+            contentAsJson(result).toString() shouldBe expectedResult
         }
     }
 }
