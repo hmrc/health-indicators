@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 package uk.gov.hmrc.healthindicators.persistence
 
 import javax.inject.{Inject, Singleton}
-import uk.gov.hmrc.mongo.lock.MongoLockRepository
+import uk.gov.hmrc.mongo.lock.{MongoLockRepository, MongoLockService}
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
@@ -25,5 +25,5 @@ import scala.concurrent.duration._
 @Singleton
 class MongoLocks @Inject()(mongoLockRepository: MongoLockRepository)(implicit ec: ExecutionContext) {
 
-  val repoRatingsMongoLock = mongoLockRepository.toService("repo-ratings-lock", 1.hour)
+  val repoRatingsMongoLock: MongoLockService = mongoLockRepository.toService("repo-ratings-lock", 1.hour)
 }

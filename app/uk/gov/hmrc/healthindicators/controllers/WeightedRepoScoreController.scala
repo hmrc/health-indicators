@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package uk.gov.hmrc.healthindicators.controllers
 import javax.inject.{Inject, Singleton}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
+import uk.gov.hmrc.healthindicators.models.RepoScoreBreakdown
 import uk.gov.hmrc.healthindicators.services.WeightedRepoScorerService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
@@ -30,6 +31,8 @@ class WeightedRepoScoreController @Inject()(
                                             cc: ControllerComponents
 )(implicit ec: ExecutionContext)
     extends BackendController(cc) {
+
+  implicit val rsbw = RepoScoreBreakdown.apiWrites
 
   def scoreForRepo(repo: String): Action[AnyContent] = Action.async { implicit request =>
     for {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,7 +49,6 @@ object BobbyRulesRating {
             case 0 => 100
             case 1 => 50
             case _ => 0
-                //TODO: 0 -> 100, 1->0
         }
 
     val format: OFormat[BobbyRulesRating] =

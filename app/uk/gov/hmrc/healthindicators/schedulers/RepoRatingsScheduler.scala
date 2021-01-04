@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import play.api.Logger
 import play.api.inject.ApplicationLifecycle
 import uk.gov.hmrc.healthindicators.configs.SchedulerConfigs
 import uk.gov.hmrc.healthindicators.persistence.MongoLocks
-import uk.gov.hmrc.healthindicators.services.{RatingService}
+import uk.gov.hmrc.healthindicators.services.RatingService
 import uk.gov.hmrc.healthindicators.utils.SchedulerUtils
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -37,7 +37,7 @@ class RepoRatingsScheduler @Inject()(
     extends SchedulerUtils {
 
   private val logger = Logger(this.getClass)
-  private implicit val hc = HeaderCarrier()
+  private implicit val hc: HeaderCarrier = HeaderCarrier()
 
   scheduleWithLock("Repo Ratings Reloader", config.repoRatingsScheduler, mongoLocks.repoRatingsMongoLock) {
 

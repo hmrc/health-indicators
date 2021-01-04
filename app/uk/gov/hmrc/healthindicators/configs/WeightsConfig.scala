@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ class WeightsConfig @Inject()(configuration: Configuration) {
   import WeightsConfig._
 
   lazy val weightsLookup: Map[RatingType, Double] = {
-    implicit val wF = reads
+    implicit val wF: Reads[Map[RatingType, Double]] = reads
     val path        = configuration.get[String]("weights.config.path")
     readJson(path)
       .validate[Map[RatingType, Double]]
@@ -51,7 +51,7 @@ object WeightsConfig {
 
   //TODO Delete this and understand what is going on. Hard code weights for now
   val reads: Reads[Map[RatingType, Double]] = {
-    implicit val rtF = RatingType.format
+    implicit val rtF: Format[RatingType] = RatingType.format
 
     implicit val rtA: Applicative[JsResult] = new Applicative[JsResult] {
       override def pure[A](x: A): JsResult[A] = JsSuccess(x)

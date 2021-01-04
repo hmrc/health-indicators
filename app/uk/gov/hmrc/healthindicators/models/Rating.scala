@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,6 +60,15 @@ trait Rating {
 }
 
 object Rating {
+
+  val apiWrites: Writes[Rating] = (o: Rating) => {
+    implicit val rtF = RatingType.format
+    Json.obj("ratingType" -> o.ratingType, "rating" -> o.rating)
+  }
+
+
+
+
   val format: Format[Rating] = new Format[Rating] {
     implicit val rtF = RatingType.format
     implicit val rmF = ReadMeRating.format

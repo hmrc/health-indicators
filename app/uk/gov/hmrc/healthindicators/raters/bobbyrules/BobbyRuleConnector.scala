@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import javax.inject.{Inject, Singleton}
 import play.api.Logger
 import play.api.libs.json.Reads
 import uk.gov.hmrc.healthindicators.configs.RatersConfig
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, InternalServerException, Upstream5xxResponse, UpstreamErrorResponse}
+import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, UpstreamErrorResponse}
 
 import scala.concurrent.{ExecutionContext, Future}
 

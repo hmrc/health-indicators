@@ -16,14 +16,24 @@
 
 package uk.gov.hmrc.healthindicators.models
 
-import play.api.libs.json._
+import play.api.libs.functional.syntax.{toFunctionalBuilderOps, unlift}
+import play.api.libs.json.{Writes, __}
 
-case class TeamsAndRepos(
-  name: String
+case class RepoScoreBreakdown (
+
+  repo: String,
+  weightedScore: Int,
+  ratings: Seq[Rating]
+
 )
 
-object TeamsAndRepos {
-  val reads: Reads[TeamsAndRepos] = {
-    (__ \ "name").read[String].map(TeamsAndRepos.apply)
+
+object RepoScoreBreakdown {
+  val apiWrites: Writes[RepoScoreBreakdown] = {
+    implicit val rF: Writes[Rating] = Rating.apiWrites
+
+    ((__ \ "repo").write[String]
+      ~ (__ \ "weightedScore").write[Int]
+      ~ (__ \ "ratings").write[Seq[Rating]])(unlift(RepoScoreBreakdown.unapply))
   }
 }

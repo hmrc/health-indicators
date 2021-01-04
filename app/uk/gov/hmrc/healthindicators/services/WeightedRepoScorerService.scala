@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,22 +16,22 @@
 
 package uk.gov.hmrc.healthindicators.services
 
-import cats.data.OptionT
-import cats.implicits._
 import javax.inject.Inject
+import uk.gov.hmrc.healthindicators.models.RepoScoreBreakdown
 import uk.gov.hmrc.healthindicators.persistence.RepoRatingsPersistence
 
+import scala.concurrent.{ ExecutionContext, Future}
 
-import scala.concurrent.{ExecutionContext, Future}
 
 class WeightedRepoScorerService @Inject()(repository: RepoRatingsPersistence,
-                                          weightService: WeightService)(implicit val ec: ExecutionContext) {
+                                          weightService: WeightService,
+                                         )(implicit val ec: ExecutionContext) {
 
-
-  def repoScore(repo: String): Future[Option[Int]] =
-    OptionT(repository.latestRatingsForRepo(repo))
-      .map(weightService.weightedScore)
-      .value
+  def repoScore(repo: String): Future[Option[RepoScoreBreakdown]] = {
+    repository.latestRatingsForRepo(repo).map(_.map(repoRating => {
+      RepoScoreBreakdown(repo, weightService.weightedScore(repoRating), repoRating.ratings)
+    }))
+  }
 
   def repoScoreAllRepos(): Future[Map[String, Int]] =
     for {
