@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ case class RepoScoreBreakdown (
 
 object RepoScoreBreakdown {
   val apiWrites: Writes[RepoScoreBreakdown] = {
-    implicit val rF = Rating.apiWrites
+    implicit val rF: Writes[Rating] = Rating.apiWrites
 
     ((__ \ "repo").write[String]
       ~ (__ \ "weightedScore").write[Int]

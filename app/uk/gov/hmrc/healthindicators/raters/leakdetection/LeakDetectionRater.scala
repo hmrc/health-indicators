@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ class LeakDetectionRater @Inject()(
 )(implicit val ec: ExecutionContext)
   extends Rater {
 
-  private implicit val hc = HeaderCarrier()
+  private implicit val hc: HeaderCarrier = HeaderCarrier()
   private val logger = Logger(this.getClass)
 
   override def rate(repo: String): Future[Rating] = {

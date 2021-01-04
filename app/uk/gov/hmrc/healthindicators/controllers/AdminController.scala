@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ package uk.gov.hmrc.healthindicators.controllers
 
 import javax.inject.Inject
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
-import uk.gov.hmrc.healthindicators.services.{RatingService}
+import uk.gov.hmrc.healthindicators.services.RatingService
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
@@ -28,7 +28,7 @@ class AdminController @Inject()(ratingService: RatingService, cc: ControllerComp
   implicit ec: ExecutionContext)
     extends BackendController(cc) {
 
-  implicit val hc = HeaderCarrier()
+  implicit val hc: HeaderCarrier = HeaderCarrier()
 
   def rerun(): Action[AnyContent] = Action.async {
     ratingService.insertRatings().recover {

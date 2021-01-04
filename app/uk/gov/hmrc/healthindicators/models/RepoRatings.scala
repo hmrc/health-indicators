@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,8 +29,8 @@ case class RepoRatings(
 
 object RepoRatings {
   val mongoFormats: OFormat[RepoRatings] = {
-    implicit val rF = Rating.format
-    implicit val iF = MongoJavatimeFormats.instantFormats
+    implicit val rF: Format[Rating] = Rating.format
+    implicit val iF: Format[Instant] = MongoJavatimeFormats.instantFormats
 
     ((__ \ "repo").format[String]
       ~ (__ \ "date").format[Instant]
