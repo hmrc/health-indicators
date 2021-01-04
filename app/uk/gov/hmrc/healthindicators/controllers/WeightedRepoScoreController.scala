@@ -17,7 +17,7 @@
 package uk.gov.hmrc.healthindicators.controllers
 
 import javax.inject.{Inject, Singleton}
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, Writes}
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import uk.gov.hmrc.healthindicators.models.RepoScoreBreakdown
 import uk.gov.hmrc.healthindicators.services.WeightedRepoScorerService
@@ -32,7 +32,7 @@ class WeightedRepoScoreController @Inject()(
 )(implicit ec: ExecutionContext)
     extends BackendController(cc) {
 
-  implicit val rsbw = RepoScoreBreakdown.apiWrites
+  implicit val rsbw: Writes[RepoScoreBreakdown] = RepoScoreBreakdown.apiWrites
 
   def scoreForRepo(repo: String): Action[AnyContent] = Action.async { implicit request =>
     for {
