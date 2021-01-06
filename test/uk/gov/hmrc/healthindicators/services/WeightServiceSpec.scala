@@ -38,12 +38,12 @@ class WeightServiceSpec extends AnyWordSpec with Matchers with MockitoSugar {
                                             RatingType.BobbyRules -> 1.0)
 
       val result100 = WeightService.weightedScoreInternal(weights)(TestData.healthIndicator100)
-      val result63  = WeightService.weightedScoreInternal(weights)(TestData.healthIndicator63)
-      val result50 = WeightService.weightedScoreInternal(weights)(TestData.healthIndicator50)
+      val result50  = WeightService.weightedScoreInternal(weights)(TestData.healthIndicator50)
+      val result65 = WeightService.weightedScoreInternal(weights)(TestData.healthIndicator65)
 
       result100 mustBe 100
-      result63 mustBe 63
       result50 mustBe 50
+      result65 mustBe 65
     }
   }
 }
@@ -51,8 +51,8 @@ class WeightServiceSpec extends AnyWordSpec with Matchers with MockitoSugar {
 object TestData {
   val healthIndicator100 =
     RepoRatings("foo", Instant.now(), Seq(ReadMeRating(ValidReadMe), LeakDetectionRating(0), BobbyRulesRating(0, 0)))
-  val healthIndicator63 =
-    RepoRatings("bar", Instant.now(), Seq(ReadMeRating(ValidReadMe), LeakDetectionRating(4), BobbyRulesRating(1, 0)))
   val healthIndicator50 =
+    RepoRatings("bar", Instant.now(), Seq(ReadMeRating(ValidReadMe), LeakDetectionRating(4), BobbyRulesRating(0, 1)))
+  val healthIndicator65 =
     RepoRatings("bar", Instant.now(), Seq(ReadMeRating(ValidReadMe), LeakDetectionRating(4), BobbyRulesRating(2, 0)))
 }
