@@ -46,27 +46,19 @@ case class BobbyRulesRating(
 
 object BobbyRulesRating {
     def calculate(bobbyRulesRating: BobbyRulesRating): Int = {
-//        bobbyRulesRating match {
-//            case bobbyRulesRating.activeViolations == 0 && bobbyRulesRating.pendingViolations == 0 => 100
-//            case bobbyRulesRating.activeViolations == 0 && bobbyRulesRating.pendingViolations == 1 => 75
-//            case bobbyRulesRating.activeViolations == 0 && bobbyRulesRating.pendingViolations == 2 => 50
-//            case bobbyRulesRating.activeViolations == 0 && bobbyRulesRating.pendingViolations == 3 => 25
-//            case _ => 0
-
             val maxScore = 100
-            val activeViolationScore = 100
-            val pendingViolationScore = 20
+            val activeViolationPenalty= 100
+            val pendingViolationPenalty = 20
 
             val score = maxScore-
-                (activeViolationScore*bobbyRulesRating.activeViolations
-                    + pendingViolationScore*bobbyRulesRating.pendingViolations)
+                (activeViolationPenalty*bobbyRulesRating.activeViolations
+                    + pendingViolationPenalty*bobbyRulesRating.pendingViolations)
 
             if(score<0) 0 else score
         }
 
     val format: OFormat[BobbyRulesRating] =
-        //(__ \ "count").format[(Int, Int)].inmap(BobbyRulesRating.apply, unlift(BobbyRulesRating.unapply))
-    ((__ \ "pendingViolations").format[Int]
-        ~ (__ \ "activeViolations").format[Int])(BobbyRulesRating.apply, unlift(BobbyRulesRating.unapply))
+        ((__ \ "pendingViolations").format[Int]
+            ~ (__ \ "activeViolations").format[Int])(BobbyRulesRating.apply, unlift(BobbyRulesRating.unapply))
 }
 

@@ -16,19 +16,29 @@
 
 package uk.gov.hmrc.healthindicators.raters.bobbyrules
 
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
 
 case class BobbyRuleViolations (
    reason: String,
-   from: String,
+   from: LocalDate,
    range: String
 )
 
 object BobbyRuleViolations {
+    val dateFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+
+    implicit val readsDate: Reads[LocalDate] = new Reads[LocalDate] {
+        override def reads(json: JsValue): JsResult[LocalDate] =
+            json.validate[String].map(LocalDate.parse(_, dateFormatter))
+    }
+
     val reads: Reads[BobbyRuleViolations] = {
         ((__ \ "reason").read[String]
-            ~ (__ \ "from").read[String]
+            ~ (__ \ "from").read[LocalDate]
             ~ (__ \ "range").read[String])(BobbyRuleViolations.apply _)
     }
 }
@@ -52,9 +62,6 @@ case class Report (
      sbtPluginsDependencies: Seq[Dependencies],
      otherDependencies: Seq[Dependencies],
  )
-
-
-
 
 object Report {
     val reads: Reads[Report] = {

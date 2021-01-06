@@ -38,9 +38,8 @@ class BobbyRulesRater @Inject()(
 
     override def rate(repo: String): Future[Rating] = {
         logger.info(s"Rating LeakDetection for: $repo")
-        val dependencyList = getDependencyList(repo)
 
-        countViolationsForRepo(dependencyList)
+        getDependencyList(repo).map(i => countViolationsForRepo(i))
     }
 
     def getDependencyList(repo: String): Future[Seq[Dependencies]] = {
@@ -52,32 +51,14 @@ class BobbyRulesRater @Inject()(
         } yield dependencies
     }
 
-    def countViolationsForRepo(dependencies: Future[Seq[Dependencies]]): Future[BobbyRulesRating] = {
-        val dateFormat = new SimpleDateFormat("yyyy-MM-dd")
+    def countViolationsForRepo(dependencies: Seq[Dependencies], now: LocalDate = LocalDate.now): BobbyRulesRating = {
+        val dependencyFromDates = dependencies.flatMap(_.bobbyRuleViolations.map(_.from))
 
-        val dependencyFrom = dependencies.map(_.flatMap(_.bobbyRuleViolations.map(_.from)))
+        val (pendingViolations, activeViolations) = dependencyFromDates
+            .partition(
+                _.isBefore(now))
 
-        val dependencyJavaDates = dependencyFrom.map(a => {
-            a.map(dateFormat.parse)
-        })
-
-        val splitList = dependencyJavaDates
-            .map(
-                _.partition(
-                    _.before(getCurrentDate)))
-
-        val pendingViolations = splitList.map(_._2.size)
-        val activeViolations = splitList.map(_._1.size)
-
-        for {
-            a <- pendingViolations
-            b <- activeViolations
-        } yield BobbyRulesRating(a, b)
-    }
-
-    def getCurrentDate: Date = {
-        val dateFormat = new SimpleDateFormat("yyyy-MM-dd")
-        dateFormat.parse(LocalDate.now.toString)
+        BobbyRulesRating(pendingViolations.size, activeViolations.size)
     }
 }
 
