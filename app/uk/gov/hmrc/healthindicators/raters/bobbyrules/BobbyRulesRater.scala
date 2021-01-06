@@ -56,7 +56,7 @@ class BobbyRulesRater @Inject()(
 
         val (pendingViolations, activeViolations) = dependencyFromDates
             .partition(
-                _.isBefore(now))
+                _.isAfter(now))
 
         BobbyRulesRating(pendingViolations.size, activeViolations.size)
     }
