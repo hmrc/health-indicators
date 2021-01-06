@@ -37,21 +37,36 @@ import play.api.libs.json._
 import uk.gov.hmrc.healthindicators.models.{Rating, RatingType}
 
 case class BobbyRulesRating(
-      count: Int
+      pendingViolations: Int,
+      activeViolations: Int
   ) extends Rating {
     override def ratingType: RatingType = RatingType.BobbyRules
     override def rating: Int    = BobbyRulesRating.calculate(this)
 }
 
 object BobbyRulesRating {
-    def calculate(bobbyRulesRating: BobbyRulesRating): Int =
-        bobbyRulesRating.count match {
-            case 0 => 100
-            case 1 => 50
-            case _ => 0
+    def calculate(bobbyRulesRating: BobbyRulesRating): Int = {
+//        bobbyRulesRating match {
+//            case bobbyRulesRating.activeViolations == 0 && bobbyRulesRating.pendingViolations == 0 => 100
+//            case bobbyRulesRating.activeViolations == 0 && bobbyRulesRating.pendingViolations == 1 => 75
+//            case bobbyRulesRating.activeViolations == 0 && bobbyRulesRating.pendingViolations == 2 => 50
+//            case bobbyRulesRating.activeViolations == 0 && bobbyRulesRating.pendingViolations == 3 => 25
+//            case _ => 0
+
+            val maxScore = 100
+            val activeViolationScore = 100
+            val pendingViolationScore = 20
+
+            val score = maxScore-
+                (activeViolationScore*bobbyRulesRating.activeViolations
+                    + pendingViolationScore*bobbyRulesRating.pendingViolations)
+
+            if(score<0) 0 else score
         }
 
     val format: OFormat[BobbyRulesRating] =
-        (__ \ "count").format[Int].inmap(BobbyRulesRating.apply, unlift(BobbyRulesRating.unapply))
+        //(__ \ "count").format[(Int, Int)].inmap(BobbyRulesRating.apply, unlift(BobbyRulesRating.unapply))
+    ((__ \ "pendingViolations").format[Int]
+        ~ (__ \ "activeViolations").format[Int])(BobbyRulesRating.apply, unlift(BobbyRulesRating.unapply))
 }
 

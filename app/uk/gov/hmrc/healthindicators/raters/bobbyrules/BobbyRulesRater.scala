@@ -54,7 +54,6 @@ class BobbyRulesRater @Inject()(
 
     def countViolationsForRepo(dependencies: Future[Seq[Dependencies]]): Future[BobbyRulesRating] = {
         val dateFormat = new SimpleDateFormat("yyyy-MM-dd")
-        //val outputFormat = new SimpleDateFormat("ddMMyyyy")
 
         val dependencyFrom = dependencies.map(_.flatMap(_.bobbyRuleViolations.map(_.from)))
 
@@ -67,16 +66,13 @@ class BobbyRulesRater @Inject()(
                 _.partition(
                     _.before(getCurrentDate)))
 
-
         val pendingViolations = splitList.map(_._2.size)
         val activeViolations = splitList.map(_._1.size)
 
-
-        println(Await.result(activeViolations, 5 seconds))
-
-        val violationCount = dependencies.map(_.map(_.bobbyRuleViolations.size).sum)
-
-        violationCount.map(BobbyRulesRating(_))
+        for {
+            a <- pendingViolations
+            b <- activeViolations
+        } yield BobbyRulesRating(a, b)
     }
 
     def getCurrentDate: Date = {
