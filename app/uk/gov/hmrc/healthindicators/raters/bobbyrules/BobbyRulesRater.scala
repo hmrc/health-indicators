@@ -16,11 +16,17 @@
 
 package uk.gov.hmrc.healthindicators.raters.bobbyrules
 
+import java.text.SimpleDateFormat
+import java.time.{Clock, LocalDate}
+import java.util.Date
+
 import javax.inject.Inject
 import uk.gov.hmrc.healthindicators.models.{Rater, Rating}
 import uk.gov.hmrc.http.HeaderCarrier
 import play.api.Logger
-import scala.concurrent.{ExecutionContext, Future}
+
+import scala.concurrent.duration.DurationInt
+import scala.concurrent.{Await, ExecutionContext, Future}
 
 class BobbyRulesRater @Inject()(
    bobbyRuleConnector: BobbyRuleConnector
@@ -32,17 +38,51 @@ class BobbyRulesRater @Inject()(
 
     override def rate(repo: String): Future[Rating] = {
         logger.info(s"Rating LeakDetection for: $repo")
-        countViolationsForRepo(repo)
+        val dependencyList = getDependencyList(repo)
+
+        countViolationsForRepo(dependencyList)
     }
 
-    def countViolationsForRepo(repo: String): Future[BobbyRulesRating] = {
+    def getDependencyList(repo: String): Future[Seq[Dependencies]] = {
         for {
             bobbyRuleReport: Option[Report] <- bobbyRuleConnector.findLatestMasterReport(repo)
             dependencies: Seq[Dependencies] = bobbyRuleReport.map(b => {
                 b.libraryDependencies ++ b.sbtPluginsDependencies ++ b.otherDependencies
             }).getOrElse(Seq())
-            violationCount: Int = dependencies.map(_.bobbyRuleViolations.size).sum
+        } yield dependencies
+    }
 
-        } yield BobbyRulesRating(violationCount)
+    def countViolationsForRepo(dependencies: Future[Seq[Dependencies]]): Future[BobbyRulesRating] = {
+        val dateFormat = new SimpleDateFormat("yyyy-MM-dd")
+        //val outputFormat = new SimpleDateFormat("ddMMyyyy")
+
+        val dependencyFrom = dependencies.map(_.flatMap(_.bobbyRuleViolations.map(_.from)))
+
+        val dependencyJavaDates = dependencyFrom.map(a => {
+            a.map(dateFormat.parse)
+        })
+
+        val splitList = dependencyJavaDates
+            .map(
+                _.partition(
+                    _.before(getCurrentDate)))
+
+
+        val pendingViolations = splitList.map(_._2.size)
+        val activeViolations = splitList.map(_._1.size)
+
+
+        println(Await.result(activeViolations, 5 seconds))
+
+        val violationCount = dependencies.map(_.map(_.bobbyRuleViolations.size).sum)
+
+        violationCount.map(BobbyRulesRating(_))
+    }
+
+    def getCurrentDate: Date = {
+        val dateFormat = new SimpleDateFormat("yyyy-MM-dd")
+        dateFormat.parse(LocalDate.now.toString)
     }
 }
+
+
