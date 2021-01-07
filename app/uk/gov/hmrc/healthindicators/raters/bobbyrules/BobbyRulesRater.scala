@@ -16,11 +16,17 @@
 
 package uk.gov.hmrc.healthindicators.raters.bobbyrules
 
+import java.text.SimpleDateFormat
+import java.time.{Clock, LocalDate}
+import java.util.Date
+
 import javax.inject.Inject
 import uk.gov.hmrc.healthindicators.models.{Rater, Rating}
 import uk.gov.hmrc.http.HeaderCarrier
 import play.api.Logger
-import scala.concurrent.{ExecutionContext, Future}
+
+import scala.concurrent.duration.DurationInt
+import scala.concurrent.{Await, ExecutionContext, Future}
 
 class BobbyRulesRater @Inject()(
    bobbyRuleConnector: BobbyRuleConnector
@@ -32,17 +38,28 @@ class BobbyRulesRater @Inject()(
 
     override def rate(repo: String): Future[Rating] = {
         logger.info(s"Rating LeakDetection for: $repo")
-        countViolationsForRepo(repo)
+
+        getDependencyList(repo).map(i => countViolationsForRepo(i))
     }
 
-    def countViolationsForRepo(repo: String): Future[BobbyRulesRating] = {
+    def getDependencyList(repo: String): Future[Seq[Dependencies]] = {
         for {
             bobbyRuleReport: Option[Report] <- bobbyRuleConnector.findLatestMasterReport(repo)
             dependencies: Seq[Dependencies] = bobbyRuleReport.map(b => {
                 b.libraryDependencies ++ b.sbtPluginsDependencies ++ b.otherDependencies
             }).getOrElse(Seq())
-            violationCount: Int = dependencies.map(_.bobbyRuleViolations.size).sum
+        } yield dependencies
+    }
 
-        } yield BobbyRulesRating(violationCount)
+    def countViolationsForRepo(dependencies: Seq[Dependencies], now: LocalDate = LocalDate.now): BobbyRulesRating = {
+        val dependencyFromDates = dependencies.flatMap(_.bobbyRuleViolations.map(_.from))
+
+        val (pendingViolations, activeViolations) = dependencyFromDates
+            .partition(
+                _.isAfter(now))
+
+        BobbyRulesRating(pendingViolations.size, activeViolations.size)
     }
 }
+
+

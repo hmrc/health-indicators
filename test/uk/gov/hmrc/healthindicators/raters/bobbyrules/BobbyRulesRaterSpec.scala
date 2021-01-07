@@ -36,6 +36,7 @@ import org.mockito.MockitoSugar
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import uk.gov.hmrc.http.HeaderCarrier
+import java.time.{Clock, LocalDate}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
@@ -46,7 +47,12 @@ class BobbyRulesRaterSpec extends AnyWordSpec with Matchers with MockitoSugar {
     val mockBobbyRulesConnector = mock[BobbyRuleConnector]
     val rater                      = new BobbyRulesRater(mockBobbyRulesConnector)
 
-    val dependenciesWithViolation = Dependencies(Seq(BobbyRuleViolations("reason", "from", "range")), "name")
+    val dependenciesWithActiveViolation = Dependencies(Seq(BobbyRuleViolations("reason",
+        LocalDate.parse("1994-01-08"), "range")), "name")
+
+    val dependenciesWithPendingViolation = Dependencies(Seq(BobbyRuleViolations("reason",
+        LocalDate.now.plusDays(1), "range")), "name")
+
     val dependenciesWithoutViolation = Dependencies(Seq(), "name")
 
 
@@ -54,46 +60,69 @@ class BobbyRulesRaterSpec extends AnyWordSpec with Matchers with MockitoSugar {
 
     "BobbyRulesRater" should {
 
-        "Return BobbyRulesRating Object with 100 Rating when no Report is found" in {
+        "Return BobbyRulesRating Object with (0,0) Rating when repo is not found" in {
             when(mockBobbyRulesConnector.findLatestMasterReport("foo")) thenReturn Future.successful(None)
 
-            val result = rater.countViolationsForRepo("foo")
+            val dependencyList = rater.getDependencyList("foo")
 
-            Await.result(result, 5 seconds) mustBe BobbyRulesRating(0)
+            val result = dependencyList.map(a => rater.countViolationsForRepo(a))
+
+            Await.result(result, 5 seconds) mustBe BobbyRulesRating(0, 0)
         }
 
-        "Return LeakDetectionRating Object with 100 Rating when a Report with 0 Results is found" in {
+        "Return BobbyRuleRating Object with (0, 0) Rating when a Report with 0 Dependencies is found" in {
             when(mockBobbyRulesConnector.findLatestMasterReport("foo")) thenReturn Future.successful(
                 Some(Report("repoName", Seq(), Seq(), Seq())))
 
-            val result = rater.countViolationsForRepo("foo")
+            val dependencyList = rater.getDependencyList("foo")
 
-            Await.result(result, 5 seconds) mustBe BobbyRulesRating(0)
+            val result = dependencyList.map(a => rater.countViolationsForRepo(a))
+
+            Await.result(result, 5 seconds) mustBe BobbyRulesRating(0, 0)
         }
 
-        "Return LeakDetectionRating Object with 50 Rating when a Report with 1 Violation is found" in {
+        "Return BobbyRuleRating Object with (0, 1) Rating when a Report with 0 Pending and 1 Active Violation is found" in {
             when(mockBobbyRulesConnector.findLatestMasterReport("foo")) thenReturn Future.successful(
                 Some(Report("repoName",
-                    Seq(dependenciesWithViolation),
+                    Seq(dependenciesWithActiveViolation),
                     Seq(dependenciesWithoutViolation),
                     Seq(dependenciesWithoutViolation))))
 
-            val result = rater.countViolationsForRepo("foo")
+            val dependencyList = rater.getDependencyList("foo")
 
-            Await.result(result, 5 seconds) mustBe BobbyRulesRating(1)
+            val result = dependencyList.map(a => rater.countViolationsForRepo(a))
+
+            Await.result(result, 5 seconds) mustBe BobbyRulesRating(0, 1)
         }
 
-        "Return LeakDetectionRating Object with 0 Rating when a Report with 2+ Results is found" in {
+        "Return BobbyRule Rating Object with (1, 0) Rating when a Report with 1 Pending and 0 Actives Violation is found" in {
             when(mockBobbyRulesConnector.findLatestMasterReport("foo")) thenReturn Future.successful(
                 Some(Report("repoName",
-                    Seq(dependenciesWithViolation),
-                    Seq(dependenciesWithViolation),
-                    Seq(dependenciesWithViolation))))
+                    Seq(dependenciesWithPendingViolation),
+                    Seq(dependenciesWithoutViolation),
+                    Seq(dependenciesWithoutViolation))))
 
-            val result = rater.countViolationsForRepo("foo")
+            val dependencyList = rater.getDependencyList("foo")
 
-            Await.result(result, 5 seconds) mustBe BobbyRulesRating(3)
+            val result = dependencyList.map(a => rater.countViolationsForRepo(a))
+
+            Await.result(result, 5 seconds) mustBe BobbyRulesRating(1, 0)
         }
-    }
+
+
+        "Return BobbyRule Rating Object (1, 2) Rating when a Report with 1 Pending and 2 Actives Violation is found" in {
+            when(mockBobbyRulesConnector.findLatestMasterReport("foo")) thenReturn Future.successful(
+                Some(Report("repoName",
+                    Seq(dependenciesWithPendingViolation),
+                    Seq(dependenciesWithActiveViolation),
+                    Seq(dependenciesWithActiveViolation))))
+
+            val dependencyList = rater.getDependencyList("foo")
+
+            val result = dependencyList.map(a => rater.countViolationsForRepo(a))
+
+            Await.result(result, 5 seconds) mustBe BobbyRulesRating(1, 2)
+        }
+   }
 }
 

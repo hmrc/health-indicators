@@ -26,14 +26,14 @@ import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class BobbyRuleConnector @Inject()(
-  httpClient: HttpClient,
-  healthIndicatorsConfig: RatersConfig
+      httpClient: HttpClient,
+      ratersConfig: RatersConfig
 
 )(implicit val ec: ExecutionContext) {
 
     private implicit val hc: HeaderCarrier = HeaderCarrier()
 
-    private val bobbyRuleBaseURL: String = healthIndicatorsConfig.bobbyRuleUrl
+    private val bobbyRuleBaseURL: String = ratersConfig.bobbyRuleUrl
 
     def findLatestMasterReport(repo: String): Future[Option[Report]] = {
         implicit val rF: Reads[Report] = Report.reads

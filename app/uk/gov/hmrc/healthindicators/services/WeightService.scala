@@ -23,10 +23,9 @@ import uk.gov.hmrc.healthindicators.models.{Rating, RatingType, RepoRatings}
 @Singleton
 class WeightService @Inject()(weightsConfig: WeightsConfig) {
 
-  def weightedScore(healthIndicators: RepoRatings): Int =
-    WeightService.weightedScoreInternal(weightsConfig.weightsLookup)(healthIndicators)
+  def weightedScore(repoRatings: RepoRatings): Int =
+    WeightService.weightedScoreInternal(weightsConfig.weightsLookup)(repoRatings)
 }
-
 
 object WeightService {
 
