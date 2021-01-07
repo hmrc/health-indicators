@@ -50,6 +50,7 @@ class WeightedRepoScoreControllerSpec
             val result = weightedRepoScoreController.scoreForRepo("repo1")(fakeRequest)
             contentAsJson(result).toString() shouldBe s"""{"repo":"repo1","weightedScore":100,"ratings":[]}"""
         }
+
         "get scores for all repos" in {
             val fakeRequest = FakeRequest("GET", "/api/health-score/repositories/repo1")
             when(mockWeightedRepoScorerService.repoScoreAllRepos())
