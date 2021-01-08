@@ -42,6 +42,8 @@ case class BobbyRulesRating(
   ) extends Rating {
     override def ratingType: RatingType = RatingType.BobbyRules
     override def rating: Int    = BobbyRulesRating.calculate(this)
+    override val reason: String =
+        s"You Scored this because you have $pendingViolations pending and $activeViolations active violations"
 }
 
 object BobbyRulesRating {

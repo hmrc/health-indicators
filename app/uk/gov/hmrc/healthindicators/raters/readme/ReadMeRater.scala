@@ -31,6 +31,7 @@ class ReadMeRater @Inject()(
   override def rate(repo: String): Future[Rating] = {
     Logger.info(s"Rating ReadMe for: $repo")
     validateReadMe(repo)
+
   }
 
   def validateReadMe(repo: String): Future[ReadMeRating] =

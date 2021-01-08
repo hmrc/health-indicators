@@ -25,6 +25,8 @@ case class LeakDetectionRating(
 ) extends Rating {
   override def ratingType: RatingType = RatingType.LeakDetection
   override def rating: Int    = LeakDetectionRating.calculate(this)
+
+  override val reason: String = s"You scored this because you have $count leaks detected"
 }
 
 object LeakDetectionRating {
