@@ -27,8 +27,8 @@ import scala.concurrent.ExecutionContext
 
 @Singleton
 class RepoScoreController @Inject()(
-                                             weightedRepoScorerService: RepoScorerService,
-                                             cc: ControllerComponents
+                                     repoScorerService: RepoScorerService,
+                                     cc: ControllerComponents
 )(implicit ec: ExecutionContext)
     extends BackendController(cc) {
 
@@ -36,14 +36,14 @@ class RepoScoreController @Inject()(
 
   def scoreForRepo(repo: String): Action[AnyContent] = Action.async { implicit request =>
     for {
-      score <- weightedRepoScorerService.repoScore(repo)
+      score <- repoScorerService.repoScore(repo)
       result = score.map(s => Ok(Json.toJson(s))).getOrElse(NotFound)
     } yield result
   }
 
   def scoreAllRepos(): Action[AnyContent] = Action.async { implicit request =>
     for {
-      mapScores <- weightedRepoScorerService.repoScoreAllRepos()
+      mapScores <- repoScorerService.repoScoreAllRepos()
       result = Ok(Json.toJson(mapScores))
     } yield result
   }

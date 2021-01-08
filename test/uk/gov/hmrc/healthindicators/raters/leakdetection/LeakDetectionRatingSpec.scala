@@ -29,19 +29,19 @@ class LeakDetectionRatingSpec extends AnyWordSpec with Matchers {
   "calculate" should {
 
     "Return 100 when count is 0" in {
-      LeakDetectionRating.calculate(leakDetectionRating0) mustBe 100
+      LeakDetectionRating.calculateScore(leakDetectionRating0) mustBe 100
     }
 
     "Return 50 when count is 1" in {
-      LeakDetectionRating.calculate(leakDetectionRating1) mustBe 50
+      LeakDetectionRating.calculateScore(leakDetectionRating1) mustBe 50
     }
 
     "Return 0 when count is 2" in {
-      LeakDetectionRating.calculate(leakDetectionRating2) mustBe 0
+      LeakDetectionRating.calculateScore(leakDetectionRating2) mustBe 0
     }
 
     "Reutn 0 when count is more than 2" in {
-      LeakDetectionRating.calculate(leakDetectionRating3) mustBe 0
+      LeakDetectionRating.calculateScore(leakDetectionRating3) mustBe 0
     }
   }
 }
