@@ -24,13 +24,13 @@ case class LeakDetectionRating(
   count: Int
 ) extends Rating {
   override def ratingType: RatingType = RatingType.LeakDetection
-  override def rating: Int    = LeakDetectionRating.calculate(this)
+  override def rating: Int    = LeakDetectionRating.calculateScore(this)
 
   override val reason: String = s"You scored this because you have $count leaks detected"
 }
 
 object LeakDetectionRating {
-  def calculate(leakDetectionRating: LeakDetectionRating): Int =
+  def calculateScore(leakDetectionRating: LeakDetectionRating): Int =
     leakDetectionRating.count match {
       case 0 => 100
       case 1 => 50

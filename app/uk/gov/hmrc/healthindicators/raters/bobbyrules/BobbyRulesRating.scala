@@ -41,15 +41,15 @@ case class BobbyRulesRating(
       activeViolations: Int
   ) extends Rating {
     override def ratingType: RatingType = RatingType.BobbyRules
-    override def rating: Int    = BobbyRulesRating.calculate(this)
+    override def rating: Int    = BobbyRulesRating.calculateScore(this)
     override val reason: String =
         s"You Scored this because you have $pendingViolations pending and $activeViolations active violations"
 }
 
 object BobbyRulesRating {
-    def calculate(bobbyRulesRating: BobbyRulesRating): Int = {
+    def calculateScore(bobbyRulesRating: BobbyRulesRating): Int = {
             val maxScore = 100
-            val activeViolationPenalty= 100
+            val activeViolationPenalty = 100
             val pendingViolationPenalty = 20
 
             val score = maxScore-
@@ -58,6 +58,8 @@ object BobbyRulesRating {
 
             if(score<0) 0 else score
         }
+    
+
 
     val format: OFormat[BobbyRulesRating] =
         ((__ \ "pendingViolations").format[Int]

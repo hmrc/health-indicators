@@ -20,15 +20,15 @@ import javax.inject.{Inject, Singleton}
 import play.api.libs.json.{Json, Writes}
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import uk.gov.hmrc.healthindicators.models.RepoScoreBreakdown
-import uk.gov.hmrc.healthindicators.services.WeightedRepoScorerService
+import uk.gov.hmrc.healthindicators.services.RepoScorerService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import scala.concurrent.ExecutionContext
 
 @Singleton
-class WeightedRepoScoreController @Inject()(
-                                            weightedRepoScorerService: WeightedRepoScorerService,
-                                            cc: ControllerComponents
+class RepoScoreController @Inject()(
+                                     repoScorerService: RepoScorerService,
+                                     cc: ControllerComponents
 )(implicit ec: ExecutionContext)
     extends BackendController(cc) {
 
@@ -36,14 +36,14 @@ class WeightedRepoScoreController @Inject()(
 
   def scoreForRepo(repo: String): Action[AnyContent] = Action.async { implicit request =>
     for {
-      score <- weightedRepoScorerService.repoScore(repo)
+      score <- repoScorerService.repoScore(repo)
       result = score.map(s => Ok(Json.toJson(s))).getOrElse(NotFound)
     } yield result
   }
 
   def scoreAllRepos(): Action[AnyContent] = Action.async { implicit request =>
     for {
-      mapScores <- weightedRepoScorerService.repoScoreAllRepos()
+      mapScores <- repoScorerService.repoScoreAllRepos()
       result = Ok(Json.toJson(mapScores))
     } yield result
   }

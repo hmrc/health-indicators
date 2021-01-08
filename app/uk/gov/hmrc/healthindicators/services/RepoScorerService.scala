@@ -17,27 +17,31 @@
 package uk.gov.hmrc.healthindicators.services
 
 import javax.inject.Inject
-import uk.gov.hmrc.healthindicators.models.RepoScoreBreakdown
+import uk.gov.hmrc.healthindicators.models.{RepoRatings, RepoScoreBreakdown}
 import uk.gov.hmrc.healthindicators.persistence.RepoRatingsPersistence
 
-import scala.concurrent.{ ExecutionContext, Future}
+import scala.concurrent.{ExecutionContext, Future}
 
 
-class WeightedRepoScorerService @Inject()(repository: RepoRatingsPersistence,
-                                          weightService: WeightService,
+class RepoScorerService @Inject()(repository: RepoRatingsPersistence,
                                          )(implicit val ec: ExecutionContext) {
 
   def repoScore(repo: String): Future[Option[RepoScoreBreakdown]] = {
     repository.latestRatingsForRepo(repo).map(_.map(repoRating => {
-      RepoScoreBreakdown(repo, weightService.weightedScore(repoRating), repoRating.ratings)
+      RepoScoreBreakdown(repo, sumScores(repoRating), repoRating.ratings)
     }))
   }
 
   def repoScoreAllRepos(): Future[Map[String, Int]] =
     for {
-      indicators <- repository.latestRatings()
-      scores = indicators.map(h => (h.repo, weightService.weightedScore(h))).toMap
+      ratings <- repository.latestRatings()
+      scores = ratings.map(h => (h.repo, sumScores(h))).toMap
     } yield scores
+
+
+  def sumScores(repoRatings: RepoRatings): Int = {
+    repoRatings.ratings.map(r => r.rating).sum
+  }
 
 
 }
