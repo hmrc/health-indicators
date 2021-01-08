@@ -49,7 +49,7 @@ case class BobbyRulesRating(
 object BobbyRulesRating {
     def calculate(bobbyRulesRating: BobbyRulesRating): Int = {
             val maxScore = 100
-            val activeViolationPenalty= 100
+            val activeViolationPenalty = 100
             val pendingViolationPenalty = 20
 
             val score = maxScore-
@@ -58,6 +58,8 @@ object BobbyRulesRating {
 
             if(score<0) 0 else score
         }
+    
+
 
     val format: OFormat[BobbyRulesRating] =
         ((__ \ "pendingViolations").format[Int]

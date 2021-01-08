@@ -20,15 +20,15 @@ import javax.inject.{Inject, Singleton}
 import play.api.libs.json.{Json, Writes}
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import uk.gov.hmrc.healthindicators.models.RepoScoreBreakdown
-import uk.gov.hmrc.healthindicators.services.WeightedRepoScorerService
+import uk.gov.hmrc.healthindicators.services.RepoScorerService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import scala.concurrent.ExecutionContext
 
 @Singleton
-class WeightedRepoScoreController @Inject()(
-                                            weightedRepoScorerService: WeightedRepoScorerService,
-                                            cc: ControllerComponents
+class RepoScoreController @Inject()(
+                                             weightedRepoScorerService: RepoScorerService,
+                                             cc: ControllerComponents
 )(implicit ec: ExecutionContext)
     extends BackendController(cc) {
 

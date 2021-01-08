@@ -23,17 +23,17 @@ import play.api.test.Helpers.{contentAsJson, defaultAwaitTimeout}
 
 import scala.concurrent.duration._
 import uk.gov.hmrc.healthindicators.models.RepoScoreBreakdown
-import uk.gov.hmrc.healthindicators.services.WeightedRepoScorerService
+import uk.gov.hmrc.healthindicators.services.RepoScorerService
 import play.api.test.{FakeRequest, Helpers}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{Await, Future}
 
-class WeightedRepoScoreControllerSpec
+class RepoScoreControllerSpec
     extends AnyWordSpec with Matchers with MockitoSugar{
 
-    val mockWeightedRepoScorerService: WeightedRepoScorerService = mock[WeightedRepoScorerService]
-    private val weightedRepoScoreController = new WeightedRepoScoreController(
+    val mockWeightedRepoScorerService: RepoScorerService = mock[RepoScorerService]
+    private val weightedRepoScoreController = new RepoScoreController(
         mockWeightedRepoScorerService,
         Helpers.stubControllerComponents())
 
