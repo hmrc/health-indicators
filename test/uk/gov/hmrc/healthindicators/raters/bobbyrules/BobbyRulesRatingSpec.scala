@@ -18,9 +18,10 @@ package uk.gov.hmrc.healthindicators.raters.bobbyrules
 
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpec
+import uk.gov.hmrc.healthindicators.configs.ScoreConfig
 
 class BobbyRulesRatingSpec extends AnyWordSpec with Matchers {
-
+    val scoreConfig = new ScoreConfig
     val bobbyRulesRating00 = new BobbyRulesRating(0, 0)
     val bobbyRulesRating10 = new BobbyRulesRating(1, 0)
     val bobbyRulesRating01 = new BobbyRulesRating(0, 1)
@@ -29,24 +30,24 @@ class BobbyRulesRatingSpec extends AnyWordSpec with Matchers {
 
     "calculate" should {
 
-        "Return 100 when no violations found" in {
-            BobbyRulesRating.calculateScore(bobbyRulesRating00) mustBe 100
+        "Return 0 when no violations found" in {
+            bobbyRulesRating00.calculateScore(scoreConfig) mustBe 0
         }
 
-        "Return 80 when 1 pending and 0 active is found" in {
-            BobbyRulesRating.calculateScore(bobbyRulesRating10) mustBe 80
+        "Match scoreConfig.bobbyRulePending when 1 pending and 0 active is found" in {
+            bobbyRulesRating10.calculateScore(scoreConfig) mustBe scoreConfig.bobbyRulePending
         }
 
-        "Return 0 when 0 pending and 1 active is found" in {
-            BobbyRulesRating.calculateScore(bobbyRulesRating01) mustBe 0
+        "Match scoreConfig.bobbyRuleActive when 0 pending and 1 active is found" in {
+            bobbyRulesRating01.calculateScore(scoreConfig) mustBe scoreConfig.bobbyRuleActive
         }
 
-      "Return 20 when 4 pending and 0 active is found" in {
-        BobbyRulesRating.calculateScore(bobbyRulesRating40) mustBe 20
-      }
+        "Match scoreConfig.bobbyRulePending * 4 when 4 pending and 0 active is found" in {
+            bobbyRulesRating40.calculateScore(scoreConfig) mustBe scoreConfig.bobbyRulePending * 4
+        }
 
-      "Return 0 when 6 pending and 1 active is found" in {
-        BobbyRulesRating.calculateScore(bobbyRulesRating61) mustBe 0
-      }
+        "Match scoreConfig.bobbyRulePending * 6 + scoreConfig.bobbyRuleActive when 6 pending and 1 active is found" in {
+            bobbyRulesRating61.calculateScore(scoreConfig) mustBe scoreConfig.bobbyRulePending * 6 + scoreConfig.bobbyRuleActive
+        }
     }
 }

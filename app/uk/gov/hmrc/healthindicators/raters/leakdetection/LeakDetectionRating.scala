@@ -18,21 +18,18 @@ package uk.gov.hmrc.healthindicators.raters.leakdetection
 
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
+import uk.gov.hmrc.healthindicators.configs.ScoreConfig
 import uk.gov.hmrc.healthindicators.models.{Rating, RatingType}
 
 case class LeakDetectionRating(
   count: Int
 ) extends Rating {
   override def ratingType: RatingType = RatingType.LeakDetection
-  override def rating: Int    = LeakDetectionRating.calculateScore(this)
-
+  override def calculateScore(scoreConfig: ScoreConfig): Int = count * -50
   override val reason: String = s"You scored this because you have $count leaks detected"
 }
 
 object LeakDetectionRating {
-  def calculateScore(leakDetectionRating: LeakDetectionRating): Int =
-    leakDetectionRating.count * -50
-
   val format: OFormat[LeakDetectionRating] =
     (__ \ "count").format[Int].inmap(LeakDetectionRating.apply, unlift(LeakDetectionRating.unapply))
 }

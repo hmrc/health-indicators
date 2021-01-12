@@ -17,13 +17,14 @@
 package uk.gov.hmrc.healthindicators.services
 
 import javax.inject.Inject
+import uk.gov.hmrc.healthindicators.configs.ScoreConfig
 import uk.gov.hmrc.healthindicators.models.{RepoRatings, RepoScoreBreakdown}
 import uk.gov.hmrc.healthindicators.persistence.RepoRatingsPersistence
 
 import scala.concurrent.{ExecutionContext, Future}
 
-
 class RepoScorerService @Inject()(repository: RepoRatingsPersistence,
+                                 scoreConfig: ScoreConfig
                                          )(implicit val ec: ExecutionContext) {
 
   def repoScore(repo: String): Future[Option[RepoScoreBreakdown]] = {
@@ -38,9 +39,8 @@ class RepoScorerService @Inject()(repository: RepoRatingsPersistence,
       scores = ratings.map(h => (h.repo, sumScores(h))).toMap
     } yield scores
 
-
   def sumScores(repoRatings: RepoRatings): Int = {
-    repoRatings.ratings.map(r => r.rating).sum
+    repoRatings.ratings.map(r => r.calculateScore(scoreConfig)).sum
   }
 
 

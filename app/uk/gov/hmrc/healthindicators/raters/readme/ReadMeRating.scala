@@ -18,6 +18,7 @@ package uk.gov.hmrc.healthindicators.raters.readme
 
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
+import uk.gov.hmrc.healthindicators.configs.ScoreConfig
 import uk.gov.hmrc.healthindicators.models.{Rating, RatingType}
 import uk.gov.hmrc.healthindicators.raters.readme.ReadMeType.{DefaultReadMe, NoReadMe, ValidReadMe}
 
@@ -57,18 +58,17 @@ case class ReadMeRating(
   readMeType: ReadMeType
 ) extends Rating {
   override def ratingType: RatingType = RatingType.ReadMe
-  override def rating: Int    = ReadMeRating.calculateScore(this.readMeType)
   override val reason: String = s"You scored this because you have a " + this.readMeType.toString
-}
-
-object ReadMeRating {
-  def calculateScore(readMeType: ReadMeType): Int =
+  override def calculateScore(scoreConfig: ScoreConfig): Int = {
     readMeType match {
       case NoReadMe      => 0
       case DefaultReadMe => 0
       case ValidReadMe   => 100
     }
+  }
+}
 
+object ReadMeRating {
   val format: OFormat[ReadMeRating] = {
     implicit val rmtF = ReadMeType.format
     (__ \ "readMeType").format[ReadMeType].inmap(ReadMeRating.apply, unlift(ReadMeRating.unapply))

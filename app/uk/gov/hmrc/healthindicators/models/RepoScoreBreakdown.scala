@@ -25,11 +25,9 @@ case class RepoScoreBreakdown (
   ratings: Seq[Rating]
 )
 
-
 object RepoScoreBreakdown {
   val apiWrites: Writes[RepoScoreBreakdown] = {
     implicit val rF: Writes[Rating] = Rating.apiWrites
-
     ((__ \ "repo").write[String]
       ~ (__ \ "weightedScore").write[Int]
       ~ (__ \ "ratings").write[Seq[Rating]])(unlift(RepoScoreBreakdown.unapply))

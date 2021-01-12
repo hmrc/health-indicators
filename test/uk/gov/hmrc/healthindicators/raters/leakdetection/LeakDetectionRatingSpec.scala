@@ -18,30 +18,29 @@ package uk.gov.hmrc.healthindicators.raters.leakdetection
 
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpec
+import uk.gov.hmrc.healthindicators.configs.ScoreConfig
 
 class LeakDetectionRatingSpec extends AnyWordSpec with Matchers {
 
+  val scoreConfig = new ScoreConfig
   val leakDetectionRating0 = new LeakDetectionRating(0)
   val leakDetectionRating1 = new LeakDetectionRating(1)
   val leakDetectionRating2 = new LeakDetectionRating(2)
-  val leakDetectionRating3 = new LeakDetectionRating(3)
+  val leakDetectionRating3 = new LeakDetectionRating(10)
 
   "calculate" should {
 
-    "Return 100 when count is 0" in {
-      LeakDetectionRating.calculateScore(leakDetectionRating0) mustBe 100
+    "Return 0 when count is 0" in {
+      leakDetectionRating0.calculateScore(scoreConfig) mustBe 0
     }
 
-    "Return 50 when count is 1" in {
-      LeakDetectionRating.calculateScore(leakDetectionRating1) mustBe 50
-    }
+    "Match scoreConfig.leakDetection when count is 1" in {
+      leakDetectionRating1.calculateScore(scoreConfig) mustBe scoreConfig.leakDetection  }
 
-    "Return 0 when count is 2" in {
-      LeakDetectionRating.calculateScore(leakDetectionRating2) mustBe 0
-    }
+    "Match scoreConfig.leakDetection * 2 when count is 2" in {
+      leakDetectionRating2.calculateScore(scoreConfig) mustBe scoreConfig.leakDetection * 2   }
 
-    "Reutn 0 when count is more than 2" in {
-      LeakDetectionRating.calculateScore(leakDetectionRating3) mustBe 0
-    }
+    "Match scoreConfig.leakDetection*10 when count is 10" in {
+      leakDetectionRating3.calculateScore(scoreConfig) mustBe scoreConfig.leakDetection * 10   }
   }
 }
