@@ -35,32 +35,23 @@ package uk.gov.hmrc.healthindicators.raters.bobbyrules
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
 import uk.gov.hmrc.healthindicators.models.{Rating, RatingType}
+import uk.gov.hmrc.healthindicators.configs.ScoreConfig
 
-case class BobbyRulesRating(
+case class BobbyRulesRating (
       pendingViolations: Int,
-      activeViolations: Int
+      activeViolations: Int,
   ) extends Rating {
     override def ratingType: RatingType = RatingType.BobbyRules
-    override def rating: Int    = BobbyRulesRating.calculateScore(this)
+    override def calculateScore(scoreConfig: ScoreConfig): Int = {
+        scoreConfig.bobbyRuleActive * activeViolations +
+            scoreConfig.bobbyRulePending * pendingViolations
+    }
+
     override val reason: String =
         s"You Scored this because you have $pendingViolations pending and $activeViolations active violations"
 }
 
 object BobbyRulesRating {
-    def calculateScore(bobbyRulesRating: BobbyRulesRating): Int = {
-            val maxScore = 100
-            val activeViolationPenalty = 100
-            val pendingViolationPenalty = 20
-
-            val score = maxScore-
-                (activeViolationPenalty*bobbyRulesRating.activeViolations
-                    + pendingViolationPenalty*bobbyRulesRating.pendingViolations)
-
-            if(score<0) 0 else score
-        }
-    
-
-
     val format: OFormat[BobbyRulesRating] =
         ((__ \ "pendingViolations").format[Int]
             ~ (__ \ "activeViolations").format[Int])(BobbyRulesRating.apply, unlift(BobbyRulesRating.unapply))

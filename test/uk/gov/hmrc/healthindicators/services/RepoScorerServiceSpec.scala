@@ -22,6 +22,7 @@ import org.joda.time.DurationFieldType.seconds
 import org.mockito.MockitoSugar
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpec
+import uk.gov.hmrc.healthindicators.configs.ScoreConfig
 import uk.gov.hmrc.healthindicators.models.{RatingType, RepoRatings, RepoScoreBreakdown}
 import uk.gov.hmrc.healthindicators.persistence.RepoRatingsPersistence
 import uk.gov.hmrc.healthindicators.raters.leakdetection.LeakDetectionRating
@@ -42,13 +43,14 @@ class RepoScorerServiceSpec extends AnyWordSpec with Matchers with MockitoSugar 
 
   val ratings = RepoRatings("repo1", Instant.now(), Seq(bobbyRulesRating, readMeRating, leakDetectionRating))
 
-  private val repoScorerService = new RepoScorerService(mockRepository)
+  val scoreConfig = new ScoreConfig
+  private val repoScorerService = new RepoScorerService(mockRepository, scoreConfig)
 
   "repoScore" should {
 
     "Return a Total Score based on Ratings and Weights" in {
 
-      val repoBreakDown = RepoScoreBreakdown("foo", 150, Seq(bobbyRulesRating,
+      val repoBreakDown = RepoScoreBreakdown("foo", -70, Seq(bobbyRulesRating,
         readMeRating, leakDetectionRating))
 
       when(mockRepository.latestRatingsForRepo("foo"))

@@ -17,9 +17,11 @@
 package uk.gov.hmrc.healthindicators.models
 
 import play.api.libs.json._
+import uk.gov.hmrc.healthindicators.configs.ScoreConfig
 import uk.gov.hmrc.healthindicators.raters.bobbyrules.BobbyRulesRating
 import uk.gov.hmrc.healthindicators.raters.leakdetection.LeakDetectionRating
 import uk.gov.hmrc.healthindicators.raters.readme.ReadMeRating
+import uk.gov.hmrc.healthindicators.configs.ScoreConfig
 
 sealed trait RatingType { def asString: String }
 
@@ -56,19 +58,16 @@ object RatingType {
 
 trait Rating {
   def ratingType: RatingType
-  def rating: Int
   val reason: String
+  def calculateScore(scoreConfig: ScoreConfig): Int
 }
 
 object Rating {
-
   val apiWrites: Writes[Rating] = (o: Rating) => {
     implicit val rtF = RatingType.format
-    Json.obj("ratingType" -> o.ratingType, "rating" -> o.rating, "reason" -> o.reason)
+    val scoreConfig = new ScoreConfig
+    Json.obj("ratingType" -> o.ratingType, "rating" -> o.calculateScore(scoreConfig: ScoreConfig), "reason" -> o.reason)
   }
-
-
-
 
   val format: Format[Rating] = new Format[Rating] {
     implicit val rtF = RatingType.format

@@ -14,22 +14,18 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.healthindicators.models
+package uk.gov.hmrc.healthindicators.configs
 
-import play.api.libs.functional.syntax.{toFunctionalBuilderOps, unlift}
-import play.api.libs.json.{Writes, __}
+import javax.inject.{Inject, Singleton}
+import play.api.Configuration
 
-case class RepoScoreBreakdown (
-  repo: String,
-  weightedScore: Int,
-  ratings: Seq[Rating]
-)
-
-object RepoScoreBreakdown {
-  val apiWrites: Writes[RepoScoreBreakdown] = {
-    implicit val rF: Writes[Rating] = Rating.apiWrites
-    ((__ \ "repo").write[String]
-      ~ (__ \ "weightedScore").write[Int]
-      ~ (__ \ "ratings").write[Seq[Rating]])(unlift(RepoScoreBreakdown.unapply))
-  }
+@Singleton
+class ScoreConfig {
+    val bobbyRuleActive = -100
+    val bobbyRulePending = -20
+    val leakDetection = -50
+    val validReadMe = 50
+    val noReadMe = -50
+    val defaultReadMe = - 50
 }
+
