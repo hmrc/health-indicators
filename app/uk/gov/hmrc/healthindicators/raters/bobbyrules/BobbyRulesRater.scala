@@ -24,6 +24,7 @@ import javax.inject.Inject
 import uk.gov.hmrc.healthindicators.models.{Rater, Rating}
 import uk.gov.hmrc.http.HeaderCarrier
 import play.api.Logger
+import uk.gov.hmrc.healthindicators.configs.ScoreConfig
 
 import scala.concurrent.duration.DurationInt
 import scala.concurrent.{Await, ExecutionContext, Future}

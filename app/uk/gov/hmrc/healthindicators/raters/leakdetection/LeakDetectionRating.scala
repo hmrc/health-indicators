@@ -31,11 +31,7 @@ case class LeakDetectionRating(
 
 object LeakDetectionRating {
   def calculateScore(leakDetectionRating: LeakDetectionRating): Int =
-    leakDetectionRating.count match {
-      case 0 => 100
-      case 1 => 50
-      case _ => 0
-    }
+    leakDetectionRating.count * -50
 
   val format: OFormat[LeakDetectionRating] =
     (__ \ "count").format[Int].inmap(LeakDetectionRating.apply, unlift(LeakDetectionRating.unapply))

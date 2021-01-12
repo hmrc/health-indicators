@@ -32,13 +32,17 @@ package uk.gov.hmrc.healthindicators.raters.bobbyrules
  * limitations under the License.
  */
 
+import javax.inject.Inject
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
-import uk.gov.hmrc.healthindicators.models.{Rating, RatingType}
+import uk.gov.hmrc.healthindicators.models.{Rating, RatingType, Score}
+import uk.gov.hmrc.healthindicators.configs.ScoreConfig
+import play.api.Configuration
 
-case class BobbyRulesRating(
+
+case class BobbyRulesRating (
       pendingViolations: Int,
-      activeViolations: Int
+      activeViolations: Int,
   ) extends Rating {
     override def ratingType: RatingType = RatingType.BobbyRules
     override def rating: Int    = BobbyRulesRating.calculateScore(this)
@@ -48,16 +52,13 @@ case class BobbyRulesRating(
 
 object BobbyRulesRating {
     def calculateScore(bobbyRulesRating: BobbyRulesRating): Int = {
-            val maxScore = 100
-            val activeViolationPenalty = 100
-            val pendingViolationPenalty = 20
 
-            val score = maxScore-
-                (activeViolationPenalty*bobbyRulesRating.activeViolations
-                    + pendingViolationPenalty*bobbyRulesRating.pendingViolations)
 
-            if(score<0) 0 else score
-        }
+      val activeViolationScore = -100
+      val pendingViolationScore = -20
+
+      activeViolationScore*bobbyRulesRating.activeViolations + pendingViolationScore*bobbyRulesRating.pendingViolations
+    }
     
 
 

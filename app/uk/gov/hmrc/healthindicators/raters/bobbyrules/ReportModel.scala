@@ -65,7 +65,7 @@ case class Report (
 
 object Report {
     val reads: Reads[Report] = {
-        implicit val ldR = Dependencies.reads
+       implicit val ldR = Dependencies.reads
         ((__ \ "repositoryName").read[String]
             ~ (__ \ "libraryDependencies").read[Seq[Dependencies]]
             ~ (__ \ "sbtPluginsDependencies").read[Seq[Dependencies]]
