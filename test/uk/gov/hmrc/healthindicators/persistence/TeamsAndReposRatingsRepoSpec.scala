@@ -26,7 +26,6 @@ import org.scalatest.wordspec.AnyWordSpec
 import play.api.Configuration
 import uk.gov.hmrc.healthindicators.configs.SchedulerConfigs
 import uk.gov.hmrc.healthindicators.models.RepoRatings
-import uk.gov.hmrc.healthindicators.raters.leakdetection.LeakDetectionRating
 import uk.gov.hmrc.mongo.test.DefaultPlayMongoRepositorySupport
 
 import scala.concurrent.ExecutionContext.Implicits.global

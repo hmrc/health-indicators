@@ -18,6 +18,7 @@ package uk.gov.hmrc.healthindicators.raters.readme
 
 import javax.inject.Inject
 import play.api.Logger
+import uk.gov.hmrc.healthindicators.connectors.GithubConnector
 import uk.gov.hmrc.healthindicators.models.{Rater, Rating}
 import uk.gov.hmrc.healthindicators.raters.readme.ReadMeType.{DefaultReadMe, NoReadMe, ValidReadMe}
 

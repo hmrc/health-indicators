@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.healthindicators.raters.leakdetection
+package uk.gov.hmrc.healthindicators.connectors
 
 import javax.inject.{Inject, Singleton}
+import play.api.libs.functional.syntax._
+import play.api.libs.json.{Reads, __}
 import uk.gov.hmrc.healthindicators.configs.RatersConfig
-import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.http.HttpClient
 import uk.gov.hmrc.http.HttpReads.Implicits._
+import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -30,12 +31,47 @@ class LeakDetectionConnector @Inject() (
   healthIndicatorsConfig: RatersConfig
 )(implicit val ec: ExecutionContext) {
 
-  private implicit val hc = HeaderCarrier()
+  //todo fix me
+  private implicit val hc: HeaderCarrier = HeaderCarrier()
 
   private val leakDetectionBaseUrl: String = healthIndicatorsConfig.leakDetectionUrl
 
   def findLatestMasterReport(repo: String): Future[Option[Report]] = {
-    implicit val rF = Report.reads
+    implicit val rF: Reads[Report] = Report.reads
     httpClient.GET[Option[Report]](leakDetectionBaseUrl + s"/api/reports/repositories/$repo")
+  }
+}
+
+case class ReportLine(
+  filePath: String,
+  scope: String,
+  lineNumber: Int,
+  urlToSource: String,
+  ruleId: Option[String],
+  description: String,
+  lineText: String
+)
+
+object ReportLine {
+  val reads: Reads[ReportLine] =
+    ((__ \ "filePath").read[String]
+      ~ (__ \ "scope").read[String]
+      ~ (__ \ "lineNumber").read[Int]
+      ~ (__ \ "urlToSource").read[String]
+      ~ (__ \ "ruleId").readNullable[String]
+      ~ (__ \ "description").read[String]
+      ~ (__ \ "lineText").read[String])(ReportLine.apply _)
+}
+
+case class Report(
+  reportId: String,
+  inspectionResults: Seq[ReportLine]
+)
+
+object Report {
+  val reads: Reads[Report] = {
+    implicit val rlR = ReportLine.reads
+    ((__ \ "_id").read[String]
+      ~ (__ \ "inspectionResults").read[Seq[ReportLine]])(Report.apply _)
   }
 }

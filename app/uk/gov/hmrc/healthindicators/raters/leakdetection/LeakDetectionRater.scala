@@ -22,6 +22,7 @@ import uk.gov.hmrc.http.HeaderCarrier
 import cats.data.OptionT
 import cats.implicits._
 import play.api.Logger
+import uk.gov.hmrc.healthindicators.connectors.LeakDetectionConnector
 
 import scala.concurrent.{ExecutionContext, Future}
 

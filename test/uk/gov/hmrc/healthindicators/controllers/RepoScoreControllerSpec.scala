@@ -20,14 +20,12 @@ import org.mockito.MockitoSugar
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import play.api.test.Helpers.{contentAsJson, defaultAwaitTimeout}
-
-import scala.concurrent.duration._
+import play.api.test.{FakeRequest, Helpers}
 import uk.gov.hmrc.healthindicators.models.RepoScoreBreakdown
 import uk.gov.hmrc.healthindicators.services.RepoScorerService
-import play.api.test.{FakeRequest, Helpers}
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.{Await, Future}
+import scala.concurrent.Future
 
 class RepoScoreControllerSpec extends AnyWordSpec with Matchers with MockitoSugar {
 

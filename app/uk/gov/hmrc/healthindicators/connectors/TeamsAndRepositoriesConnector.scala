@@ -17,8 +17,8 @@
 package uk.gov.hmrc.healthindicators.connectors
 
 import javax.inject.{Inject, Singleton}
+import play.api.libs.json.{Reads, __}
 import uk.gov.hmrc.healthindicators.configs.RatersConfig
-import uk.gov.hmrc.healthindicators.models.TeamsAndRepos
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.http.HttpClient
 
@@ -33,7 +33,16 @@ class TeamsAndRepositoriesConnector @Inject() (
   private val teamsAndRepositoriesBaseUrl: String = healthIndicatorsConfig.teamsAndRepositoriesUrl
 
   def allRepositories(implicit hc: HeaderCarrier): Future[List[TeamsAndRepos]] = {
-    implicit val rF = TeamsAndRepos.reads
+    implicit val reads: Reads[TeamsAndRepos] = TeamsAndRepos.reads
     httpClient.GET[List[TeamsAndRepos]](teamsAndRepositoriesBaseUrl + s"/api/repositories")
   }
+}
+
+case class TeamsAndRepos(
+  name: String
+)
+
+object TeamsAndRepos {
+  val reads: Reads[TeamsAndRepos] =
+    (__ \ "name").read[String].map(TeamsAndRepos.apply)
 }

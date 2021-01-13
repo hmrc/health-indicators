@@ -16,21 +16,18 @@
 
 package uk.gov.hmrc.healthindicators.raters.bobbyrules
 
-import java.text.SimpleDateFormat
-import java.time.{Clock, LocalDate}
-import java.util.Date
+import java.time.LocalDate
 
 import javax.inject.Inject
+import play.api.Logger
+import uk.gov.hmrc.healthindicators.connectors.{Dependencies, Dependency, ServiceDependenciesConnector}
 import uk.gov.hmrc.healthindicators.models.{Rater, Rating}
 import uk.gov.hmrc.http.HeaderCarrier
-import play.api.Logger
-import uk.gov.hmrc.healthindicators.configs.ScoreConfig
 
-import scala.concurrent.duration.DurationInt
-import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.concurrent.{ExecutionContext, Future}
 
 class BobbyRulesRater @Inject() (
-  bobbyRuleConnector: BobbyRuleConnector
+  serviceDependenciesConnector: ServiceDependenciesConnector
 )(implicit val ec: ExecutionContext)
     extends Rater {
 
@@ -43,17 +40,17 @@ class BobbyRulesRater @Inject() (
     getDependencyList(repo).map(i => countViolationsForRepo(i))
   }
 
-  def getDependencyList(repo: String): Future[Seq[Dependencies]] =
+  def getDependencyList(repo: String): Future[Seq[Dependency]] =
     for {
-      bobbyRuleReport: Option[Report] <- bobbyRuleConnector.findLatestMasterReport(repo)
-      dependencies: Seq[Dependencies] = bobbyRuleReport
-                                          .map { b =>
-                                            b.libraryDependencies ++ b.sbtPluginsDependencies ++ b.otherDependencies
-                                          }
-                                          .getOrElse(Seq())
+      maybeDependencies: Option[Dependencies] <- serviceDependenciesConnector.dependencies(repo)
+      dependencies: Seq[Dependency] = maybeDependencies
+                                        .map { b =>
+                                          b.libraryDependencies ++ b.sbtPluginsDependencies ++ b.otherDependencies
+                                        }
+                                        .getOrElse(Seq())
     } yield dependencies
 
-  def countViolationsForRepo(dependencies: Seq[Dependencies], now: LocalDate = LocalDate.now): BobbyRulesRating = {
+  def countViolationsForRepo(dependencies: Seq[Dependency], now: LocalDate = LocalDate.now): BobbyRulesRating = {
     val dependencyFromDates = dependencies.flatMap(_.bobbyRuleViolations.map(_.from))
 
     val (pendingViolations, activeViolations) = dependencyFromDates

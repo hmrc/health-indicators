@@ -32,11 +32,13 @@ package uk.gov.hmrc.healthindicators.raters.bobbyrules
  * limitations under the License.
  */
 
+import java.time.LocalDate
+
 import org.mockito.MockitoSugar
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpec
+import uk.gov.hmrc.healthindicators.connectors.{BobbyRuleViolations, Dependencies, Dependency, ServiceDependenciesConnector}
 import uk.gov.hmrc.http.HeaderCarrier
-import java.time.{Clock, LocalDate}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
@@ -44,51 +46,50 @@ import scala.concurrent.{Await, Future}
 
 class BobbyRulesRaterSpec extends AnyWordSpec with Matchers with MockitoSugar {
 
-  val mockBobbyRulesConnector = mock[BobbyRuleConnector]
-  val rater                   = new BobbyRulesRater(mockBobbyRulesConnector)
+  private val mockBobbyRulesConnector = mock[ServiceDependenciesConnector]
+  private val rater                   = new BobbyRulesRater(mockBobbyRulesConnector)
 
-  val dependenciesWithActiveViolation =
-    Dependencies(Seq(BobbyRuleViolations("reason", LocalDate.parse("1994-01-08"), "range")), "name")
+  private val dependencyWithActiveViolation: Dependency =
+    Dependency(Seq(BobbyRuleViolations("reason", LocalDate.parse("1994-01-08"), "range")), "name")
 
-  val dependenciesWithPendingViolation =
-    Dependencies(Seq(BobbyRuleViolations("reason", LocalDate.now.plusDays(1), "range")), "name")
+  private val dependencyWithPendingViolation: Dependency =
+    Dependency(Seq(BobbyRuleViolations("reason", LocalDate.now.plusDays(1), "range")), "name")
 
-  val dependenciesWithoutViolation = Dependencies(Seq(), "name")
+  private val dependencyWithoutViolation: Dependency = Dependency(Seq(), "name")
 
-  implicit val hc = HeaderCarrier()
+  implicit val hc: HeaderCarrier = HeaderCarrier()
 
   "BobbyRulesRater" should {
 
     "Return BobbyRulesRating Object with (0,0) Rating when repo is not found" in {
-      when(mockBobbyRulesConnector.findLatestMasterReport("foo")) thenReturn Future.successful(None)
+      when(mockBobbyRulesConnector.dependencies("foo")) thenReturn Future.successful(None)
 
       val dependencyList = rater.getDependencyList("foo")
 
       val result = dependencyList.map(a => rater.countViolationsForRepo(a))
 
-      Await.result(result, 5 seconds) mustBe BobbyRulesRating(0, 0)
+      Await.result(result, 5.seconds) mustBe BobbyRulesRating(0, 0)
     }
 
     "Return BobbyRuleRating Object with (0, 0) Rating when a Report with 0 Dependencies is found" in {
-      when(mockBobbyRulesConnector.findLatestMasterReport("foo")) thenReturn Future.successful(
-        Some(Report("repoName", Seq(), Seq(), Seq()))
+      when(mockBobbyRulesConnector.dependencies("foo")) thenReturn Future.successful(
+        Some(Dependencies("repoName", Seq(), Seq(), Seq()))
       )
-
       val dependencyList = rater.getDependencyList("foo")
 
       val result = dependencyList.map(a => rater.countViolationsForRepo(a))
 
-      Await.result(result, 5 seconds) mustBe BobbyRulesRating(0, 0)
+      Await.result(result, 5.seconds) mustBe BobbyRulesRating(0, 0)
     }
 
     "Return BobbyRuleRating Object with (0, 1) Rating when a Report with 0 Pending and 1 Active Violation is found" in {
-      when(mockBobbyRulesConnector.findLatestMasterReport("foo")) thenReturn Future.successful(
+      when(mockBobbyRulesConnector.dependencies("foo")) thenReturn Future.successful(
         Some(
-          Report(
+          Dependencies(
             "repoName",
-            Seq(dependenciesWithActiveViolation),
-            Seq(dependenciesWithoutViolation),
-            Seq(dependenciesWithoutViolation)
+            Seq(dependencyWithActiveViolation),
+            Seq(dependencyWithoutViolation),
+            Seq(dependencyWithoutViolation)
           )
         )
       )
@@ -97,17 +98,17 @@ class BobbyRulesRaterSpec extends AnyWordSpec with Matchers with MockitoSugar {
 
       val result = dependencyList.map(a => rater.countViolationsForRepo(a))
 
-      Await.result(result, 5 seconds) mustBe BobbyRulesRating(0, 1)
+      Await.result(result, 5.seconds) mustBe BobbyRulesRating(0, 1)
     }
 
     "Return BobbyRule Rating Object with (1, 0) Rating when a Report with 1 Pending and 0 Actives Violation is found" in {
-      when(mockBobbyRulesConnector.findLatestMasterReport("foo")) thenReturn Future.successful(
+      when(mockBobbyRulesConnector.dependencies("foo")) thenReturn Future.successful(
         Some(
-          Report(
+          Dependencies(
             "repoName",
-            Seq(dependenciesWithPendingViolation),
-            Seq(dependenciesWithoutViolation),
-            Seq(dependenciesWithoutViolation)
+            Seq(dependencyWithPendingViolation),
+            Seq(dependencyWithoutViolation),
+            Seq(dependencyWithoutViolation)
           )
         )
       )
@@ -116,17 +117,17 @@ class BobbyRulesRaterSpec extends AnyWordSpec with Matchers with MockitoSugar {
 
       val result = dependencyList.map(a => rater.countViolationsForRepo(a))
 
-      Await.result(result, 5 seconds) mustBe BobbyRulesRating(1, 0)
+      Await.result(result, 5.seconds) mustBe BobbyRulesRating(1, 0)
     }
 
     "Return BobbyRule Rating Object (1, 2) Rating when a Report with 1 Pending and 2 Actives Violation is found" in {
-      when(mockBobbyRulesConnector.findLatestMasterReport("foo")) thenReturn Future.successful(
+      when(mockBobbyRulesConnector.dependencies("foo")) thenReturn Future.successful(
         Some(
-          Report(
+          Dependencies(
             "repoName",
-            Seq(dependenciesWithPendingViolation),
-            Seq(dependenciesWithActiveViolation),
-            Seq(dependenciesWithActiveViolation)
+            Seq(dependencyWithPendingViolation),
+            Seq(dependencyWithActiveViolation),
+            Seq(dependencyWithActiveViolation)
           )
         )
       )
@@ -135,7 +136,7 @@ class BobbyRulesRaterSpec extends AnyWordSpec with Matchers with MockitoSugar {
 
       val result = dependencyList.map(a => rater.countViolationsForRepo(a))
 
-      Await.result(result, 5 seconds) mustBe BobbyRulesRating(1, 2)
+      Await.result(result, 5.seconds) mustBe BobbyRulesRating(1, 2)
     }
   }
 }

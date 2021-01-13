@@ -34,8 +34,10 @@ class RatingService @Inject() (
   repository: RepoRatingsPersistence
 )(implicit val ec: ExecutionContext) {
 
-  def repoRatings(repo: String)(implicit hc: HeaderCarrier): Future[RepoRatings] = {
-    Logger.info(s"Rating Repository: $repo")
+  private val logger = Logger(this.getClass)
+
+  def repoRatings(repo: String): Future[RepoRatings] = {
+    logger.info(s"Rating Repository: $repo")
     for {
       ratings <- raters.allRaters.toList.traverse(_.rate(repo))
       indicators = RepoRatings(repo, Instant.now(), ratings)

@@ -18,32 +18,31 @@ package uk.gov.hmrc.healthindicators.services
 
 import java.time.Instant
 
-import org.joda.time.DurationFieldType.seconds
 import org.mockito.MockitoSugar
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import uk.gov.hmrc.healthindicators.configs.ScoreConfig
-import uk.gov.hmrc.healthindicators.models.{RatingType, RepoRatings, RepoScoreBreakdown}
+import uk.gov.hmrc.healthindicators.models.{RepoRatings, RepoScoreBreakdown}
 import uk.gov.hmrc.healthindicators.persistence.RepoRatingsPersistence
+import uk.gov.hmrc.healthindicators.raters.bobbyrules.BobbyRulesRating
 import uk.gov.hmrc.healthindicators.raters.leakdetection.LeakDetectionRating
 import uk.gov.hmrc.healthindicators.raters.readme.ReadMeRating
-import uk.gov.hmrc.healthindicators.raters.bobbyrules.BobbyRulesRating
 import uk.gov.hmrc.healthindicators.raters.readme.ReadMeType.ValidReadMe
 
-import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
 
 class RepoScorerServiceSpec extends AnyWordSpec with Matchers with MockitoSugar {
 
-  val mockRepository      = mock[RepoRatingsPersistence]
-  val bobbyRulesRating    = BobbyRulesRating(1, 1)
-  val readMeRating        = ReadMeRating(ValidReadMe)
-  val leakDetectionRating = LeakDetectionRating(1)
+  private val mockRepository: RepoRatingsPersistence   = mock[RepoRatingsPersistence]
+  private val bobbyRulesRating: BobbyRulesRating       = BobbyRulesRating(1, 1)
+  private val readMeRating: ReadMeRating               = ReadMeRating(ValidReadMe)
+  private val leakDetectionRating: LeakDetectionRating = LeakDetectionRating(1)
+  private val ratings: RepoRatings =
+    RepoRatings("repo1", Instant.now(), Seq(bobbyRulesRating, readMeRating, leakDetectionRating))
 
-  val ratings = RepoRatings("repo1", Instant.now(), Seq(bobbyRulesRating, readMeRating, leakDetectionRating))
-
-  val scoreConfig               = new ScoreConfig
+  private val scoreConfig       = new ScoreConfig
   private val repoScorerService = new RepoScorerService(mockRepository, scoreConfig)
 
   "repoScore" should {
@@ -56,7 +55,7 @@ class RepoScorerServiceSpec extends AnyWordSpec with Matchers with MockitoSugar 
         .thenReturn(Future.successful(Some(ratings)))
 
       val result = repoScorerService.repoScore("foo")
-      Await.result(result, 5 seconds) mustBe Some(repoBreakDown)
+      Await.result(result, 5.seconds) mustBe Some(repoBreakDown)
     }
   }
 }
