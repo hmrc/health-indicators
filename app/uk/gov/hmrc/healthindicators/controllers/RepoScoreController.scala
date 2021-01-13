@@ -26,25 +26,27 @@ import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import scala.concurrent.ExecutionContext
 
 @Singleton
-class RepoScoreController @Inject()(
-                                     repoScorerService: RepoScorerService,
-                                     cc: ControllerComponents
+class RepoScoreController @Inject() (
+  repoScorerService: RepoScorerService,
+  cc: ControllerComponents
 )(implicit ec: ExecutionContext)
     extends BackendController(cc) {
 
   implicit val rsbw: Writes[RepoScoreBreakdown] = RepoScoreBreakdown.apiWrites
 
-  def scoreForRepo(repo: String): Action[AnyContent] = Action.async { implicit request =>
-    for {
-      score <- repoScorerService.repoScore(repo)
-      result = score.map(s => Ok(Json.toJson(s))).getOrElse(NotFound)
-    } yield result
-  }
+  def scoreForRepo(repo: String): Action[AnyContent] =
+    Action.async { implicit request =>
+      for {
+        score <- repoScorerService.repoScore(repo)
+        result = score.map(s => Ok(Json.toJson(s))).getOrElse(NotFound)
+      } yield result
+    }
 
-  def scoreAllRepos(): Action[AnyContent] = Action.async { implicit request =>
-    for {
-      mapScores <- repoScorerService.repoScoreAllRepos()
-      result = Ok(Json.toJson(mapScores))
-    } yield result
-  }
+  def scoreAllRepos(): Action[AnyContent] =
+    Action.async { implicit request =>
+      for {
+        mapScores <- repoScorerService.repoScoreAllRepos()
+        result = Ok(Json.toJson(mapScores))
+      } yield result
+    }
 }

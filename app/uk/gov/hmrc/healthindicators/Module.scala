@@ -32,10 +32,10 @@ class Module() extends AbstractModule {
 }
 
 @Singleton
-class RatersProvider @Inject()(
-    readMeRater: ReadMeRater,
-    leakDetectionRater: LeakDetectionRater,
-    bobbyRulesRater: BobbyRulesRater)
-    extends Raters {
+class RatersProvider @Inject() (
+  readMeRater: ReadMeRater,
+  leakDetectionRater: LeakDetectionRater,
+  bobbyRulesRater: BobbyRulesRater
+) extends Raters {
   override def allRaters: Seq[Rater] = Seq(readMeRater, leakDetectionRater, bobbyRulesRater)
 }

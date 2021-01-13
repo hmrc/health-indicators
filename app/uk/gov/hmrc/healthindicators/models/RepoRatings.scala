@@ -29,7 +29,7 @@ case class RepoRatings(
 
 object RepoRatings {
   val mongoFormats: OFormat[RepoRatings] = {
-    implicit val rF: Format[Rating] = Rating.format
+    implicit val rF: Format[Rating]  = Rating.format
     implicit val iF: Format[Instant] = MongoJavatimeFormats.instantFormats
 
     ((__ \ "repo").format[String]

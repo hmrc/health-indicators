@@ -21,11 +21,10 @@ import play.api.Configuration
 
 @Singleton
 class ScoreConfig {
-    val bobbyRuleActive = -100
-    val bobbyRulePending = -20
-    val leakDetection = -50
-    val validReadMe = 50
-    val noReadMe = -50
-    val defaultReadMe = - 50
+  val bobbyRuleActive  = -100
+  val bobbyRulePending = -20
+  val leakDetection    = -50
+  val validReadMe      = 50
+  val noReadMe         = -50
+  val defaultReadMe    = -50
 }
-

@@ -24,9 +24,9 @@ import uk.gov.hmrc.healthindicators.models.{Rating, RatingType}
 case class LeakDetectionRating(
   count: Int
 ) extends Rating {
-  override def ratingType: RatingType = RatingType.LeakDetection
+  override def ratingType: RatingType                        = RatingType.LeakDetection
   override def calculateScore(scoreConfig: ScoreConfig): Int = count * -50
-  override val reason: String = s"You scored this because you have $count leaks detected"
+  override val reason: String                                = s"You scored this because you have $count leaks detected"
 }
 
 object LeakDetectionRating {

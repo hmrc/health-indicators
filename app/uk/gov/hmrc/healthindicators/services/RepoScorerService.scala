@@ -23,15 +23,16 @@ import uk.gov.hmrc.healthindicators.persistence.RepoRatingsPersistence
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class RepoScorerService @Inject()(repository: RepoRatingsPersistence,
-                                 scoreConfig: ScoreConfig
-                                         )(implicit val ec: ExecutionContext) {
+class RepoScorerService @Inject() (repository: RepoRatingsPersistence, scoreConfig: ScoreConfig)(implicit
+  val ec: ExecutionContext
+) {
 
-  def repoScore(repo: String): Future[Option[RepoScoreBreakdown]] = {
-    repository.latestRatingsForRepo(repo).map(_.map(repoRating => {
-      RepoScoreBreakdown(repo, sumScores(repoRating), repoRating.ratings)
-    }))
-  }
+  def repoScore(repo: String): Future[Option[RepoScoreBreakdown]] =
+    repository
+      .latestRatingsForRepo(repo)
+      .map(_.map { repoRating =>
+        RepoScoreBreakdown(repo, sumScores(repoRating), repoRating.ratings)
+      })
 
   def repoScoreAllRepos(): Future[Map[String, Int]] =
     for {
@@ -39,9 +40,7 @@ class RepoScorerService @Inject()(repository: RepoRatingsPersistence,
       scores = ratings.map(h => (h.repo, sumScores(h))).toMap
     } yield scores
 
-  def sumScores(repoRatings: RepoRatings): Int = {
+  def sumScores(repoRatings: RepoRatings): Int =
     repoRatings.ratings.map(r => r.calculateScore(scoreConfig)).sum
-  }
-
 
 }

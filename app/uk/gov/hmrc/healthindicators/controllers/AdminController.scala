@@ -24,16 +24,16 @@ import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class AdminController @Inject()(ratingService: RatingService, cc: ControllerComponents)(
-  implicit ec: ExecutionContext)
+class AdminController @Inject() (ratingService: RatingService, cc: ControllerComponents)(implicit ec: ExecutionContext)
     extends BackendController(cc) {
 
   implicit val hc: HeaderCarrier = HeaderCarrier()
 
-  def rerun(): Action[AnyContent] = Action.async {
-    ratingService.insertRatings().recover {
-      case e: Throwable => e.printStackTrace()
+  def rerun(): Action[AnyContent] =
+    Action.async {
+      ratingService.insertRatings().recover {
+        case e: Throwable => e.printStackTrace()
+      }
+      Future.successful(Accepted)
     }
-    Future.successful(Accepted)
-  }
 }
