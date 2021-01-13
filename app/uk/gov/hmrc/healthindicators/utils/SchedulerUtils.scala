@@ -32,8 +32,7 @@ trait SchedulerUtils {
   def schedule(
     label: String,
     schedulerConfig: SchedulerConfig
-  )(f: => Future[Unit])(
-    implicit
+  )(f: => Future[Unit])(implicit
     actorSystem: ActorSystem,
     applicationLifecycle: ApplicationLifecycle,
     ec: ExecutionContext
@@ -54,32 +53,32 @@ trait SchedulerUtils {
         }
 
       applicationLifecycle.addStopHook(() => Future(cancellable.cancel()))
-    } else {
+    } else
       logger.info(
-        s"$label scheduler is DISABLED. to enable, configure configure ${schedulerConfig.enabledKey}=true in config.")
-    }
+        s"$label scheduler is DISABLED. to enable, configure configure ${schedulerConfig.enabledKey}=true in config."
+      )
 
   def scheduleWithLock(
     label: String,
     schedulerConfig: SchedulerConfig,
     lock: MongoLockService
-  )(f: => Future[Unit])(
-    implicit
+  )(f: => Future[Unit])(implicit
     actorSystem: ActorSystem,
     applicationLifecycle: ApplicationLifecycle,
     ec: ExecutionContext
-  ): Unit = schedule(label, schedulerConfig) {
+  ): Unit =
+    schedule(label, schedulerConfig) {
 
-    lock
-      .attemptLockWithRelease(f)
-      .map {
-        case Some(_) => logger.info(s"$label finished - releasing lock")
-        case None    => logger.info(s"$label cannot run - lock ${lock.lockId} is taken... skipping update")
-      }
-      .recover {
-        case NonFatal(e) => logger.error(s"$label interrupted because: ${e.getMessage}", e)
-      }
-  }
+      lock
+        .attemptLockWithRelease(f)
+        .map {
+          case Some(_) => logger.info(s"$label finished - releasing lock")
+          case None    => logger.info(s"$label cannot run - lock ${lock.lockId} is taken... skipping update")
+        }
+        .recover {
+          case NonFatal(e) => logger.error(s"$label interrupted because: ${e.getMessage}", e)
+        }
+    }
 }
 
 object SchedulerUtils extends SchedulerUtils

@@ -29,35 +29,33 @@ import play.api.test.{FakeRequest, Helpers}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{Await, Future}
 
-class RepoScoreControllerSpec
-    extends AnyWordSpec with Matchers with MockitoSugar{
+class RepoScoreControllerSpec extends AnyWordSpec with Matchers with MockitoSugar {
 
-    val mockWeightedRepoScorerService: RepoScorerService = mock[RepoScorerService]
-    private val weightedRepoScoreController = new RepoScoreController(
-        mockWeightedRepoScorerService,
-        Helpers.stubControllerComponents())
+  val mockWeightedRepoScorerService: RepoScorerService = mock[RepoScorerService]
+  private val weightedRepoScoreController =
+    new RepoScoreController(mockWeightedRepoScorerService, Helpers.stubControllerComponents())
 
-    val repoBreakDown1: RepoScoreBreakdown = RepoScoreBreakdown("repo1", 100, Seq())
+  val repoBreakDown1: RepoScoreBreakdown = RepoScoreBreakdown("repo1", 100, Seq())
 
-    val allRepoScores = Map("repo1" -> 100, "repo2" -> 100, "repo3" -> 100, "repo4" -> 100, "repo5" -> 100)
+  val allRepoScores = Map("repo1" -> 100, "repo2" -> 100, "repo3" -> 100, "repo4" -> 100, "repo5" -> 100)
 
-    "WeightedRepoScoreController.scoreForRepo" should {
-        "get score for individual repo" in {
-            val fakeRequest = FakeRequest("GET", "/api/health-score/repositories/repo1")
-            when(mockWeightedRepoScorerService.repoScore("repo1"))
-                .thenReturn(Future.successful(Some(repoBreakDown1)))
+  "WeightedRepoScoreController.scoreForRepo" should {
+    "get score for individual repo" in {
+      val fakeRequest = FakeRequest("GET", "/api/health-score/repositories/repo1")
+      when(mockWeightedRepoScorerService.repoScore("repo1"))
+        .thenReturn(Future.successful(Some(repoBreakDown1)))
 
-            val result = weightedRepoScoreController.scoreForRepo("repo1")(fakeRequest)
-            contentAsJson(result).toString() shouldBe s"""{"repo":"repo1","weightedScore":100,"ratings":[]}"""
-        }
-
-        "get scores for all repos" in {
-            val fakeRequest = FakeRequest("GET", "/api/health-score/repositories/repo1")
-            when(mockWeightedRepoScorerService.repoScoreAllRepos())
-                .thenReturn(Future.successful(allRepoScores))
-            val result = weightedRepoScoreController.scoreAllRepos()(fakeRequest)
-            val expectedResult = s"""{"repo2":100,"repo4":100,"repo5":100,"repo1":100,"repo3":100}"""
-            contentAsJson(result).toString() shouldBe expectedResult
-        }
+      val result = weightedRepoScoreController.scoreForRepo("repo1")(fakeRequest)
+      contentAsJson(result).toString() shouldBe s"""{"repo":"repo1","weightedScore":100,"ratings":[]}"""
     }
+
+    "get scores for all repos" in {
+      val fakeRequest = FakeRequest("GET", "/api/health-score/repositories/repo1")
+      when(mockWeightedRepoScorerService.repoScoreAllRepos())
+        .thenReturn(Future.successful(allRepoScores))
+      val result         = weightedRepoScoreController.scoreAllRepos()(fakeRequest)
+      val expectedResult = s"""{"repo2":100,"repo4":100,"repo5":100,"repo1":100,"repo3":100}"""
+      contentAsJson(result).toString() shouldBe expectedResult
+    }
+  }
 }

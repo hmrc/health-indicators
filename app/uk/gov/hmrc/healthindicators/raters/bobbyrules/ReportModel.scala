@@ -22,54 +22,52 @@ import java.time.format.DateTimeFormatter
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
 
-case class BobbyRuleViolations (
-   reason: String,
-   from: LocalDate,
-   range: String
+case class BobbyRuleViolations(
+  reason: String,
+  from: LocalDate,
+  range: String
 )
 
 object BobbyRuleViolations {
-    val dateFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+  val dateFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
 
-    implicit val readsDate: Reads[LocalDate] = new Reads[LocalDate] {
-        override def reads(json: JsValue): JsResult[LocalDate] =
-            json.validate[String].map(LocalDate.parse(_, dateFormatter))
-    }
+  implicit val readsDate: Reads[LocalDate] = new Reads[LocalDate] {
+    override def reads(json: JsValue): JsResult[LocalDate] =
+      json.validate[String].map(LocalDate.parse(_, dateFormatter))
+  }
 
-    val reads: Reads[BobbyRuleViolations] = {
-        ((__ \ "reason").read[String]
-            ~ (__ \ "from").read[LocalDate]
-            ~ (__ \ "range").read[String])(BobbyRuleViolations.apply _)
-    }
+  val reads: Reads[BobbyRuleViolations] =
+    ((__ \ "reason").read[String]
+      ~ (__ \ "from").read[LocalDate]
+      ~ (__ \ "range").read[String])(BobbyRuleViolations.apply _)
 }
 
-case class Dependencies (
-   bobbyRuleViolations: Seq[BobbyRuleViolations],
-   name: String
+case class Dependencies(
+  bobbyRuleViolations: Seq[BobbyRuleViolations],
+  name: String
 )
 
 object Dependencies {
-    val reads: Reads[Dependencies] = {
-        implicit val brvR = BobbyRuleViolations.reads
-        ((__ \ "bobbyRuleViolations").read[Seq[BobbyRuleViolations]]
-            ~ (__ \ "name").read[String])(Dependencies.apply _)
-    }
+  val reads: Reads[Dependencies] = {
+    implicit val brvR = BobbyRuleViolations.reads
+    ((__ \ "bobbyRuleViolations").read[Seq[BobbyRuleViolations]]
+      ~ (__ \ "name").read[String])(Dependencies.apply _)
+  }
 }
 
-case class Report (
-     repositoryName: String,
-     libraryDependencies: Seq[Dependencies],
-     sbtPluginsDependencies: Seq[Dependencies],
-     otherDependencies: Seq[Dependencies],
- )
+case class Report(
+  repositoryName: String,
+  libraryDependencies: Seq[Dependencies],
+  sbtPluginsDependencies: Seq[Dependencies],
+  otherDependencies: Seq[Dependencies]
+)
 
 object Report {
-    val reads: Reads[Report] = {
-       implicit val ldR = Dependencies.reads
-        ((__ \ "repositoryName").read[String]
-            ~ (__ \ "libraryDependencies").read[Seq[Dependencies]]
-            ~ (__ \ "sbtPluginsDependencies").read[Seq[Dependencies]]
-            ~ (__ \ "otherDependencies").read[Seq[Dependencies]])(Report.apply _)
-    }
+  val reads: Reads[Report] = {
+    implicit val ldR = Dependencies.reads
+    ((__ \ "repositoryName").read[String]
+      ~ (__ \ "libraryDependencies").read[Seq[Dependencies]]
+      ~ (__ \ "sbtPluginsDependencies").read[Seq[Dependencies]]
+      ~ (__ \ "otherDependencies").read[Seq[Dependencies]])(Report.apply _)
+  }
 }
-

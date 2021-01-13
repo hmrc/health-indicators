@@ -25,7 +25,7 @@ import uk.gov.hmrc.http.HttpReads.Implicits._
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class LeakDetectionConnector @Inject()(
+class LeakDetectionConnector @Inject() (
   httpClient: HttpClient,
   healthIndicatorsConfig: RatersConfig
 )(implicit val ec: ExecutionContext) {

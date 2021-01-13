@@ -22,7 +22,7 @@ import uk.gov.hmrc.healthindicators.configs.ScoreConfig
 
 class LeakDetectionRatingSpec extends AnyWordSpec with Matchers {
 
-  val scoreConfig = new ScoreConfig
+  val scoreConfig          = new ScoreConfig
   val leakDetectionRating0 = new LeakDetectionRating(0)
   val leakDetectionRating1 = new LeakDetectionRating(1)
   val leakDetectionRating2 = new LeakDetectionRating(2)
@@ -35,12 +35,15 @@ class LeakDetectionRatingSpec extends AnyWordSpec with Matchers {
     }
 
     "Match scoreConfig.leakDetection when count is 1" in {
-      leakDetectionRating1.calculateScore(scoreConfig) mustBe scoreConfig.leakDetection  }
+      leakDetectionRating1.calculateScore(scoreConfig) mustBe scoreConfig.leakDetection
+    }
 
     "Match scoreConfig.leakDetection * 2 when count is 2" in {
-      leakDetectionRating2.calculateScore(scoreConfig) mustBe scoreConfig.leakDetection * 2   }
+      leakDetectionRating2.calculateScore(scoreConfig) mustBe scoreConfig.leakDetection * 2
+    }
 
     "Match scoreConfig.leakDetection*10 when count is 10" in {
-      leakDetectionRating3.calculateScore(scoreConfig) mustBe scoreConfig.leakDetection * 10   }
+      leakDetectionRating3.calculateScore(scoreConfig) mustBe scoreConfig.leakDetection * 10
+    }
   }
 }

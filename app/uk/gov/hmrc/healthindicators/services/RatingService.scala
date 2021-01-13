@@ -22,15 +22,17 @@ import cats.implicits._
 import javax.inject.Inject
 import play.api.Logger
 import uk.gov.hmrc.healthindicators.connectors.TeamsAndRepositoriesConnector
-import uk.gov.hmrc.healthindicators.models.{RepoRatings, Raters}
+import uk.gov.hmrc.healthindicators.models.{Raters, RepoRatings}
 import uk.gov.hmrc.healthindicators.persistence.RepoRatingsPersistence
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class RatingService @Inject()(raters: Raters,
-                              teamsAndRepositoriesConnector: TeamsAndRepositoriesConnector,
-                              repository: RepoRatingsPersistence)(implicit val ec: ExecutionContext) {
+class RatingService @Inject() (
+  raters: Raters,
+  teamsAndRepositoriesConnector: TeamsAndRepositoriesConnector,
+  repository: RepoRatingsPersistence
+)(implicit val ec: ExecutionContext) {
 
   def repoRatings(repo: String)(implicit hc: HeaderCarrier): Future[RepoRatings] = {
     Logger.info(s"Rating Repository: $repo")
@@ -44,9 +46,10 @@ class RatingService @Inject()(raters: Raters,
     for {
       repos <- teamsAndRepositoriesConnector.allRepositories
       _ <- repos.foldLeftM(())((_, r) =>
-        for {
-          indicators <- repoRatings(r.name)
-          _          <- repository.insert(indicators)
-        } yield ())
+             for {
+               indicators <- repoRatings(r.name)
+               _          <- repository.insert(indicators)
+             } yield ()
+           )
     } yield ()
 }

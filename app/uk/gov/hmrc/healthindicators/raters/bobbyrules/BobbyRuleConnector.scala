@@ -25,26 +25,28 @@ import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, UpstreamErrorResponse}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class BobbyRuleConnector @Inject()(
-      httpClient: HttpClient,
-      ratersConfig: RatersConfig
-
+class BobbyRuleConnector @Inject() (
+  httpClient: HttpClient,
+  ratersConfig: RatersConfig
 )(implicit val ec: ExecutionContext) {
 
-    private implicit val hc: HeaderCarrier = HeaderCarrier()
+  private implicit val hc: HeaderCarrier = HeaderCarrier()
 
-    private val bobbyRuleBaseURL: String = ratersConfig.bobbyRuleUrl
+  private val bobbyRuleBaseURL: String = ratersConfig.bobbyRuleUrl
 
-    def findLatestMasterReport(repo: String): Future[Option[Report]] = {
-        implicit val rF: Reads[Report] = Report.reads
-        val logger = Logger(this.getClass)
-        httpClient.GET[Option[Report]](
-            bobbyRuleBaseURL
-                + s"/api/dependencies/"
-                + repo).recoverWith {
-            case UpstreamErrorResponse.Upstream5xxResponse(x) =>
-                logger.error(s"An error occurred when connecting to $repo: ${x.getMessage()}", x)
-                Future.successful(None)
-            }
-    }
+  def findLatestMasterReport(repo: String): Future[Option[Report]] = {
+    implicit val rF: Reads[Report] = Report.reads
+    val logger                     = Logger(this.getClass)
+    httpClient
+      .GET[Option[Report]](
+        bobbyRuleBaseURL
+          + s"/api/dependencies/"
+          + repo
+      )
+      .recoverWith {
+        case UpstreamErrorResponse.Upstream5xxResponse(x) =>
+          logger.error(s"An error occurred when connecting to $repo: ${x.getMessage()}", x)
+          Future.successful(None)
+      }
+  }
 }

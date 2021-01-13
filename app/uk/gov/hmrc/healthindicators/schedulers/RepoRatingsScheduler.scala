@@ -29,22 +29,22 @@ import uk.gov.hmrc.http.HeaderCarrier
 import scala.concurrent.ExecutionContext.Implicits.global
 
 @Singleton
-class RepoRatingsScheduler @Inject()(
-                                      ratingService: RatingService,
-                                      config: SchedulerConfigs,
-                                      mongoLocks: MongoLocks
+class RepoRatingsScheduler @Inject() (
+  ratingService: RatingService,
+  config: SchedulerConfigs,
+  mongoLocks: MongoLocks
 )(implicit actorSystem: ActorSystem, applicationLifecycle: ApplicationLifecycle)
     extends SchedulerUtils {
 
-  private val logger = Logger(this.getClass)
+  private val logger                     = Logger(this.getClass)
   private implicit val hc: HeaderCarrier = HeaderCarrier()
 
   scheduleWithLock("Repo Ratings Reloader", config.repoRatingsScheduler, mongoLocks.repoRatingsMongoLock) {
 
     for {
       _ <- ratingService.insertRatings.recover {
-            case e: Throwable => logger.error("Error inserting Repo Ratings", e)
-          }
+             case e: Throwable => logger.error("Error inserting Repo Ratings", e)
+           }
       _ = logger.info("Finished inserting Repo Ratings")
     } yield ()
 

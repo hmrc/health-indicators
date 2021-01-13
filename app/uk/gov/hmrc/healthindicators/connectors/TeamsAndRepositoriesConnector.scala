@@ -25,7 +25,7 @@ import uk.gov.hmrc.http.HttpClient
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class TeamsAndRepositoriesConnector @Inject()(
+class TeamsAndRepositoriesConnector @Inject() (
   httpClient: HttpClient,
   healthIndicatorsConfig: RatersConfig
 )(implicit val ec: ExecutionContext) {

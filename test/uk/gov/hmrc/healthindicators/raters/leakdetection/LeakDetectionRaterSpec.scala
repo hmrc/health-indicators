@@ -30,13 +30,7 @@ class LeakDetectionRaterSpec extends AnyWordSpec with Matchers with MockitoSugar
   val mockLeakDetectionConnector = mock[LeakDetectionConnector]
   val rater                      = new LeakDetectionRater(mockLeakDetectionConnector)
 
-  val reportLine = ReportLine("file-path",
-                    "scope",
-                    1,
-                    "url-to-source",
-                    Some("rule-id"),
-                    "description",
-                    "line-text")
+  val reportLine = ReportLine("file-path", "scope", 1, "url-to-source", Some("rule-id"), "description", "line-text")
 
   implicit val hc = HeaderCarrier()
 
@@ -52,7 +46,8 @@ class LeakDetectionRaterSpec extends AnyWordSpec with Matchers with MockitoSugar
 
     "Return LeakDetectionRating Object with 100 Rating when a Report with 0 Results is found" in {
       when(mockLeakDetectionConnector.findLatestMasterReport("foo")) thenReturn Future.successful(
-        Some(Report("idx", Seq.empty)))
+        Some(Report("idx", Seq.empty))
+      )
 
       val result = rater.countLeakDetections("foo")
 
@@ -61,7 +56,8 @@ class LeakDetectionRaterSpec extends AnyWordSpec with Matchers with MockitoSugar
 
     "Return LeakDetectionRating Object with 50 Rating when a Report with 1 Result is found" in {
       when(mockLeakDetectionConnector.findLatestMasterReport("foo")) thenReturn Future.successful(
-        Some(Report("idx", Seq(reportLine))))
+        Some(Report("idx", Seq(reportLine)))
+      )
 
       val result = rater.countLeakDetections("foo")
 
@@ -70,7 +66,8 @@ class LeakDetectionRaterSpec extends AnyWordSpec with Matchers with MockitoSugar
 
     "Return LeakDetectionRating Object with 0 Rating when a Report with 2+ Results is found" in {
       when(mockLeakDetectionConnector.findLatestMasterReport("foo")) thenReturn Future.successful(
-        Some(Report("idx", Seq(reportLine, reportLine, reportLine))))
+        Some(Report("idx", Seq(reportLine, reportLine, reportLine)))
+      )
 
       val result = rater.countLeakDetections("foo")
 

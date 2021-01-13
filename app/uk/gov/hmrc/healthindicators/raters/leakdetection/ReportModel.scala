@@ -30,7 +30,7 @@ case class ReportLine(
 )
 
 object ReportLine {
-  val reads: Reads[ReportLine] = {
+  val reads: Reads[ReportLine] =
     ((__ \ "filePath").read[String]
       ~ (__ \ "scope").read[String]
       ~ (__ \ "lineNumber").read[Int]
@@ -38,7 +38,6 @@ object ReportLine {
       ~ (__ \ "ruleId").readNullable[String]
       ~ (__ \ "description").read[String]
       ~ (__ \ "lineText").read[String])(ReportLine.apply _)
-  }
 }
 
 case class Report(
