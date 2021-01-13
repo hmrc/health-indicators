@@ -23,7 +23,6 @@ case class TeamsAndRepos(
 )
 
 object TeamsAndRepos {
-  val reads: Reads[TeamsAndRepos] = {
+  val reads: Reads[TeamsAndRepos] =
     (__ \ "name").read[String].map(TeamsAndRepos.apply)
-  }
 }

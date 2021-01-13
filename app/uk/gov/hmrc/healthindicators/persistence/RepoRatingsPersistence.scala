@@ -32,17 +32,18 @@ import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class RepoRatingsPersistence @Inject()(
+class RepoRatingsPersistence @Inject() (
   mongoComponent: MongoComponent,
   config: SchedulerConfigs
 )(implicit ec: ExecutionContext)
     extends PlayMongoRepository[RepoRatings](
       collectionName = "repoRatings",
       mongoComponent = mongoComponent,
-      domainFormat   = RepoRatings.mongoFormats,
+      domainFormat = RepoRatings.mongoFormats,
       indexes = Seq(
         IndexModel(hashed("repo"), IndexOptions().background(true)),
-        IndexModel(descending("date"), IndexOptions().background(true)))
+        IndexModel(descending("date"), IndexOptions().background(true))
+      )
     ) {
 
   def latestRatingsForRepo(repo: String): Future[Option[RepoRatings]] =
@@ -54,8 +55,7 @@ class RepoRatingsPersistence @Inject()(
 
   def latestRatings(): Future[Seq[RepoRatings]] = {
     val agg = List(
-      `match`(
-        gt("date", Instant.now.minus(2 * config.repoRatingsScheduler.frequency().toMillis, ChronoUnit.MILLIS))),
+      `match`(gt("date", Instant.now.minus(2 * config.repoRatingsScheduler.frequency().toMillis, ChronoUnit.MILLIS))),
       sort(descending("date")),
       group("$repo", first("obj", "$$ROOT")),
       replaceRoot("$obj")

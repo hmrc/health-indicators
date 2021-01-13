@@ -65,7 +65,7 @@ trait Rating {
 object Rating {
   val apiWrites: Writes[Rating] = (o: Rating) => {
     implicit val rtF = RatingType.format
-    val scoreConfig = new ScoreConfig
+    val scoreConfig  = new ScoreConfig
     Json.obj("ratingType" -> o.ratingType, "rating" -> o.calculateScore(scoreConfig: ScoreConfig), "reason" -> o.reason)
   }
 

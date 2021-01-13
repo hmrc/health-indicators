@@ -19,7 +19,7 @@ package uk.gov.hmrc.healthindicators.models
 import play.api.libs.functional.syntax.{toFunctionalBuilderOps, unlift}
 import play.api.libs.json.{Writes, __}
 
-case class RepoScoreBreakdown (
+case class RepoScoreBreakdown(
   repo: String,
   weightedScore: Int,
   ratings: Seq[Rating]

@@ -58,14 +58,13 @@ case class ReadMeRating(
   readMeType: ReadMeType
 ) extends Rating {
   override def ratingType: RatingType = RatingType.ReadMe
-  override val reason: String = s"You scored this because you have a " + this.readMeType.toString
-  override def calculateScore(scoreConfig: ScoreConfig): Int = {
+  override val reason: String         = s"You scored this because you have a " + this.readMeType.toString
+  override def calculateScore(scoreConfig: ScoreConfig): Int =
     readMeType match {
       case NoReadMe      => 0
       case DefaultReadMe => 0
       case ValidReadMe   => 100
     }
-  }
 }
 
 object ReadMeRating {

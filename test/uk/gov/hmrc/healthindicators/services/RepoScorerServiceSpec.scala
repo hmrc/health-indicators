@@ -36,27 +36,26 @@ import scala.concurrent.{Await, Future}
 
 class RepoScorerServiceSpec extends AnyWordSpec with Matchers with MockitoSugar {
 
-  val mockRepository = mock[RepoRatingsPersistence]
-  val bobbyRulesRating = BobbyRulesRating(1, 1)
-  val readMeRating = ReadMeRating(ValidReadMe)
+  val mockRepository      = mock[RepoRatingsPersistence]
+  val bobbyRulesRating    = BobbyRulesRating(1, 1)
+  val readMeRating        = ReadMeRating(ValidReadMe)
   val leakDetectionRating = LeakDetectionRating(1)
 
   val ratings = RepoRatings("repo1", Instant.now(), Seq(bobbyRulesRating, readMeRating, leakDetectionRating))
 
-  val scoreConfig = new ScoreConfig
+  val scoreConfig               = new ScoreConfig
   private val repoScorerService = new RepoScorerService(mockRepository, scoreConfig)
 
   "repoScore" should {
 
     "Return a Total Score based on Ratings and Weights" in {
 
-      val repoBreakDown = RepoScoreBreakdown("foo", -70, Seq(bobbyRulesRating,
-        readMeRating, leakDetectionRating))
+      val repoBreakDown = RepoScoreBreakdown("foo", -70, Seq(bobbyRulesRating, readMeRating, leakDetectionRating))
 
       when(mockRepository.latestRatingsForRepo("foo"))
         .thenReturn(Future.successful(Some(ratings)))
 
-      val result  = repoScorerService.repoScore("foo")
+      val result = repoScorerService.repoScore("foo")
       Await.result(result, 5 seconds) mustBe Some(repoBreakDown)
     }
   }

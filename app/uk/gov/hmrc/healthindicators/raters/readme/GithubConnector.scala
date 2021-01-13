@@ -20,10 +20,9 @@ import javax.inject.Inject
 import uk.gov.hmrc.healthindicators.configs.GithubConfig
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse, NotFoundException}
 
-
 import scala.concurrent.{ExecutionContext, Future}
 
-class GithubConnector @Inject()(
+class GithubConnector @Inject() (
   httpClient: HttpClient,
   githubConfig: GithubConfig
 )(implicit ec: ExecutionContext) {

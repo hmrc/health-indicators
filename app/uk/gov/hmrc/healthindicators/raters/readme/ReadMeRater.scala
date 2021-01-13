@@ -23,7 +23,7 @@ import uk.gov.hmrc.healthindicators.raters.readme.ReadMeType.{DefaultReadMe, NoR
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class ReadMeRater @Inject()(
+class ReadMeRater @Inject() (
   githubConnector: GithubConnector
 )(implicit val ec: ExecutionContext)
     extends Rater {
@@ -39,14 +39,14 @@ class ReadMeRater @Inject()(
       response <- githubConnector.findReadMe(repo)
 
       readMeType = response match {
-        // No README 404
-        case None => NoReadMe
-        // README Contains Default Text
-        case Some(x) if x.contains("This is a placeholder README.md for a new repository") =>
-          DefaultReadMe
-        // README Valid
-        case Some(x) => ValidReadMe
-      }
+                     // No README 404
+                     case None => NoReadMe
+                     // README Contains Default Text
+                     case Some(x) if x.contains("This is a placeholder README.md for a new repository") =>
+                       DefaultReadMe
+                     // README Valid
+                     case Some(x) => ValidReadMe
+                   }
 
       result = ReadMeRating(readMeType)
     } yield result
