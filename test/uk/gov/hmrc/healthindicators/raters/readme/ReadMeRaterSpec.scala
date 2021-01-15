@@ -20,6 +20,7 @@ import org.mockito.MockitoSugar
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import uk.gov.hmrc.healthindicators.connectors.GithubConnector
+import uk.gov.hmrc.healthindicators.raters.ReadMeRater
 import uk.gov.hmrc.healthindicators.raters.readme.ReadMeType.{DefaultReadMe, NoReadMe, ValidReadMe}
 import uk.gov.hmrc.http.HeaderCarrier
 

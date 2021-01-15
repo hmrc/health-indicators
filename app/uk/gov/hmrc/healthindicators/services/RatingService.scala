@@ -19,29 +19,32 @@ package uk.gov.hmrc.healthindicators.services
 import java.time.Instant
 
 import cats.implicits._
+import com.google.inject.Injector
 import javax.inject.Inject
 import play.api.Logger
 import uk.gov.hmrc.healthindicators.connectors.TeamsAndRepositoriesConnector
-import uk.gov.hmrc.healthindicators.models.{Raters, RepoRatings}
+import uk.gov.hmrc.healthindicators.models.ServiceHealthIndicator
 import uk.gov.hmrc.healthindicators.persistence.RepoRatingsPersistence
+import uk.gov.hmrc.healthindicators.raters.Rater
 import uk.gov.hmrc.http.HeaderCarrier
 
+import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
 
 class RatingService @Inject() (
-  raters: Raters,
   teamsAndRepositoriesConnector: TeamsAndRepositoriesConnector,
-  repository: RepoRatingsPersistence
+  repository: RepoRatingsPersistence,
+  inject: Injector
 )(implicit val ec: ExecutionContext) {
 
   private val logger = Logger(this.getClass)
 
-  def repoRatings(repo: String): Future[RepoRatings] = {
+  private def repoRatings(repo: String): Future[ServiceHealthIndicator] = {
     logger.info(s"Rating Repository: $repo")
     for {
-      ratings <- raters.allRaters.toList.traverse(_.rate(repo))
-      indicators = RepoRatings(repo, Instant.now(), ratings)
-    } yield indicators
+      indicators <- raters().traverse(_.rate(repo))
+    } yield
+      ServiceHealthIndicator(repo, Instant.now(), indicators.flatten)
   }
 
   def insertRatings()(implicit hc: HeaderCarrier): Future[Unit] =
@@ -54,4 +57,10 @@ class RatingService @Inject() (
              } yield ()
            )
     } yield ()
+
+  private def raters(): List[Rater] = inject.getAllBindings.keySet().asScala
+    .filter(k => classOf[Rater].isAssignableFrom(k.getTypeLiteral.getRawType))
+    .map(k => inject.getInstance(k).asInstanceOf[Rater])
+    .toList
+
 }

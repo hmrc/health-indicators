@@ -18,7 +18,7 @@ package uk.gov.hmrc.healthindicators.services
 
 import javax.inject.Inject
 import uk.gov.hmrc.healthindicators.configs.ScoreConfig
-import uk.gov.hmrc.healthindicators.models.{RepoRatings, RepoScoreBreakdown}
+import uk.gov.hmrc.healthindicators.models.{RepositoryRating, Score}
 import uk.gov.hmrc.healthindicators.persistence.RepoRatingsPersistence
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -27,11 +27,19 @@ class RepoScorerService @Inject() (repository: RepoRatingsPersistence, scoreConf
   val ec: ExecutionContext
 ) {
 
-  def repoScore(repo: String): Future[Option[RepoScoreBreakdown]] =
+  //RepositoryRating(repositoryName: String, repositoryScore: Int, ratings: Seq[Rating])
+
+  def repoScore(repo: String): Future[Option[RepositoryRating]] =
     repository
       .latestRatingsForRepo(repo)
-      .map(_.map { repoRating =>
-        RepoScoreBreakdown(repo, sumScores(repoRating), repoRating.ratings)
+      .map(_.map { serviceHealthIndicator =>
+
+        val x = serviceHealthIndicator.indicators.groupBy(_.result.getClass)
+
+
+        val scores = serviceHealthIndicator.indicators.map { indicator =>
+          Score(scoreConfig.scores(indicator.result.value()), indicator.description, indicator.href
+        }
       })
 
   def repoScoreAllRepos(): Future[Map[String, Int]] =
