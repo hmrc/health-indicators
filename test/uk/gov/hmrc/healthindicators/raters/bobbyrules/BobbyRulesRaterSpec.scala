@@ -38,6 +38,7 @@ import org.mockito.MockitoSugar
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import uk.gov.hmrc.healthindicators.connectors.{BobbyRuleViolations, Dependencies, Dependency, ServiceDependenciesConnector}
+import uk.gov.hmrc.healthindicators.raters.BobbyRulesRater
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global

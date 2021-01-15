@@ -16,26 +16,27 @@
 
 package uk.gov.hmrc.healthindicators
 
-import com.google.inject.AbstractModule
+import com.google.inject.{AbstractModule, Injector}
 import javax.inject.{Inject, Singleton}
-import uk.gov.hmrc.healthindicators.models.{Rater, Raters}
-import uk.gov.hmrc.healthindicators.raters.bobbyrules.BobbyRulesRater
-import uk.gov.hmrc.healthindicators.raters.leakdetection.LeakDetectionRater
-import uk.gov.hmrc.healthindicators.raters.readme.ReadMeRater
+import play.api.Logger
+import uk.gov.hmrc.healthindicators.raters.Rater
+
+import scala.collection.JavaConverters._
 
 class Module() extends AbstractModule {
 
   override def configure(): Unit = {
-    bind(classOf[Raters]).to(classOf[RatersProvider])
     bind(classOf[schedulers.RepoRatingsScheduler]).asEagerSingleton()
   }
 }
 
 @Singleton
-class RatersProvider @Inject() (
-  readMeRater: ReadMeRater,
-  leakDetectionRater: LeakDetectionRater,
-  bobbyRulesRater: BobbyRulesRater
-) extends Raters {
-  override def allRaters: Seq[Rater] = Seq(readMeRater, leakDetectionRater, bobbyRulesRater)
+class RaterComponent @Inject() (inject: Injector) {
+
+  val logger: Logger = Logger(this.getClass)
+
+  private def raters(): List[Rater] = inject.getAllBindings.keySet().asScala
+    .filter(k => classOf[Rater].isAssignableFrom(k.getTypeLiteral.getRawType))
+    .map(k => inject.getInstance(k).asInstanceOf[Rater])
+    .toList
 }

@@ -26,7 +26,7 @@ import org.mongodb.scala.model.Filters.{equal, gt}
 import org.mongodb.scala.model.Indexes._
 import org.mongodb.scala.model.{IndexModel, IndexOptions}
 import uk.gov.hmrc.healthindicators.configs.SchedulerConfigs
-import uk.gov.hmrc.healthindicators.models.RepoRatings
+import uk.gov.hmrc.healthindicators.models.{RepoRatings, ServiceHealthIndicator}
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 
@@ -36,9 +36,10 @@ class RepoRatingsPersistence @Inject() (
   mongoComponent: MongoComponent,
   config: SchedulerConfigs
 )(implicit ec: ExecutionContext)
-    extends PlayMongoRepository[RepoRatings](
+    extends PlayMongoRepository[ServiceHealthIndicator](
       collectionName = "repoRatings",
       mongoComponent = mongoComponent,
+      //todo update
       domainFormat = RepoRatings.mongoFormats,
       indexes = Seq(
         IndexModel(hashed("repo"), IndexOptions().background(true)),
@@ -46,7 +47,7 @@ class RepoRatingsPersistence @Inject() (
       )
     ) {
 
-  def latestRatingsForRepo(repo: String): Future[Option[RepoRatings]] =
+  def latestRatingsForRepo(repo: String): Future[Option[ServiceHealthIndicator]] =
     collection
       .find(equal("repo", repo))
       .sort(descending("date"))
@@ -66,14 +67,14 @@ class RepoRatingsPersistence @Inject() (
       .toFuture()
   }
 
-  def insert(repoRatings: RepoRatings): Future[Unit] =
+  def insert(indicator: ServiceHealthIndicator): Future[Unit] =
     collection
       .insertOne(
-        repoRatings
+        indicator
       )
       .toFuture()
       .map(_ => ())
 
-  def findAll(): Future[Seq[RepoRatings]] =
+  def findAll(): Future[Seq[ServiceHealthIndicator]] =
     collection.find().toFuture().map(_.toList)
 }

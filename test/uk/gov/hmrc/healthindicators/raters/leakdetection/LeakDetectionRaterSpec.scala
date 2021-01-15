@@ -20,6 +20,7 @@ import org.mockito.MockitoSugar
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import uk.gov.hmrc.healthindicators.connectors.{LeakDetectionConnector, Report, ReportLine}
+import uk.gov.hmrc.healthindicators.raters.LeakDetectionRater
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global

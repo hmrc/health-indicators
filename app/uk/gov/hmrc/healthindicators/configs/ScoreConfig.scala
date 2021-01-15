@@ -17,13 +17,26 @@
 package uk.gov.hmrc.healthindicators.configs
 
 import javax.inject.Singleton
+import uk.gov.hmrc.healthindicators.models.{BobbyRuleActive, BobbyRuleIndicatorType, BobbyRulePending, DefaultReadme, IndicatorType, LeakDetectionIndicatorType, LeakDetectionViolation, NoReadme, ReadMeIndicatorType, ValidReadme}
 
 @Singleton
 class ScoreConfig {
-  val bobbyRuleActive  = -100
-  val bobbyRulePending = -20
-  val leakDetection    = -50
-  val validReadMe      = 50
-  val noReadMe         = -50
-  val defaultReadMe    = -50
+
+  def scores(indicatorType: IndicatorType): Int = {
+    indicatorType match {
+      case i: ReadMeIndicatorType => i match {
+        case NoReadme => -50
+        case DefaultReadme => -50
+        case ValidReadme => 50
+      }
+      case i: LeakDetectionIndicatorType => i match {
+        case LeakDetectionViolation => -50
+      }
+      case i: BobbyRuleIndicatorType => i match {
+        case BobbyRulePending => -20
+        case BobbyRuleActive => -100
+      }
+    }
+  }
 }
+
