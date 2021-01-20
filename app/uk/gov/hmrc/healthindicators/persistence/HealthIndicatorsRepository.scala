@@ -18,7 +18,6 @@ package uk.gov.hmrc.healthindicators.persistence
 
 import java.time.Instant
 import java.time.temporal.ChronoUnit
-
 import javax.inject.Inject
 import org.mongodb.scala.model.Accumulators._
 import org.mongodb.scala.model.Aggregates._
@@ -26,39 +25,42 @@ import org.mongodb.scala.model.Filters.{equal, gt}
 import org.mongodb.scala.model.Indexes._
 import org.mongodb.scala.model.{IndexModel, IndexOptions}
 import uk.gov.hmrc.healthindicators.configs.SchedulerConfigs
-import uk.gov.hmrc.healthindicators.models.{RepoRatings, ServiceHealthIndicator}
+import uk.gov.hmrc.healthindicators.models.RepositoryHealthIndicator
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class RepoRatingsPersistence @Inject() (
+class HealthIndicatorsRepository @Inject() (
   mongoComponent: MongoComponent,
   config: SchedulerConfigs
+  //Todo: Function that retrieves in an order based on score?
 )(implicit ec: ExecutionContext)
-    extends PlayMongoRepository[ServiceHealthIndicator](
-      collectionName = "repoRatings",
+    extends PlayMongoRepository[RepositoryHealthIndicator](
+      collectionName = "serviceHealthIndicators",
       mongoComponent = mongoComponent,
-      //todo update
-      domainFormat = RepoRatings.mongoFormats,
+      domainFormat = RepositoryHealthIndicator.mongoFormats,
       indexes = Seq(
-        IndexModel(hashed("repo"), IndexOptions().background(true)),
-        IndexModel(descending("date"), IndexOptions().background(true))
+        IndexModel(hashed("repositoryName"), IndexOptions().background(true)),
+        IndexModel(descending("timestamp"), IndexOptions().background(true))
       )
     ) {
 
-  def latestRatingsForRepo(repo: String): Future[Option[ServiceHealthIndicator]] =
+  def latestRepositoryHealthIndicators(repo: String): Future[Option[RepositoryHealthIndicator]] =
     collection
-      .find(equal("repo", repo))
-      .sort(descending("date"))
+      .find(equal("repositoryName", repo))
+      .sort(descending("timestamp"))
       .toFuture()
       .map(_.headOption)
 
-  def latestRatings(): Future[Seq[RepoRatings]] = {
+  def latestAllRepositoryHealthIndicators(): Future[Seq[RepositoryHealthIndicator]] = {
+    //todo is the gt query correct?
     val agg = List(
-      `match`(gt("date", Instant.now.minus(2 * config.repoRatingsScheduler.frequency().toMillis, ChronoUnit.MILLIS))),
-      sort(descending("date")),
-      group("$repo", first("obj", "$$ROOT")),
+      `match`(
+        gt("timestamp", Instant.now.minus(2 * config.repoRatingsScheduler.frequency().toMillis, ChronoUnit.MILLIS))
+      ),
+      sort(descending("timestamp")),
+      group("$repositoryName", first("obj", "$$ROOT")),
       replaceRoot("$obj")
     )
 
@@ -67,7 +69,7 @@ class RepoRatingsPersistence @Inject() (
       .toFuture()
   }
 
-  def insert(indicator: ServiceHealthIndicator): Future[Unit] =
+  def insert(indicator: RepositoryHealthIndicator): Future[Unit] =
     collection
       .insertOne(
         indicator
@@ -75,6 +77,6 @@ class RepoRatingsPersistence @Inject() (
       .toFuture()
       .map(_ => ())
 
-  def findAll(): Future[Seq[ServiceHealthIndicator]] =
+  def findAll(): Future[Seq[RepositoryHealthIndicator]] =
     collection.find().toFuture().map(_.toList)
 }

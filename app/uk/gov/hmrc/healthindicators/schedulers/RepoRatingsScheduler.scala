@@ -21,8 +21,8 @@ import javax.inject.{Inject, Singleton}
 import play.api.Logger
 import play.api.inject.ApplicationLifecycle
 import uk.gov.hmrc.healthindicators.configs.SchedulerConfigs
-import uk.gov.hmrc.healthindicators.persistence.MongoLocks
-import uk.gov.hmrc.healthindicators.services.RatingService
+import uk.gov.hmrc.healthindicators.persistence.MongoLock
+import uk.gov.hmrc.healthindicators.services.HealthIndicatorService
 import uk.gov.hmrc.healthindicators.utils.SchedulerUtils
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -30,9 +30,9 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 @Singleton
 class RepoRatingsScheduler @Inject() (
-  ratingService: RatingService,
+  ratingService: HealthIndicatorService,
   config: SchedulerConfigs,
-  mongoLocks: MongoLocks
+  mongoLocks: MongoLock
 )(implicit actorSystem: ActorSystem, applicationLifecycle: ApplicationLifecycle)
     extends SchedulerUtils {
 
@@ -40,13 +40,10 @@ class RepoRatingsScheduler @Inject() (
   private implicit val hc: HeaderCarrier = HeaderCarrier()
 
   scheduleWithLock("Repo Ratings Reloader", config.repoRatingsScheduler, mongoLocks.repoRatingsMongoLock) {
-
-    for {
-      _ <- ratingService.insertRatings.recover {
-             case e: Throwable => logger.error("Error inserting Repo Ratings", e)
-           }
-      _ = logger.info("Finished inserting Repo Ratings")
-    } yield ()
-
+    ratingService.insertHealthIndicators
+      .recover {
+        case e: Throwable => logger.error("Error inserting Repo Ratings", e)
+      }
+      .map(_ => logger.info("Finished inserting Repo Ratings"))
   }
 }

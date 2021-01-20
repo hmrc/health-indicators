@@ -16,12 +16,10 @@
 
 package uk.gov.hmrc.healthindicators.raters
 
-import uk.gov.hmrc.healthindicators.models.{Indicator}
+import uk.gov.hmrc.healthindicators.models.Indicator
 
 import scala.concurrent.Future
 
 trait Rater {
-  def rate(repo: String): Future[Seq[Indicator]]
+  def rate(repo: String): Future[Indicator]
 }
-
-

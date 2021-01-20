@@ -16,27 +16,25 @@
 
 package uk.gov.hmrc.healthindicators
 
-import com.google.inject.{AbstractModule, Injector}
-import javax.inject.{Inject, Singleton}
+import com.google.inject.{AbstractModule, Provides}
 import play.api.Logger
-import uk.gov.hmrc.healthindicators.raters.Rater
+import uk.gov.hmrc.healthindicators.raters.{BobbyRulesRater, LeakDetectionRater, Rater, ReadMeRater}
 
-import scala.collection.JavaConverters._
+class HealthIndicatorsModule() extends AbstractModule {
 
-class Module() extends AbstractModule {
+  private val logger = Logger(this.getClass)
 
-  override def configure(): Unit = {
+  override def configure(): Unit =
     bind(classOf[schedulers.RepoRatingsScheduler]).asEagerSingleton()
+
+  @Provides
+  def raters(
+    bobbyRulesRater: BobbyRulesRater,
+    leakDetectionRater: LeakDetectionRater,
+    readMeRater: ReadMeRater
+  ): List[Rater] = {
+    val raters = List(bobbyRulesRater, leakDetectionRater, readMeRater)
+    logger.info(s"Loaded Raters: ${raters.map(_.getClass.getSimpleName).mkString("[\n", "\n", "\n]")}")
+    raters
   }
-}
-
-@Singleton
-class RaterComponent @Inject() (inject: Injector) {
-
-  val logger: Logger = Logger(this.getClass)
-
-  private def raters(): List[Rater] = inject.getAllBindings.keySet().asScala
-    .filter(k => classOf[Rater].isAssignableFrom(k.getTypeLiteral.getRawType))
-    .map(k => inject.getInstance(k).asInstanceOf[Rater])
-    .toList
 }

@@ -22,8 +22,8 @@ import java.time.format.DateTimeFormatter
 import javax.inject.{Inject, Singleton}
 import play.api.Logger
 import play.api.libs.functional.syntax._
-import play.api.libs.json.{JsResult, JsValue, Reads, __}
-import uk.gov.hmrc.healthindicators.configs.RatersConfig
+import play.api.libs.json.{JsValue, Reads, __}
+import uk.gov.hmrc.healthindicators.configs.AppConfig
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, UpstreamErrorResponse}
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -31,7 +31,7 @@ import scala.concurrent.{ExecutionContext, Future}
 @Singleton
 class ServiceDependenciesConnector @Inject() (
   httpClient: HttpClient,
-  ratersConfig: RatersConfig
+  ratersConfig: AppConfig
 )(implicit val ec: ExecutionContext) {
 
   private implicit val hc: HeaderCarrier = HeaderCarrier()
@@ -55,35 +55,33 @@ class ServiceDependenciesConnector @Inject() (
   }
 }
 
-case class BobbyRuleViolations(
+case class BobbyRuleViolation(
   reason: String,
   from: LocalDate,
   range: String
 )
 
-object BobbyRuleViolations {
+object BobbyRuleViolation {
   val dateFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
 
-  implicit val readsDate: Reads[LocalDate] = new Reads[LocalDate] {
-    override def reads(json: JsValue): JsResult[LocalDate] =
-      json.validate[String].map(LocalDate.parse(_, dateFormatter))
-  }
+  implicit val readsDate: Reads[LocalDate] = (json: JsValue) =>
+    json.validate[String].map(LocalDate.parse(_, dateFormatter))
 
-  val reads: Reads[BobbyRuleViolations] =
+  val reads: Reads[BobbyRuleViolation] =
     ((__ \ "reason").read[String]
       ~ (__ \ "from").read[LocalDate]
-      ~ (__ \ "range").read[String])(BobbyRuleViolations.apply _)
+      ~ (__ \ "range").read[String])(BobbyRuleViolation.apply _)
 }
 
 case class Dependency(
-  bobbyRuleViolations: Seq[BobbyRuleViolations],
+  bobbyRuleViolations: Seq[BobbyRuleViolation],
   name: String
 )
 
 object Dependency {
   val reads: Reads[Dependency] = {
-    implicit val brvR: Reads[BobbyRuleViolations] = BobbyRuleViolations.reads
-    ((__ \ "bobbyRuleViolations").read[Seq[BobbyRuleViolations]]
+    implicit val brvR: Reads[BobbyRuleViolation] = BobbyRuleViolation.reads
+    ((__ \ "bobbyRuleViolations").read[Seq[BobbyRuleViolation]]
       ~ (__ \ "name").read[String])(Dependency.apply _)
   }
 }

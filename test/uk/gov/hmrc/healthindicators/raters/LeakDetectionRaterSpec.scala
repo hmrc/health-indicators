@@ -14,20 +14,20 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.healthindicators.raters.leakdetection
+package uk.gov.hmrc.healthindicators.raters
 
 import org.mockito.MockitoSugar
+import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import uk.gov.hmrc.healthindicators.connectors.{LeakDetectionConnector, Report, ReportLine}
-import uk.gov.hmrc.healthindicators.raters.LeakDetectionRater
+import uk.gov.hmrc.healthindicators.models._
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.duration._
-import scala.concurrent.{Await, Future}
+import scala.concurrent.Future
 
-class LeakDetectionRaterSpec extends AnyWordSpec with Matchers with MockitoSugar {
+class LeakDetectionRaterSpec extends AnyWordSpec with Matchers with MockitoSugar with ScalaFutures {
 
   private val mockLeakDetectionConnector: LeakDetectionConnector = mock[LeakDetectionConnector]
   private val rater: LeakDetectionRater                          = new LeakDetectionRater(mockLeakDetectionConnector)
@@ -37,41 +37,51 @@ class LeakDetectionRaterSpec extends AnyWordSpec with Matchers with MockitoSugar
 
   implicit val hc: HeaderCarrier = HeaderCarrier()
 
-  "LeakDetectionRater" should {
+  "rate" should {
 
-    "Return LeakDetectionRating Object with 100 Rating when no Report is found" in {
+    "Return Indicator with no results when leak detection connector returns None" in {
       when(mockLeakDetectionConnector.findLatestMasterReport("foo")).thenReturn(Future.successful(None))
 
-      val result = rater.countLeakDetections("foo")
+      val result = rater.rate("foo")
 
-      Await.result(result, 5.seconds) mustBe LeakDetectionRating(0)
+      result.futureValue mustBe Indicator(LeakDetectionIndicatorType, Seq.empty)
+
     }
 
-    "Return LeakDetectionRating Object with 100 Rating when a Report with 0 Results is found" in {
+    "Return Indicator with no results when a Report with no violation is found" in {
       when(mockLeakDetectionConnector.findLatestMasterReport("foo"))
         .thenReturn(Future.successful(Some(Report("idx", Seq.empty))))
 
-      val result = rater.countLeakDetections("foo")
+      val result = rater.rate("foo")
 
-      Await.result(result, 5.seconds) mustBe LeakDetectionRating(0)
+      result.futureValue mustBe Indicator(LeakDetectionIndicatorType, Seq.empty)
     }
 
-    "Return LeakDetectionRating Object with 50 Rating when a Report with 1 Result is found" in {
+    "Return Indicator with a result when a Report with 1 violations is found" in {
       when(mockLeakDetectionConnector.findLatestMasterReport("foo"))
         .thenReturn(Future.successful(Some(Report("idx", Seq(reportLine)))))
 
-      val result = rater.countLeakDetections("foo")
+      val result = rater.rate("foo")
 
-      Await.result(result, 5.seconds) mustBe LeakDetectionRating(1)
+      result.futureValue mustBe Indicator(
+        LeakDetectionIndicatorType,
+        Seq(Result(LeakDetectionViolation, "description", Some("url-to-source")))
+      )
     }
 
-    "Return LeakDetectionRating Object with 0 Rating when a Report with 2+ Results is found" in {
+    "Return Indicator  with 2 results when Report with 2 violations is found" in {
       when(mockLeakDetectionConnector.findLatestMasterReport("foo"))
-        .thenReturn(Future.successful(Some(Report("idx", Seq(reportLine, reportLine, reportLine)))))
+        .thenReturn(Future.successful(Some(Report("idx", Seq(reportLine, reportLine)))))
 
-      val result = rater.countLeakDetections("foo")
+      val result = rater.rate("foo")
 
-      Await.result(result, 5.seconds) mustBe LeakDetectionRating(3)
+      result.futureValue mustBe Indicator(
+        LeakDetectionIndicatorType,
+        Seq(
+          Result(LeakDetectionViolation, "description", Some("url-to-source")),
+          Result(LeakDetectionViolation, "description", Some("url-to-source"))
+        )
+      )
     }
   }
 }

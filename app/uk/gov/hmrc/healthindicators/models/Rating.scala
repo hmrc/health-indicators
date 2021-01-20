@@ -16,18 +16,53 @@
 
 package uk.gov.hmrc.healthindicators.models
 
-import java.net.URL
-
-sealed trait RatingType
+import play.api.libs.functional.syntax.{toFunctionalBuilderOps, unlift}
+import play.api.libs.json.{JsString, Writes, __}
 
 case object ReadMe extends RatingType
 
 case object LeakDetection extends RatingType
 
-case object BobbyRules extends RatingType
+case object BobbyRule extends RatingType
 
+sealed trait RatingType
 
-case class RepositoryRating(repositoryName: String, repositoryScore: Int, ratings: Seq[Rating])
-case class Rating(ratingType: RatingType, ratingScore: Int, breakdown: Seq[Score])
+object RatingType {
+  val writes: Writes[RatingType] = {
+    case ReadMe        => JsString("ReadMe")
+    case LeakDetection => JsString("LeakDetection")
+    case BobbyRule     => JsString("BobbyRule")
+  }
+}
 
 case class Score(points: Int, description: String, href: Option[String])
+
+object Score {
+  val writes: Writes[Score] =
+    ((__ \ "points").write[Int]
+      ~ (__ \ "description").write[String]
+      ~ (__ \ "ratings").writeNullable[String])(unlift(Score.unapply))
+}
+
+case class Rating(ratingType: RatingType, ratingScore: Int, breakdown: Seq[Score])
+
+object Rating {
+  val writes: Writes[Rating] = {
+    implicit val sW: Writes[Score]       = Score.writes
+    implicit val rtW: Writes[RatingType] = RatingType.writes
+    ((__ \ "ratingType").write[RatingType]
+      ~ (__ \ "ratingScore").write[Int]
+      ~ (__ \ "breakdown").write[Seq[Score]])(unlift(Rating.unapply))
+  }
+}
+
+case class RepositoryRating(repositoryName: String, repositoryScore: Int, ratings: Option[Seq[Rating]])
+
+object RepositoryRating {
+  val writes: Writes[RepositoryRating] = {
+    implicit val rW: Writes[Rating] = Rating.writes
+    ((__ \ "repositoryName").write[String]
+      ~ (__ \ "repositoryScore").write[Int]
+      ~ (__ \ "ratings").writeNullable[Seq[Rating]])(unlift(RepositoryRating.unapply))
+  }
+}

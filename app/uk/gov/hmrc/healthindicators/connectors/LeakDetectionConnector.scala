@@ -19,7 +19,7 @@ package uk.gov.hmrc.healthindicators.connectors
 import javax.inject.{Inject, Singleton}
 import play.api.libs.functional.syntax._
 import play.api.libs.json.{Reads, __}
-import uk.gov.hmrc.healthindicators.configs.RatersConfig
+import uk.gov.hmrc.healthindicators.configs.AppConfig
 import uk.gov.hmrc.http.HttpReads.Implicits._
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
 
@@ -28,7 +28,7 @@ import scala.concurrent.{ExecutionContext, Future}
 @Singleton
 class LeakDetectionConnector @Inject() (
   httpClient: HttpClient,
-  healthIndicatorsConfig: RatersConfig
+  healthIndicatorsConfig: AppConfig
 )(implicit val ec: ExecutionContext) {
 
   //todo fix me
@@ -52,6 +52,11 @@ case class ReportLine(
   lineText: String
 )
 
+case class Report(
+  reportId: String,
+  inspectionResults: Seq[ReportLine]
+)
+
 object ReportLine {
   val reads: Reads[ReportLine] =
     ((__ \ "filePath").read[String]
@@ -63,14 +68,9 @@ object ReportLine {
       ~ (__ \ "lineText").read[String])(ReportLine.apply _)
 }
 
-case class Report(
-  reportId: String,
-  inspectionResults: Seq[ReportLine]
-)
-
 object Report {
   val reads: Reads[Report] = {
-    implicit val rlR = ReportLine.reads
+    implicit val rlR: Reads[ReportLine] = ReportLine.reads
     ((__ \ "_id").read[String]
       ~ (__ \ "inspectionResults").read[Seq[ReportLine]])(Report.apply _)
   }

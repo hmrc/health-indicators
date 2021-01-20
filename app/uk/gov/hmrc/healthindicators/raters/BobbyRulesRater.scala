@@ -18,38 +18,45 @@ package uk.gov.hmrc.healthindicators.raters
 
 import java.time.LocalDate
 
-import javax.inject.Inject
+import javax.inject.{Inject, Singleton}
 import play.api.Logger
-import uk.gov.hmrc.healthindicators.connectors.ServiceDependenciesConnector
-import uk.gov.hmrc.healthindicators.models.{BobbyRuleActive, BobbyRuleIndicator, Indicator, BobbyRulePending}
-import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.healthindicators.connectors.{BobbyRuleViolation, ServiceDependenciesConnector}
+import uk.gov.hmrc.healthindicators.models._
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class BobbyRulesRater @Inject()(
-                                 serviceDependenciesConnector: ServiceDependenciesConnector
-                               )(implicit val ec: ExecutionContext)
-  extends Rater {
+@Singleton
+class BobbyRulesRater @Inject() (
+  serviceDependenciesConnector: ServiceDependenciesConnector
+)(implicit val ec: ExecutionContext)
+    extends Rater {
 
-  private implicit val hc: HeaderCarrier = HeaderCarrier()
   private val logger = Logger(this.getClass)
 
-  override def rate(repo: String): Future[Seq[Indicator]] = {
-    logger.info(s"Rating LeakDetection for: $repo")
+  override def rate(repo: String): Future[Indicator] = {
+    logger.info(s"Rating BobbyRules for: $repo")
+
+    serviceDependenciesConnector
+      .dependencies(repo)
+      .map { maybeDependencies =>
+        for {
+          dependencies <- maybeDependencies.toSeq
+          dependency <-
+            dependencies.libraryDependencies ++ dependencies.sbtPluginsDependencies ++ dependencies.otherDependencies
+          violation <- dependency.bobbyRuleViolations
+          result = getResultType(violation)
+        } yield Result(result, s"${dependency.name} - ${violation.reason}", None)
+      }
+      .map { results =>
+        Indicator(BobbyRuleIndicatorType, results)
+      }
+  }
+
+  private def getResultType(violation: BobbyRuleViolation): BobbyRuleResultType = {
     val now = LocalDate.now
-
-    serviceDependenciesConnector.dependencies(repo).map { maybeDependencies =>
-
-      for {
-        dependencies <- maybeDependencies.toSeq
-        dependency <- dependencies.libraryDependencies ++ dependencies.sbtPluginsDependencies ++ dependencies.otherDependencies
-        violation <- dependency.bobbyRuleViolations
-        result = if (violation.from.isBefore(now)) {
-          BobbyRuleActive
-        } else {
-          BobbyRulePending
-        }
-      } yield Indicator(BobbyRuleIndicator(result), s"${dependency.name} - ${violation.reason}", None)
-    }
+    if (violation.from.isBefore(now))
+      BobbyRuleActive
+    else
+      BobbyRulePending
   }
 }

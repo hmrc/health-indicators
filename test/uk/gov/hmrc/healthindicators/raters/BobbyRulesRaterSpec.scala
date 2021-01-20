@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.healthindicators.raters.bobbyrules
+package uk.gov.hmrc.healthindicators.raters
 
 /*
  * Copyright 2020 HM Revenue & Customs
@@ -35,55 +35,52 @@ package uk.gov.hmrc.healthindicators.raters.bobbyrules
 import java.time.LocalDate
 
 import org.mockito.MockitoSugar
+import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpec
-import uk.gov.hmrc.healthindicators.connectors.{BobbyRuleViolations, Dependencies, Dependency, ServiceDependenciesConnector}
-import uk.gov.hmrc.healthindicators.raters.BobbyRulesRater
+import uk.gov.hmrc.healthindicators.connectors.{BobbyRuleViolation, Dependencies, Dependency, ServiceDependenciesConnector}
+import uk.gov.hmrc.healthindicators.models._
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.duration._
-import scala.concurrent.{Await, Future}
+import scala.concurrent.Future
 
-class BobbyRulesRaterSpec extends AnyWordSpec with Matchers with MockitoSugar {
+class BobbyRulesRaterSpec extends AnyWordSpec with Matchers with MockitoSugar with ScalaFutures {
 
   private val mockBobbyRulesConnector = mock[ServiceDependenciesConnector]
   private val rater                   = new BobbyRulesRater(mockBobbyRulesConnector)
 
   private val dependencyWithActiveViolation: Dependency =
-    Dependency(Seq(BobbyRuleViolations("reason", LocalDate.parse("1994-01-08"), "range")), "name")
+    Dependency(Seq(BobbyRuleViolation("reason", LocalDate.parse("1994-01-08"), "range")), "name")
 
   private val dependencyWithPendingViolation: Dependency =
-    Dependency(Seq(BobbyRuleViolations("reason", LocalDate.now.plusDays(1), "range")), "name")
+    Dependency(Seq(BobbyRuleViolation("reason", LocalDate.now.plusDays(1), "range")), "name")
 
   private val dependencyWithoutViolation: Dependency = Dependency(Seq(), "name")
 
   implicit val hc: HeaderCarrier = HeaderCarrier()
 
-  "BobbyRulesRater" should {
+  "rate" should {
 
-    "Return BobbyRulesRating Object with (0,0) Rating when repo is not found" in {
+    "Return Indicator with no results when repo is not found" in {
       when(mockBobbyRulesConnector.dependencies("foo")) thenReturn Future.successful(None)
 
-      val dependencyList = rater.getDependencyList("foo")
+      val result = rater.rate("foo")
 
-      val result = dependencyList.map(a => rater.countViolationsForRepo(a))
-
-      Await.result(result, 5.seconds) mustBe BobbyRulesRating(0, 0)
+      result.futureValue mustBe Indicator(BobbyRuleIndicatorType, Seq.empty)
     }
 
-    "Return BobbyRuleRating Object with (0, 0) Rating when a Report with 0 Dependencies is found" in {
+    "Return Indicator with no results when a report with no bobby rules is found" in {
       when(mockBobbyRulesConnector.dependencies("foo")) thenReturn Future.successful(
         Some(Dependencies("repoName", Seq(), Seq(), Seq()))
       )
-      val dependencyList = rater.getDependencyList("foo")
 
-      val result = dependencyList.map(a => rater.countViolationsForRepo(a))
+      val result = rater.rate("foo")
 
-      Await.result(result, 5.seconds) mustBe BobbyRulesRating(0, 0)
+      result.futureValue mustBe Indicator(BobbyRuleIndicatorType, Seq.empty)
     }
 
-    "Return BobbyRuleRating Object with (0, 1) Rating when a Report with 0 Pending and 1 Active Violation is found" in {
+    "Return Indicator with active violation result when bobby violation is found" in {
       when(mockBobbyRulesConnector.dependencies("foo")) thenReturn Future.successful(
         Some(
           Dependencies(
@@ -95,14 +92,12 @@ class BobbyRulesRaterSpec extends AnyWordSpec with Matchers with MockitoSugar {
         )
       )
 
-      val dependencyList = rater.getDependencyList("foo")
+      val result = rater.rate("foo")
 
-      val result = dependencyList.map(a => rater.countViolationsForRepo(a))
-
-      Await.result(result, 5.seconds) mustBe BobbyRulesRating(0, 1)
+      result.futureValue mustBe Indicator(BobbyRuleIndicatorType, Seq(Result(BobbyRuleActive, "name - reason", None)))
     }
 
-    "Return BobbyRule Rating Object with (1, 0) Rating when a Report with 1 Pending and 0 Actives Violation is found" in {
+    "Return Indicator with pending violation result when pending bobby violation is found" in {
       when(mockBobbyRulesConnector.dependencies("foo")) thenReturn Future.successful(
         Some(
           Dependencies(
@@ -114,14 +109,13 @@ class BobbyRulesRaterSpec extends AnyWordSpec with Matchers with MockitoSugar {
         )
       )
 
-      val dependencyList = rater.getDependencyList("foo")
+      val result = rater.rate("foo")
 
-      val result = dependencyList.map(a => rater.countViolationsForRepo(a))
+      result.futureValue mustBe Indicator(BobbyRuleIndicatorType, Seq(Result(BobbyRulePending, "name - reason", None)))
 
-      Await.result(result, 5.seconds) mustBe BobbyRulesRating(1, 0)
     }
 
-    "Return BobbyRule Rating Object (1, 2) Rating when a Report with 1 Pending and 2 Actives Violation is found" in {
+    "Return Indicator with pending violation and 2 active results when bobby violations found" in {
       when(mockBobbyRulesConnector.dependencies("foo")) thenReturn Future.successful(
         Some(
           Dependencies(
@@ -133,11 +127,16 @@ class BobbyRulesRaterSpec extends AnyWordSpec with Matchers with MockitoSugar {
         )
       )
 
-      val dependencyList = rater.getDependencyList("foo")
+      val result = rater.rate("foo")
 
-      val result = dependencyList.map(a => rater.countViolationsForRepo(a))
-
-      Await.result(result, 5.seconds) mustBe BobbyRulesRating(1, 2)
+      result.futureValue mustBe Indicator(
+        BobbyRuleIndicatorType,
+        Seq(
+          Result(BobbyRulePending, "name - reason", None),
+          Result(BobbyRuleActive, "name - reason", None),
+          Result(BobbyRuleActive, "name - reason", None)
+        )
+      )
     }
   }
 }

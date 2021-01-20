@@ -20,7 +20,7 @@ import javax.inject.{Inject, Singleton}
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 @Singleton
-class RatersConfig @Inject() (servicesConfig: ServicesConfig) {
+class AppConfig @Inject() (servicesConfig: ServicesConfig) {
 
   lazy val teamsAndRepositoriesUrl: String = servicesConfig.baseUrl("teams-and-repositories")
   lazy val leakDetectionUrl: String        = servicesConfig.baseUrl("leak-detection")

@@ -16,36 +16,36 @@
 
 package uk.gov.hmrc.healthindicators.raters
 
-import javax.inject.Inject
+import javax.inject.{Inject, Singleton}
 import play.api.Logger
 import uk.gov.hmrc.healthindicators.connectors.GithubConnector
 import uk.gov.hmrc.healthindicators.models._
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class ReadMeRater @Inject()(
-                             githubConnector: GithubConnector,
-                           )(implicit val ec: ExecutionContext)
-  extends Rater {
+@Singleton
+class ReadMeRater @Inject() (
+  githubConnector: GithubConnector
+)(implicit val ec: ExecutionContext)
+    extends Rater {
 
   private val logger: Logger = Logger(this.getClass)
 
-  override def rate(repo: String): Future[Seq[Indicator]] = {
+  override def rate(repo: String): Future[Indicator] = {
     logger.info(s"Rating ReadMe for: $repo")
     githubConnector.findReadMe(repo).map { response =>
-      Seq(functionX(response))
+      Indicator(ReadMeIndicatorType, getResults(response))
     }
   }
 
-  //todo rename
-  private def functionX(readme: Option[String]): Indicator = {
+  private def getResults(readme: Option[String]): Seq[Result] =
     readme match {
-      case Some(x) if x.contains("This is a placeholder README.md for a new repository") =>
-        createIndicator(DefaultReadme, "Default readme")
-      case None => createIndicator(NoReadme, "No Readme defined")
-      case Some(_) => createIndicator(ValidReadme, "Valid readme")
+      case Some(str) if str.contains("This is a placeholder README.md for a new repository") =>
+        createResults(DefaultReadme, "Default readme")
+      case None    => createResults(NoReadme, "No Readme defined")
+      case Some(_) => createResults(ValidReadme, "Valid readme")
     }
-  }
 
-  private def createIndicator(result: ReadMeIndicatorType, description: String): Indicator = Indicator(ReadMeIndicator(result), description, None)
+  private def createResults(result: ReadMeResultType, description: String): Seq[Result] =
+    Seq(Result(result, description, None))
 }

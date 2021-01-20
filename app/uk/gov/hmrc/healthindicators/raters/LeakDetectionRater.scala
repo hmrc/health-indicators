@@ -16,31 +16,30 @@
 
 package uk.gov.hmrc.healthindicators.raters
 
-import javax.inject.Inject
+import javax.inject.{Inject, Singleton}
 import play.api.Logger
-import uk.gov.hmrc.healthindicators.configs.ScoreConfig
 import uk.gov.hmrc.healthindicators.connectors.LeakDetectionConnector
-import uk.gov.hmrc.healthindicators.models.{Indicator, IndicatorType, LeakDetectionIndicator, LeakDetectionViolation}
-import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.healthindicators.models.{Indicator, LeakDetectionIndicatorType, LeakDetectionViolation, Result}
 
 import scala.concurrent.{ExecutionContext, Future}
 
+@Singleton
 class LeakDetectionRater @Inject() (
-  leakDetectionConnector: LeakDetectionConnector,
+  leakDetectionConnector: LeakDetectionConnector
 )(implicit val ec: ExecutionContext)
     extends Rater {
 
-  private implicit val hc: HeaderCarrier = HeaderCarrier()
-  private val logger                     = Logger(this.getClass)
+  private val logger = Logger(this.getClass)
 
-  override def rate(repo: String): Future[Seq[Indicator]] = {
+  //TODO: Test
+  override def rate(repo: String): Future[Indicator] = {
     logger.info(s"Rating LeakDetection for: $repo")
     leakDetectionConnector.findLatestMasterReport(repo).map { maybeReport =>
-      maybeReport.toSeq.flatMap{ report =>
-        report.inspectionResults.map{ reportLine =>
-          Indicator(LeakDetectionIndicator(LeakDetectionViolation), reportLine.description, Some(reportLine.urlToSource))
-        }
-      }
+      val results = for {
+        report     <- maybeReport.toSeq
+        reportLine <- report.inspectionResults
+      } yield Result(LeakDetectionViolation, reportLine.description, Some(reportLine.urlToSource))
+      Indicator(LeakDetectionIndicatorType, results)
     }
   }
 }
