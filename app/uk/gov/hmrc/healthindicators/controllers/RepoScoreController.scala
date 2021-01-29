@@ -19,32 +19,34 @@ package uk.gov.hmrc.healthindicators.controllers
 import javax.inject.{Inject, Singleton}
 import play.api.libs.json.{Json, Writes}
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
-import uk.gov.hmrc.healthindicators.models.RepoScoreBreakdown
-import uk.gov.hmrc.healthindicators.services.RepoScorerService
+import uk.gov.hmrc.healthindicators.models.RepositoryRating
+import uk.gov.hmrc.healthindicators.services.RepositoryRatingService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import scala.concurrent.ExecutionContext
 
 @Singleton
-class RepoScoreController @Inject()(
-                                     repoScorerService: RepoScorerService,
-                                     cc: ControllerComponents
+class RepoScoreController @Inject() (
+  repoScorerService: RepositoryRatingService,
+  cc: ControllerComponents
 )(implicit ec: ExecutionContext)
     extends BackendController(cc) {
 
-  implicit val rsbw: Writes[RepoScoreBreakdown] = RepoScoreBreakdown.apiWrites
+  def scoreForRepo(repo: String): Action[AnyContent] =
+    Action.async {
+      for {
+        score <- repoScorerService.rateRepository(repo)
+        result = score.map(s => Ok(Json.toJson(s)(RepositoryRating.writes))).getOrElse(NotFound)
+      } yield result
+    }
 
-  def scoreForRepo(repo: String): Action[AnyContent] = Action.async { implicit request =>
-    for {
-      score <- repoScorerService.repoScore(repo)
-      result = score.map(s => Ok(Json.toJson(s))).getOrElse(NotFound)
-    } yield result
-  }
-
-  def scoreAllRepos(): Action[AnyContent] = Action.async { implicit request =>
-    for {
-      mapScores <- repoScorerService.repoScoreAllRepos()
-      result = Ok(Json.toJson(mapScores))
-    } yield result
+  def scoreAllRepos(): Action[AnyContent] = {
+    implicit val writes: Writes[RepositoryRating] = RepositoryRating.writes
+    Action.async {
+      for {
+        allRepos <- repoScorerService.rateAllRepositories()
+        result = Ok(Json.toJson(allRepos))
+      } yield result
+    }
   }
 }

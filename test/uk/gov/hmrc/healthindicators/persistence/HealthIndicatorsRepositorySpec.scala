@@ -25,68 +25,69 @@ import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import play.api.Configuration
 import uk.gov.hmrc.healthindicators.configs.SchedulerConfigs
-import uk.gov.hmrc.healthindicators.models.RepoRatings
-import uk.gov.hmrc.healthindicators.raters.leakdetection.LeakDetectionRating
+import uk.gov.hmrc.healthindicators.models.RepositoryHealthIndicator
 import uk.gov.hmrc.mongo.test.DefaultPlayMongoRepositorySupport
-
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class TeamsAndReposRatingsRepoSpec
+class HealthIndicatorsRepositorySpec
     extends AnyWordSpec
     with Matchers
     with MockitoSugar
-    with DefaultPlayMongoRepositorySupport[RepoRatings] {
+    with DefaultPlayMongoRepositorySupport[RepositoryHealthIndicator] {
 
-  val config = Configuration(
+  private val config: Configuration = Configuration(
     "reporatings.refresh.enabled"      -> "false",
     "reporatings.refresh.interval"     -> "5.minutes",
     "reporatings.refresh.initialDelay" -> "5.minutes"
   )
 
-  val schedulerConfigs = new SchedulerConfigs(config)
+  private val schedulerConfigs = new SchedulerConfigs(config)
 
-  override protected val repository = new RepoRatingsPersistence(mongoComponent, schedulerConfigs)
+  override protected val repository = new HealthIndicatorsRepository(mongoComponent, schedulerConfigs)
 
-  "RepoRatingsPersistence.insert" should {
+  "insert" should {
 
-    val repoRatings = RepoRatings("test", Instant.now, Seq.empty)
+    val healthIndicator = RepositoryHealthIndicator("test", Instant.now, Seq.empty)
 
     "insert correctly" in {
-      repository.insert(repoRatings)
-      repository.findAll().futureValue must contain(repoRatings)
+      repository.insert(healthIndicator)
+      repository.findAll().futureValue must contain(healthIndicator)
     }
   }
 
-  "RepoRatingsPersistence.latestRepoRatings" should {
+  "latestRepoRatings" should {
 
-    val latest = RepoRatings("test", Instant.now, Seq.empty)
-    val older  = RepoRatings("test", Instant.now.minus(1, ChronoUnit.DAYS), Seq.empty)
-    val oldest = RepoRatings("test", Instant.now.minus(2, ChronoUnit.DAYS), Seq.empty)
+    val latest = RepositoryHealthIndicator("test", Instant.now, Seq.empty)
+    val older  = RepositoryHealthIndicator("test", Instant.now.minus(1, ChronoUnit.DAYS), Seq.empty)
+    val oldest = RepositoryHealthIndicator("test", Instant.now.minus(2, ChronoUnit.DAYS), Seq.empty)
 
     "return the latest repoRatings for repo" in {
       List(latest, older, oldest).traverse(repository.insert).futureValue
-      repository.latestRatingsForRepo("test").futureValue mustBe Some(latest)
+      repository.latestRepositoryHealthIndicators("test").futureValue mustBe Some(latest)
     }
 
     "return none if no repoRatings are found for repo" in {
       List(latest, older, oldest).traverse(repository.insert).futureValue
-      repository.latestRatingsForRepo("notfound").futureValue mustBe None
+      repository.latestRepositoryHealthIndicators("notfound").futureValue mustBe None
     }
   }
 
   "RepoRatingsPersistence.latestRepoRatingsAllRepos" should {
 
-    val fooLatest = RepoRatings("foo", Instant.now, Seq.empty)
-    val fooOlder  = RepoRatings("foo", Instant.now.minus(1, ChronoUnit.DAYS), Seq.empty)
-    val fooOldest = RepoRatings("foo", Instant.now.minus(2, ChronoUnit.DAYS), Seq.empty)
+    val fooLatest = RepositoryHealthIndicator("foo", Instant.now, Seq.empty)
+    val fooOlder  = RepositoryHealthIndicator("foo", Instant.now.minus(1, ChronoUnit.DAYS), Seq.empty)
+    val fooOldest = RepositoryHealthIndicator("foo", Instant.now.minus(2, ChronoUnit.DAYS), Seq.empty)
 
-    val barLatest = RepoRatings("bar", Instant.now, Seq.empty)
-    val barOlder  = RepoRatings("bar", Instant.now.minus(1, ChronoUnit.DAYS), Seq.empty)
-    val barOldest = RepoRatings("bar", Instant.now.minus(2, ChronoUnit.DAYS), Seq.empty)
+    val barLatest = RepositoryHealthIndicator("bar", Instant.now, Seq.empty)
+    val barOlder  = RepositoryHealthIndicator("bar", Instant.now.minus(1, ChronoUnit.DAYS), Seq.empty)
+    val barOldest = RepositoryHealthIndicator("bar", Instant.now.minus(2, ChronoUnit.DAYS), Seq.empty)
 
     "return the latest repoRatings for all repos" in {
       List(fooLatest, fooOlder, fooOldest, barLatest, barOlder, barOldest).traverse(repository.insert).futureValue
-      repository.latestRatings().futureValue must contain theSameElementsAs Seq(fooLatest, barLatest)
+      repository.latestAllRepositoryHealthIndicators().futureValue must contain theSameElementsAs Seq(
+        fooLatest,
+        barLatest
+      )
     }
   }
 }

@@ -16,13 +16,27 @@
 
 package uk.gov.hmrc.healthindicators.configs
 
-import javax.inject.{Inject, Singleton}
-import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
+import javax.inject.Singleton
+import uk.gov.hmrc.healthindicators.models._
 
 @Singleton
-class RatersConfig @Inject()(servicesConfig: ServicesConfig) {
-
-  lazy val teamsAndRepositoriesUrl: String = servicesConfig.baseUrl("teams-and-repositories")
-  lazy val leakDetectionUrl: String        = servicesConfig.baseUrl("leak-detection")
-  lazy val bobbyRuleUrl: String        = servicesConfig.baseUrl("service-dependencies")
+class ScoreConfig {
+  def scores(resultType: ResultType): Int =
+    resultType match {
+      case r: ReadMeResultType =>
+        r match {
+          case NoReadme      => -50
+          case DefaultReadme => -50
+          case ValidReadme   => 50
+        }
+      case l: LeakDetectionResultType =>
+        l match {
+          case LeakDetectionViolation => -50
+        }
+      case b: BobbyRuleResultType =>
+        b match {
+          case BobbyRulePending => -20
+          case BobbyRuleActive  => -100
+        }
+    }
 }

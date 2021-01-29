@@ -16,25 +16,32 @@
 
 package uk.gov.hmrc.healthindicators.controllers
 
-import javax.inject.Inject
+import javax.inject.{Inject, Singleton}
+import play.api.libs.json.Writes
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
+import uk.gov.hmrc.healthindicators.connectors.LeakDetectionConnector
+import uk.gov.hmrc.healthindicators.models.RepositoryRating
+import uk.gov.hmrc.healthindicators.persistence.HealthIndicatorsRepository
 import uk.gov.hmrc.healthindicators.services.HealthIndicatorService
-import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Await
+import scala.concurrent.duration.DurationInt
 
-class AdminController @Inject() (ratingService: HealthIndicatorService, cc: ControllerComponents)(implicit
-  ec: ExecutionContext
+@Singleton
+class TestController @Inject() (
+  leakDetectionConnector: LeakDetectionConnector,
+  repoRatingsPersistence: HealthIndicatorsRepository,
+  repository: HealthIndicatorsRepository,
+  ratingService: HealthIndicatorService,
+  cc: ControllerComponents
 ) extends BackendController(cc) {
 
-  implicit val hc: HeaderCarrier = HeaderCarrier()
+  implicit val rrW: Writes[RepositoryRating] = RepositoryRating.writes
 
-  def rerun(): Action[AnyContent] =
-    Action.async {
-      ratingService.insertHealthIndicators().recover {
-        case e: Throwable => e.printStackTrace()
-      }
-      Future.successful(Accepted)
+  def test: Action[AnyContent] =
+    Action {
+      val result = repository.latestAllRepositoryHealthIndicators()
+      Ok(Await.result(result, 5.seconds).toString)
     }
 }

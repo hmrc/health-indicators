@@ -16,26 +16,25 @@
 
 package uk.gov.hmrc.healthindicators
 
-import com.google.inject.AbstractModule
-import javax.inject.{Inject, Singleton}
-import uk.gov.hmrc.healthindicators.models.{Rater, Raters}
-import uk.gov.hmrc.healthindicators.raters.bobbyrules.BobbyRulesRater
-import uk.gov.hmrc.healthindicators.raters.leakdetection.LeakDetectionRater
-import uk.gov.hmrc.healthindicators.raters.readme.ReadMeRater
+import com.google.inject.{AbstractModule, Provides}
+import play.api.Logger
+import uk.gov.hmrc.healthindicators.raters.{BobbyRulesRater, LeakDetectionRater, Rater, ReadMeRater}
 
-class Module() extends AbstractModule {
+class HealthIndicatorsModule() extends AbstractModule {
 
-  override def configure(): Unit = {
-    bind(classOf[Raters]).to(classOf[RatersProvider])
+  private val logger = Logger(this.getClass)
+
+  override def configure(): Unit =
     bind(classOf[schedulers.RepoRatingsScheduler]).asEagerSingleton()
-  }
-}
 
-@Singleton
-class RatersProvider @Inject()(
-    readMeRater: ReadMeRater,
+  @Provides
+  def raters(
+    bobbyRulesRater: BobbyRulesRater,
     leakDetectionRater: LeakDetectionRater,
-    bobbyRulesRater: BobbyRulesRater)
-    extends Raters {
-  override def allRaters: Seq[Rater] = Seq(readMeRater, leakDetectionRater, bobbyRulesRater)
+    readMeRater: ReadMeRater
+  ): List[Rater] = {
+    val raters = List(bobbyRulesRater, leakDetectionRater, readMeRater)
+    logger.info(s"Loaded Raters: ${raters.map(_.getClass.getSimpleName).mkString("[\n", "\n", "\n]")}")
+    raters
+  }
 }

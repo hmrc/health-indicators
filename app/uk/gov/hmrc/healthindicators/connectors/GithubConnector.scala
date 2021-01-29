@@ -14,16 +14,15 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.healthindicators.raters.readme
+package uk.gov.hmrc.healthindicators.connectors
 
 import javax.inject.Inject
 import uk.gov.hmrc.healthindicators.configs.GithubConfig
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse, NotFoundException}
 
-
 import scala.concurrent.{ExecutionContext, Future}
 
-class GithubConnector @Inject()(
+class GithubConnector @Inject() (
   httpClient: HttpClient,
   githubConfig: GithubConfig
 )(implicit ec: ExecutionContext) {
@@ -38,6 +37,6 @@ class GithubConnector @Inject()(
 
     httpClient.GET[HttpResponse](url).map(r => Some(r.body))
   }.recoverWith {
-    case e: NotFoundException => Future.successful(None)
+    case _: NotFoundException => Future.successful(None)
   }
 }

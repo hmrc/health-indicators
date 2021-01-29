@@ -33,37 +33,24 @@ object SchedulerConfig {
   def apply(
     configuration: Configuration,
     enabledKey: String,
-    frequency:    => FiniteDuration,
-    initialDelay: => FiniteDuration
-  ): SchedulerConfig =
-    SchedulerConfig(
-      enabledKey,
-      enabled      = configuration.get[Boolean](enabledKey),
-      frequency    = () => frequency,
-      initialDelay = () => initialDelay
-    )
-
-  def apply(
-    configuration: Configuration,
-    enabledKey: String,
     frequencyKey: String,
     initialDelayKey: String
   ): SchedulerConfig =
     SchedulerConfig(
       enabledKey,
-      enabled      = configuration.get[Boolean](enabledKey),
-      frequency    = () => configuration.get[FiniteDuration](frequencyKey),
+      enabled = configuration.get[Boolean](enabledKey),
+      frequency = () => configuration.get[FiniteDuration](frequencyKey),
       initialDelay = () => configuration.get[FiniteDuration](initialDelayKey)
     )
 }
 
 @Singleton
-class SchedulerConfigs @Inject()(configuration: Configuration) {
+class SchedulerConfigs @Inject() (configuration: Configuration) {
 
   val repoRatingsScheduler: SchedulerConfig = SchedulerConfig(
     configuration,
-    enabledKey      = "reporatings.refresh.enabled",
-    frequencyKey    = "reporatings.refresh.interval",
+    enabledKey = "reporatings.refresh.enabled",
+    frequencyKey = "reporatings.refresh.interval",
     initialDelayKey = "reporatings.refresh.initialDelay"
   )
 }

@@ -14,16 +14,15 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.healthindicators.models
+package uk.gov.hmrc.healthindicators.configs
 
-import play.api.libs.json._
+import javax.inject.{Inject, Singleton}
+import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
-case class TeamsAndRepos(
-  name: String
-)
+@Singleton
+class AppConfig @Inject() (servicesConfig: ServicesConfig) {
 
-object TeamsAndRepos {
-  val reads: Reads[TeamsAndRepos] = {
-    (__ \ "name").read[String].map(TeamsAndRepos.apply)
-  }
+  lazy val teamsAndRepositoriesUrl: String = servicesConfig.baseUrl("teams-and-repositories")
+  lazy val leakDetectionUrl: String        = servicesConfig.baseUrl("leak-detection")
+  lazy val serviceDependencies: String     = servicesConfig.baseUrl("service-dependencies")
 }
