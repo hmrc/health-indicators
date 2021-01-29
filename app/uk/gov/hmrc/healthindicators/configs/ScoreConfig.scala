@@ -16,15 +16,27 @@
 
 package uk.gov.hmrc.healthindicators.configs
 
-import javax.inject.{Inject, Singleton}
-import play.api.Configuration
+import javax.inject.Singleton
+import uk.gov.hmrc.healthindicators.models._
 
 @Singleton
 class ScoreConfig {
-  val bobbyRuleActive  = -100
-  val bobbyRulePending = -20
-  val leakDetection    = -50
-  val validReadMe      = 50
-  val noReadMe         = -50
-  val defaultReadMe    = -50
+  def scores(resultType: ResultType): Int =
+    resultType match {
+      case r: ReadMeResultType =>
+        r match {
+          case NoReadme      => -50
+          case DefaultReadme => -50
+          case ValidReadme   => 50
+        }
+      case l: LeakDetectionResultType =>
+        l match {
+          case LeakDetectionViolation => -50
+        }
+      case b: BobbyRuleResultType =>
+        b match {
+          case BobbyRulePending => -20
+          case BobbyRuleActive  => -100
+        }
+    }
 }

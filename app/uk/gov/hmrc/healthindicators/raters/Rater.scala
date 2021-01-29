@@ -14,22 +14,12 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.healthindicators.models
+package uk.gov.hmrc.healthindicators.raters
 
-import play.api.libs.functional.syntax.{toFunctionalBuilderOps, unlift}
-import play.api.libs.json.{Writes, __}
+import uk.gov.hmrc.healthindicators.models.Indicator
 
-case class RepoScoreBreakdown(
-  repo: String,
-  weightedScore: Int,
-  ratings: Seq[Rating]
-)
+import scala.concurrent.Future
 
-object RepoScoreBreakdown {
-  val apiWrites: Writes[RepoScoreBreakdown] = {
-    implicit val rF: Writes[Rating] = Rating.apiWrites
-    ((__ \ "repo").write[String]
-      ~ (__ \ "weightedScore").write[Int]
-      ~ (__ \ "ratings").write[Seq[Rating]])(unlift(RepoScoreBreakdown.unapply))
-  }
+trait Rater {
+  def rate(repo: String): Future[Indicator]
 }

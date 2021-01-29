@@ -33,19 +33,6 @@ object SchedulerConfig {
   def apply(
     configuration: Configuration,
     enabledKey: String,
-    frequency: => FiniteDuration,
-    initialDelay: => FiniteDuration
-  ): SchedulerConfig =
-    SchedulerConfig(
-      enabledKey,
-      enabled = configuration.get[Boolean](enabledKey),
-      frequency = () => frequency,
-      initialDelay = () => initialDelay
-    )
-
-  def apply(
-    configuration: Configuration,
-    enabledKey: String,
     frequencyKey: String,
     initialDelayKey: String
   ): SchedulerConfig =

@@ -4,6 +4,7 @@
 !.scalafmt.conf
 .cache
 /.classpath
+TestController
 db
 dist
 .DS_Store

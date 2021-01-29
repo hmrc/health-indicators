@@ -16,80 +16,53 @@
 
 package uk.gov.hmrc.healthindicators.models
 
-import play.api.libs.json._
-import uk.gov.hmrc.healthindicators.configs.ScoreConfig
-import uk.gov.hmrc.healthindicators.raters.bobbyrules.BobbyRulesRating
-import uk.gov.hmrc.healthindicators.raters.leakdetection.LeakDetectionRating
-import uk.gov.hmrc.healthindicators.raters.readme.ReadMeRating
-import uk.gov.hmrc.healthindicators.configs.ScoreConfig
+import play.api.libs.functional.syntax.{toFunctionalBuilderOps, unlift}
+import play.api.libs.json.{JsString, Writes, __}
 
-sealed trait RatingType { def asString: String }
+case object ReadMe extends RatingType
+
+case object LeakDetection extends RatingType
+
+case object BobbyRule extends RatingType
+
+sealed trait RatingType
 
 object RatingType {
-  case object ReadMe extends RatingType {
-    def asString = "ReadMeRating"
-  }
-  case object LeakDetection extends RatingType {
-    def asString = "LeakDetectionRating"
-  }
-
-  case object BobbyRules extends RatingType {
-    def asString = "BobbyRulesRating"
-  }
-
-  private val values = Seq(ReadMe, LeakDetection, BobbyRules)
-
-  def parse(s: String): Option[RatingType] =
-    values
-      .find(_.asString == s)
-
-  val format: Format[RatingType] = new Format[RatingType] {
-
-    override def reads(json: JsValue): JsResult[RatingType] =
-      json.validate[String].flatMap { s =>
-        parse(s)
-          .fold[JsResult[RatingType]](JsError(s"Invalid Rating: $s"))(v => JsSuccess(v))
-      }
-
-    override def writes(o: RatingType): JsValue =
-      Json.toJson(o.asString)
+  val writes: Writes[RatingType] = {
+    case ReadMe        => JsString("ReadMe")
+    case LeakDetection => JsString("LeakDetection")
+    case BobbyRule     => JsString("BobbyRule")
   }
 }
 
-trait Rating {
-  def ratingType: RatingType
-  val reason: String
-  def calculateScore(scoreConfig: ScoreConfig): Int
+case class Score(points: Int, description: String, href: Option[String])
+
+object Score {
+  val writes: Writes[Score] =
+    ((__ \ "points").write[Int]
+      ~ (__ \ "description").write[String]
+      ~ (__ \ "ratings").writeNullable[String])(unlift(Score.unapply))
 }
+
+case class Rating(ratingType: RatingType, ratingScore: Int, breakdown: Seq[Score])
 
 object Rating {
-  val apiWrites: Writes[Rating] = (o: Rating) => {
-    implicit val rtF = RatingType.format
-    val scoreConfig  = new ScoreConfig
-    Json.obj("ratingType" -> o.ratingType, "rating" -> o.calculateScore(scoreConfig: ScoreConfig), "reason" -> o.reason)
+  val writes: Writes[Rating] = {
+    implicit val sW: Writes[Score]       = Score.writes
+    implicit val rtW: Writes[RatingType] = RatingType.writes
+    ((__ \ "ratingType").write[RatingType]
+      ~ (__ \ "ratingScore").write[Int]
+      ~ (__ \ "breakdown").write[Seq[Score]])(unlift(Rating.unapply))
   }
+}
 
-  val format: Format[Rating] = new Format[Rating] {
-    implicit val rtF = RatingType.format
-    implicit val rmF = ReadMeRating.format
-    implicit val ldF = LeakDetectionRating.format
-    implicit val brF = BobbyRulesRating.format
+case class RepositoryRating(repositoryName: String, repositoryScore: Int, ratings: Option[Seq[Rating]])
 
-    override def reads(json: JsValue): JsResult[Rating] =
-      (json \ "type")
-        .validate[RatingType]
-        .flatMap {
-          case RatingType.ReadMe        => json.validate[ReadMeRating]
-          case RatingType.LeakDetection => json.validate[LeakDetectionRating]
-          case RatingType.BobbyRules    => json.validate[BobbyRulesRating]
-          case s                        => JsError(s"Invalid Rating: $s")
-        }
-
-    override def writes(o: Rating): JsValue =
-      o match {
-        case r: ReadMeRating        => Json.toJsObject(r) + ("type" -> Json.toJson(r.ratingType))
-        case r: LeakDetectionRating => Json.toJsObject(r) + ("type" -> Json.toJson(r.ratingType))
-        case r: BobbyRulesRating    => Json.toJsObject(r) + ("type" -> Json.toJson(r.ratingType))
-      }
+object RepositoryRating {
+  val writes: Writes[RepositoryRating] = {
+    implicit val rW: Writes[Rating] = Rating.writes
+    ((__ \ "repositoryName").write[String]
+      ~ (__ \ "repositoryScore").write[Int]
+      ~ (__ \ "ratings").writeNullable[Seq[Rating]])(unlift(RepositoryRating.unapply))
   }
 }

@@ -19,37 +19,41 @@ package uk.gov.hmrc.healthindicators.services
 import java.time.Instant
 
 import cats.implicits._
+import com.google.inject.Injector
 import javax.inject.Inject
 import play.api.Logger
 import uk.gov.hmrc.healthindicators.connectors.TeamsAndRepositoriesConnector
-import uk.gov.hmrc.healthindicators.models.{Raters, RepoRatings}
-import uk.gov.hmrc.healthindicators.persistence.RepoRatingsPersistence
+import uk.gov.hmrc.healthindicators.models.RepositoryHealthIndicator
+import uk.gov.hmrc.healthindicators.persistence.HealthIndicatorsRepository
+import uk.gov.hmrc.healthindicators.raters.Rater
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class RatingService @Inject() (
-  raters: Raters,
+class HealthIndicatorService @Inject() (
   teamsAndRepositoriesConnector: TeamsAndRepositoriesConnector,
-  repository: RepoRatingsPersistence
+  raters: List[Rater],
+  repository: HealthIndicatorsRepository,
+  inject: Injector
 )(implicit val ec: ExecutionContext) {
 
-  def repoRatings(repo: String)(implicit hc: HeaderCarrier): Future[RepoRatings] = {
-    Logger.info(s"Rating Repository: $repo")
-    for {
-      ratings <- raters.allRaters.toList.traverse(_.rate(repo))
-      indicators = RepoRatings(repo, Instant.now(), ratings)
-    } yield indicators
-  }
+  private val logger = Logger(this.getClass)
 
-  def insertRatings()(implicit hc: HeaderCarrier): Future[Unit] =
+  def insertHealthIndicators()(implicit hc: HeaderCarrier): Future[Unit] =
     for {
       repos <- teamsAndRepositoriesConnector.allRepositories
       _ <- repos.foldLeftM(())((_, r) =>
              for {
-               indicators <- repoRatings(r.name)
+               indicators <- createRepositoryIndicators(r.name)
                _          <- repository.insert(indicators)
              } yield ()
            )
     } yield ()
+
+  private def createRepositoryIndicators(repo: String): Future[RepositoryHealthIndicator] = {
+    logger.info(s"Rating Repository: $repo")
+    for {
+      indicators <- raters.traverse(_.rate(repo))
+    } yield RepositoryHealthIndicator(repo, Instant.now(), indicators)
+  }
 }

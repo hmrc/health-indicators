@@ -14,14 +14,15 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.healthindicators.models
+package uk.gov.hmrc.healthindicators.configs
 
-import scala.concurrent.Future
+import javax.inject.{Inject, Singleton}
+import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
-trait Rater {
-  def rate(repo: String): Future[Rating]
-}
+@Singleton
+class AppConfig @Inject() (servicesConfig: ServicesConfig) {
 
-trait Raters {
-  def allRaters: Seq[Rater]
+  lazy val teamsAndRepositoriesUrl: String = servicesConfig.baseUrl("teams-and-repositories")
+  lazy val leakDetectionUrl: String        = servicesConfig.baseUrl("leak-detection")
+  lazy val serviceDependencies: String     = servicesConfig.baseUrl("service-dependencies")
 }
