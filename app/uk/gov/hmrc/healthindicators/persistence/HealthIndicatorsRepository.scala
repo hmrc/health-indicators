@@ -50,24 +50,20 @@ class HealthIndicatorsRepository @Inject() (
     collection
       .find(equal("repositoryName", repo))
       .sort(descending("timestamp"))
-      .toFuture()
-      .map(_.headOption)
+      .headOption()
 
-  def latestAllRepositoryHealthIndicators(): Future[Seq[RepositoryHealthIndicator]] = {
-    //todo is the gt query correct?
-    val agg = List(
-      `match`(
-        gt("timestamp", Instant.now.minus(2 * config.repoRatingsScheduler.frequency().toMillis, ChronoUnit.MILLIS))
-      ),
-      sort(descending("timestamp")),
-      group("$repositoryName", first("obj", "$$ROOT")),
-      replaceRoot("$obj")
-    )
+    def latestAllRepositoryHealthIndicators(): Future[Seq[RepositoryHealthIndicator]] = {
+      //todo refactor BDOG-1294
+      val agg = List(
+        sort(descending("timestamp")),
+        group("$repositoryName", first("obj", "$$ROOT")),
+        replaceRoot("$obj")
+      )
+      collection
+        .aggregate(agg)
+        .toFuture()
+    }
 
-    collection
-      .aggregate(agg)
-      .toFuture()
-  }
 
   def insert(indicator: RepositoryHealthIndicator): Future[Unit] =
     collection
