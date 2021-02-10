@@ -54,5 +54,19 @@ class HealthIndicatorServiceSpec extends AnyWordSpec with Matchers with MockitoS
       verify(healthIndicatorsRepository, times(3)).insert(any)
     }
 
+    "does not insert any repository ratings when teamsAndRepositoriesConnector returns an empty list" in {
+      implicit val hc: HeaderCarrier = HeaderCarrier()
+      when(teamsAndRepositoriesConnector.allRepositories) thenReturn
+        Future.successful(List())
+
+      when(mockRater.rate(any)) thenReturn
+        Future.successful(Indicator(ReadMeIndicatorType, Seq(Result(ValidReadme, "bar", None))))
+
+      when(healthIndicatorsRepository.insert(any)) thenReturn Future.successful(Unit)
+
+      Await.result(healthIndicatorService.insertHealthIndicators(), 10.seconds) shouldBe ()
+      verify(healthIndicatorsRepository, times(0)).insert(any)
+    }
+
   }
 }
