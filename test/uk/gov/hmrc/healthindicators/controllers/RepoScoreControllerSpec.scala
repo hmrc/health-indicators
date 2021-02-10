@@ -19,7 +19,8 @@ package uk.gov.hmrc.healthindicators.controllers
 import org.mockito.MockitoSugar
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
-import play.api.test.Helpers.{contentAsJson, defaultAwaitTimeout}
+
+import play.api.test.Helpers.{contentAsJson, defaultAwaitTimeout, status}
 import play.api.test.{FakeRequest, Helpers}
 import uk.gov.hmrc.healthindicators.models.RepositoryRating
 import uk.gov.hmrc.healthindicators.services.RepositoryRatingService
@@ -53,8 +54,17 @@ class RepoScoreControllerSpec extends AnyWordSpec with Matchers with MockitoSuga
       contentAsJson(result).toString() shouldBe s"""{"repositoryName":"repo1","repositoryScore":100,"ratings":[]}"""
     }
 
-    "get scores for all repos" in {
+    "return 404 when repo not found" in {
       val fakeRequest = FakeRequest("GET", "/repositories/repo1")
+      when(mockWeightedRepoScorerService.rateRepository("repo1"))
+        .thenReturn(Future.successful(None))
+
+       val result = weightedRepoScoreController.scoreForRepo("repo1")(fakeRequest)
+      status(result) shouldBe 404
+    }
+
+    "get scores for all repos" in {
+      val fakeRequest = FakeRequest("GET", "/repositories")
       when(mockWeightedRepoScorerService.rateAllRepositories())
         .thenReturn(Future.successful(allRepoScores))
       val result = weightedRepoScoreController.scoreAllRepos()(fakeRequest)
@@ -62,5 +72,7 @@ class RepoScoreControllerSpec extends AnyWordSpec with Matchers with MockitoSuga
         s"""[{"repositoryName":"repo1","repositoryScore":100,"ratings":[]},{"repositoryName":"repo2","repositoryScore":100,"ratings":[]},{"repositoryName":"repo3","repositoryScore":100,"ratings":[]},{"repositoryName":"repo4","repositoryScore":100,"ratings":[]},{"repositoryName":"repo5","repositoryScore":100,"ratings":[]}]""".stripMargin
       contentAsJson(result).toString() shouldBe expectedResult
     }
+
+
   }
 }

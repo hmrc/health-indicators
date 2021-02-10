@@ -47,6 +47,8 @@ class RepositoryRatingService @Inject() (repository: HealthIndicatorsRepository,
       } yield repositoryRating
     }
 
+  //TODO: Can you extract a method here?
+
   private def createRating(indicator: Indicator): Rating = {
     val scores      = indicator.results.map(createScore)
     val ratingScore = scores.map(_.points).sum

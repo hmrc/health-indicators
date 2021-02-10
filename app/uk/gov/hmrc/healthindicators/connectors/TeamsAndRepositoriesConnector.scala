@@ -38,6 +38,7 @@ class TeamsAndRepositoriesConnector @Inject() (
   }
 }
 
+//TODO: Rename this case class
 case class TeamsAndRepos(
   name: String
 )
