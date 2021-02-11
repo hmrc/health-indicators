@@ -1,3 +1,19 @@
+/*
+ * Copyright 2021 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package uk.gov.hmrc.healthindicators.services
 
 import org.mockito.ArgumentMatchersSugar.any
@@ -54,7 +70,7 @@ class HealthIndicatorServiceSpec extends AnyWordSpec with Matchers with MockitoS
       verify(healthIndicatorsRepository, times(3)).insert(any)
     }
 
-    "does not insert any repository ratings when teamsAndRepositoriesConnector returns an empty list" in {
+    "not insert any repository ratings when teamsAndRepositoriesConnector returns an empty list" in {
       implicit val hc: HeaderCarrier = HeaderCarrier()
       when(teamsAndRepositoriesConnector.allRepositories) thenReturn
         Future.successful(List())
@@ -62,10 +78,7 @@ class HealthIndicatorServiceSpec extends AnyWordSpec with Matchers with MockitoS
       when(mockRater.rate(any)) thenReturn
         Future.successful(Indicator(ReadMeIndicatorType, Seq(Result(ValidReadme, "bar", None))))
 
-      when(healthIndicatorsRepository.insert(any)) thenReturn Future.successful(Unit)
-
       Await.result(healthIndicatorService.insertHealthIndicators(), 10.seconds) shouldBe ()
-      verify(healthIndicatorsRepository, times(0)).insert(any)
     }
 
   }
