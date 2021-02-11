@@ -4,7 +4,7 @@
 !.scalafmt.conf
 .cache
 /.classpath
-TestController
+app/uk/gov/hmrc/healthindicators/controllers/TestController.scala
 db
 dist
 .DS_Store

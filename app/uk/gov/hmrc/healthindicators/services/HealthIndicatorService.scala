@@ -34,7 +34,6 @@ class HealthIndicatorService @Inject() (
   teamsAndRepositoriesConnector: TeamsAndRepositoriesConnector,
   raters: List[Rater],
   repository: HealthIndicatorsRepository,
-  inject: Injector
 )(implicit val ec: ExecutionContext) {
 
   private val logger = Logger(this.getClass)

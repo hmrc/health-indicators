@@ -16,7 +16,8 @@ object AppDependencies {
     "org.scalatest"          %% "scalatest"                   % "3.1.2"             % Test,
     "org.scalatestplus.play" %% "scalatestplus-play"          % "4.0.0"             % Test,
     "com.typesafe.play"      %% "play-test"                   % PlayVersion.current % Test,
-    "org.mockito"            %% "mockito-scala"               % "1.10.2"            % Test
+    "org.mockito"            %% "mockito-scala"               % "1.10.2"            % Test,
+    "com.github.tomakehurst" %  "wiremock"                    % "1.58"              % Test
   )
 
 }

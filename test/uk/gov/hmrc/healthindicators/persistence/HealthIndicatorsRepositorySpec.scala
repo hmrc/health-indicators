@@ -89,5 +89,14 @@ class HealthIndicatorsRepositorySpec
         barLatest
       )
     }
+
+    "returns empty list when no results are found" in {
+      repository.latestAllRepositoryHealthIndicators().futureValue mustBe List()
+    }
+
+    "returns only one result when there is a duplicate" in {
+      List(fooLatest, fooLatest).traverse(repository.insert).futureValue
+      repository.latestAllRepositoryHealthIndicators().futureValue mustBe List(fooLatest)
+    }
   }
 }
