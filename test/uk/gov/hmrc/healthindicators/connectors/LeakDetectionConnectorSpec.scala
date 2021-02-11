@@ -10,7 +10,6 @@ import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.{JsSuccess, Json, Reads}
 import uk.gov.hmrc.healthindicators.WireMockEndpoints
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
-import uk.gov.hmrc.http.HeaderCarrier
 
 class LeakDetectionConnectorSpec
   extends AnyWordSpec
@@ -30,10 +29,10 @@ class LeakDetectionConnectorSpec
         ))
       .build()
 
-  private lazy val serviceDependenciesConnector = app.injector.instanceOf[LeakDetectionConnector]
+  private lazy val leakDetectionConnector = app.injector.instanceOf[LeakDetectionConnector]
 
-  "GET Reports" should {
-    "return a list of leak detections reports for a repository" in new Setup {
+  "GET latestMasterReport" should {
+    "return a list of leak detections reports for a repository" in {
       serviceEndpoint(
         GET,
         "/api/reports/repositories/repo1",
@@ -45,67 +44,79 @@ class LeakDetectionConnectorSpec
             |   "_id": "123",
             |   "inspectionResults": [
             |     {
-            |      "filePath": "/s3/src/test/resources/keystore.jks",
+            |      "filePath": "/this/is/a/test",
             |      "scope": "fileName",
             |      "lineNumber": 1,
             |      "urlToSource": "https://test-url",
-            |      "ruleId": "filename_private_key_11",
+            |      "ruleId": "filename_test",
             |      "description": "test123",
-            |      "lineText": "keystore.jks"
+            |      "lineText": "test.text"
             |     }
             |   ]
               }""".stripMargin
           ))
       )
 
-      val response = serviceDependenciesConnector
+      val response = leakDetectionConnector
         .findLatestMasterReport("repo1")
         .futureValue
         .value
 
       val expectedOutput = Report("123",
-        Seq(ReportLine
-        (
-          "/s3/src/test/resources/keystore.jks",
+        Seq(ReportLine(
+          "/this/is/a/test",
           "fileName",
-          1,
+           1,
           "https://test-url",
-          Some("filename_private_key_11"),
+          Some("filename_test"),
           "test123",
-          "keystore.jks"
+          "test.text"
         )
         ))
       response shouldBe expectedOutput
     }
 
+    "return a None for non existing repository" in {
+      serviceEndpoint(GET, "/api/reports/repositories/non-existing", willRespondWith = (404, None))
+
+      val response = leakDetectionConnector
+        .findLatestMasterReport("non-existing")
+        .futureValue
+
+      response shouldBe None
+    }
+
+
     "ReportLine" should {
       implicit val rlR: Reads[ReportLine] = ReportLine.reads
       "parse json" in {
         val jsonInput =
-          """{"filePath": "/s3/src/test/resources/keystore.jks",
-          "scope": "fileName",
-          "lineNumber": 1,
-          "urlToSource": "https://github.com/hmrc/alpakka/blame/96c3cdf1542b96a82bee10c8a2339f282b7230a0/s3/src/test/resources/keystore.jks#L1",
-          "ruleId": "filename_private_key_11",
-          "description": "Extension indicates Java KeyStore file, often containing private keys",
-          "lineText": "keystore.jks"}"""
+          """
+        |{
+        |  "filePath": "/this/is/a/test",
+        |  "scope": "fileName",
+        |  "lineNumber": 1,
+        |  "urlToSource": "https://test-url",
+        |  "ruleId": "filename_test",
+        |  "description": "test123",
+        |  "lineText": "test.text"
+        |}
+        |""".stripMargin
+
         val objectOutput = Json.parse(jsonInput).validate[ReportLine]
         objectOutput shouldBe
           JsSuccess(ReportLine(
-            "/s3/src/test/resources/keystore.jks",
+            "/this/is/a/test",
             "fileName",
-            1,
-            "https://github.com/hmrc/alpakka/blame/96c3cdf1542b96a82bee10c8a2339f282b7230a0/s3/src/test/resources/keystore.jks#L1",
-            Some("filename_private_key_11"),
-            "Extension indicates Java KeyStore file, often containing private keys",
-            "keystore.jks"
+             1,
+            "https://test-url",
+            Some("filename_test"),
+            "test123",
+            "test.text"
           ))
       }
     }
   }
 
-  private trait Setup {
-    implicit val headerCarrier: HeaderCarrier = HeaderCarrier()
-  }
 
 }
