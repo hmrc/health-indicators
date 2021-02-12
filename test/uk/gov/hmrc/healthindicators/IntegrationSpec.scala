@@ -17,6 +17,7 @@
 package uk.gov.hmrc.healthindicators
 
 import com.github.tomakehurst.wiremock.http.RequestMethod.GET
+import org.scalatest.concurrent.Eventually.eventually
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.concurrent.ScalaFutures.convertScalaFuture
 import org.scalatest.matchers.should.Matchers
@@ -30,8 +31,8 @@ import uk.gov.hmrc.healthindicators.configs.SchedulerConfigs
 import uk.gov.hmrc.healthindicators.models.RepositoryHealthIndicator
 import uk.gov.hmrc.healthindicators.persistence.HealthIndicatorsRepository
 import uk.gov.hmrc.mongo.test.DefaultPlayMongoRepositorySupport
-import scala.concurrent.ExecutionContext.Implicits.global
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.DurationInt
 
 class IntegrationSpec
@@ -63,7 +64,7 @@ class IntegrationSpec
           "mongodb.uri" -> mongoUri,
           "reporatings.refresh.enabled"      -> "true",
           "reporatings.refresh.interval"     -> "5.minutes",
-          "reporatings.refresh.initialDelay" -> "3.seconds",
+          "reporatings.refresh.initialDelay" -> "1.seconds",
           "microservice.services.service-dependencies.port" -> endpointPort,
           "microservice.services.service-dependencies.host" -> host,
           "microservice.services.leak-detection.port" -> endpointPort,
@@ -96,7 +97,7 @@ class IntegrationSpec
       val response = ws.url(s"http://localhost:$port/repositories/auth").get.futureValue
 
       response.status shouldBe 200
-      response.body shouldBe expectedResponse
+      eventually{ response.body shouldBe expectedResponse }
     }
   }
 
