@@ -17,24 +17,20 @@
 package uk.gov.hmrc.healthindicators
 
 import com.github.tomakehurst.wiremock.http.RequestMethod.GET
-import org.scalatest.concurrent.Eventually
-import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.concurrent.ScalaFutures.convertScalaFuture
+import org.scalatest.concurrent.{Eventually, ScalaFutures}
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.time.{Millis, Seconds, Span}
 import org.scalatest.wordspec.AnyWordSpec
-import org.scalatestplus.play.guice.{GuiceOneAppPerSuite, GuiceOneServerPerSuite}
-import play.api.{Application, Configuration}
+import org.scalatestplus.play.guice.GuiceOneServerPerSuite
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.ws.WSClient
-import play.api.test.FakeRequest
+import play.api.{Application, Configuration}
 import uk.gov.hmrc.healthindicators.configs.SchedulerConfigs
 import uk.gov.hmrc.healthindicators.models.RepositoryHealthIndicator
 import uk.gov.hmrc.healthindicators.persistence.HealthIndicatorsRepository
 import uk.gov.hmrc.mongo.test.DefaultPlayMongoRepositorySupport
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.duration.DurationInt
 
 class IntegrationSpec
   extends AnyWordSpec

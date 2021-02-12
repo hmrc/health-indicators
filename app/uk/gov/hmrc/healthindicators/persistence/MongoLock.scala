@@ -19,11 +19,10 @@ package uk.gov.hmrc.healthindicators.persistence
 import javax.inject.{Inject, Singleton}
 import uk.gov.hmrc.mongo.lock.{MongoLockRepository, MongoLockService}
 
-import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
 @Singleton
-class MongoLock @Inject() (mongoLockRepository: MongoLockRepository)(implicit ec: ExecutionContext) {
+class MongoLock @Inject() (mongoLockRepository: MongoLockRepository)() {
 
   val repoRatingsMongoLock: MongoLockService = mongoLockRepository.toService("repo-ratings-lock", 1.hour)
 }

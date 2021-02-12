@@ -46,8 +46,6 @@ class GithubConnectorSpec
 
   private lazy val githubConnector = app.injector.instanceOf[GithubConnector]
 
-
-
   "GET findReadMe" should {
     "return a URL of README.md for the correct repo" in {
 
@@ -76,7 +74,6 @@ class GithubConnectorSpec
       val response = githubConnector
         .findReadMe("repo1")
         .futureValue
-
 
       response shouldBe None
     }

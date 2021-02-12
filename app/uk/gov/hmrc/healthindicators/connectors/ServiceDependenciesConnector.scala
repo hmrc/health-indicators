@@ -16,16 +16,16 @@
 
 package uk.gov.hmrc.healthindicators.connectors
 
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
-
-import javax.inject.{Inject, Singleton}
 import play.api.Logger
 import play.api.libs.functional.syntax._
 import play.api.libs.json.{JsValue, Reads, __}
 import uk.gov.hmrc.healthindicators.configs.AppConfig
+import uk.gov.hmrc.http.HttpReads.Implicits._
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, UpstreamErrorResponse}
 
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
