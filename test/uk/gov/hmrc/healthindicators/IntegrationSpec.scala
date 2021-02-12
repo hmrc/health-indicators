@@ -17,7 +17,7 @@
 package uk.gov.hmrc.healthindicators
 
 import com.github.tomakehurst.wiremock.http.RequestMethod.GET
-import org.scalatest.concurrent.Eventually.eventually
+import org.scalatest.concurrent.Eventually
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.concurrent.ScalaFutures.convertScalaFuture
 import org.scalatest.matchers.should.Matchers
@@ -38,11 +38,12 @@ import scala.concurrent.duration.DurationInt
 
 class IntegrationSpec
   extends AnyWordSpec
-    with DefaultPlayMongoRepositorySupport[RepositoryHealthIndicator]
+  with DefaultPlayMongoRepositorySupport[RepositoryHealthIndicator]
   with GuiceOneServerPerSuite
   with WireMockEndpoints
   with Matchers
   with ScalaFutures
+  with Eventually
   {
 
   implicit override val patienceConfig: PatienceConfig =
@@ -68,7 +69,7 @@ class IntegrationSpec
           "mongodb.uri" -> mongoUri,
           "reporatings.refresh.enabled"      -> "true",
           "reporatings.refresh.interval"     -> "5.minutes",
-          "reporatings.refresh.initialDelay" -> "1.seconds",
+          "reporatings.refresh.initialDelay" -> "5.seconds",
           "microservice.services.service-dependencies.port" -> endpointPort,
           "microservice.services.service-dependencies.host" -> host,
           "microservice.services.leak-detection.port" -> endpointPort,
@@ -98,10 +99,10 @@ class IntegrationSpec
         requestHeaders = Map("Authorization" -> s"token test-token"),
         willRespondWith = (404, None))
 
-      val response = ws.url(s"http://localhost:$port/repositories/auth").get.futureValue
-
-      response.status shouldBe 200
-      eventually{ response.body shouldBe expectedResponse }
+      eventually{
+        val response = ws.url(s"http://localhost:$port/repositories/auth").get.futureValue
+        response.status shouldBe 200
+        response.body shouldBe expectedResponse }
     }
   }
 
