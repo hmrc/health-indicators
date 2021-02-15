@@ -16,12 +16,10 @@
 
 package uk.gov.hmrc.healthindicators.persistence
 
-import java.time.Instant
-import java.time.temporal.ChronoUnit
 import javax.inject.Inject
 import org.mongodb.scala.model.Accumulators._
 import org.mongodb.scala.model.Aggregates._
-import org.mongodb.scala.model.Filters.{equal, gt}
+import org.mongodb.scala.model.Filters.equal
 import org.mongodb.scala.model.Indexes._
 import org.mongodb.scala.model.{IndexModel, IndexOptions}
 import uk.gov.hmrc.healthindicators.configs.SchedulerConfigs
@@ -34,6 +32,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class HealthIndicatorsRepository @Inject() (
   mongoComponent: MongoComponent,
   config: SchedulerConfigs
+                                           //TODO: is config actually used?
   //Todo: Function that retrieves in an order based on score?
 )(implicit ec: ExecutionContext)
     extends PlayMongoRepository[RepositoryHealthIndicator](

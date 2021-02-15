@@ -30,7 +30,6 @@ class GithubConnector @Inject() (
   private val configKey = githubConfig.token
 
   def findReadMe(repo: String): Future[Option[String]] = {
-
     val url =
       s"${githubConfig.rawUrl}/hmrc/$repo/master/README.md"
     implicit val hc: HeaderCarrier = HeaderCarrier().withExtraHeaders(("Authorization", s"token $configKey"))

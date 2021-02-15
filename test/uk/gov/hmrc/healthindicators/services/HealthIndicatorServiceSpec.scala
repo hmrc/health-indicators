@@ -18,16 +18,14 @@ package uk.gov.hmrc.healthindicators.services
 
 import org.mockito.ArgumentMatchersSugar.any
 import org.mockito.MockitoSugar
-import org.scalatest.concurrent.{Eventually, IntegrationPatience}
-import org.scalatest.concurrent.ScalaFutures.convertScalaFuture
-import org.scalatest.concurrent.Waiters.scaled
+import org.scalatest.concurrent.Eventually
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.time.{Millis, Seconds, Span}
 import org.scalatest.wordspec.AnyWordSpec
 import uk.gov.hmrc.healthindicators.connectors.{TeamsAndRepos, TeamsAndRepositoriesConnector}
-import uk.gov.hmrc.healthindicators.models.{Indicator, ReadMeIndicatorType, RepositoryHealthIndicator, Result, ValidReadme}
+import uk.gov.hmrc.healthindicators.models.{Indicator, ReadMeIndicatorType, Result, ValidReadme}
 import uk.gov.hmrc.healthindicators.persistence.HealthIndicatorsRepository
-import uk.gov.hmrc.healthindicators.raters.{Rater, ReadMeRater}
+import uk.gov.hmrc.healthindicators.raters.Rater
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -65,7 +63,7 @@ class HealthIndicatorServiceSpec extends AnyWordSpec with Matchers with MockitoS
 
       when(healthIndicatorsRepository.insert(any)) thenReturn Future.successful(Unit)
 
-      Await.result(healthIndicatorService.insertHealthIndicators(), 10.seconds) shouldBe ()
+      Await.result(healthIndicatorService.insertHealthIndicators(), 10.seconds) shouldBe ((): Unit)
 
       verify(healthIndicatorsRepository, times(3)).insert(any)
     }
@@ -78,7 +76,7 @@ class HealthIndicatorServiceSpec extends AnyWordSpec with Matchers with MockitoS
       when(mockRater.rate(any)) thenReturn
         Future.successful(Indicator(ReadMeIndicatorType, Seq(Result(ValidReadme, "bar", None))))
 
-      Await.result(healthIndicatorService.insertHealthIndicators(), 10.seconds) shouldBe ()
+      Await.result(healthIndicatorService.insertHealthIndicators(), 10.seconds) shouldBe ((): Unit)
     }
 
   }

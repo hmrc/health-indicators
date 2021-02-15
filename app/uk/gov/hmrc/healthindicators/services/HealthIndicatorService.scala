@@ -19,7 +19,6 @@ package uk.gov.hmrc.healthindicators.services
 import java.time.Instant
 
 import cats.implicits._
-import com.google.inject.Injector
 import javax.inject.Inject
 import play.api.Logger
 import uk.gov.hmrc.healthindicators.connectors.TeamsAndRepositoriesConnector
