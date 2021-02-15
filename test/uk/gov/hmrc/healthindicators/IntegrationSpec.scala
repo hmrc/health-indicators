@@ -45,16 +45,7 @@ class IntegrationSpec
   implicit override val patienceConfig: PatienceConfig =
     PatienceConfig(timeout = scaled(Span(10, Seconds)), interval = scaled(Span(1000, Millis)))
 
-  private val config: Configuration = Configuration(
-    "reporatings.refresh.enabled"      -> "true",
-    "reporatings.refresh.interval"     -> "5.minutes",
-    "reporatings.refresh.initialDelay" -> "3.seconds"
-  )
-
-  private val schedulerConfigs = new SchedulerConfigs(config)
-
-  protected val repository = new HealthIndicatorsRepository(mongoComponent, schedulerConfigs)
-
+  protected val repository: HealthIndicatorsRepository = app.injector.instanceOf[HealthIndicatorsRepository]
   private[this] lazy val ws = app.injector.instanceOf[WSClient]
 
   override def fakeApplication: Application =
