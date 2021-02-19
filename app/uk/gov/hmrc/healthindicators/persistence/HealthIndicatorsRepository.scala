@@ -52,7 +52,6 @@ class HealthIndicatorsRepository @Inject() (
       .headOption()
 
     def latestAllRepositoryHealthIndicators(): Future[Seq[RepositoryHealthIndicator]] = {
-      //todo refactor BDOG-1294
       val agg = List(
         sort(descending("timestamp")),
         group("$repositoryName", first("obj", "$$ROOT")),
@@ -62,7 +61,6 @@ class HealthIndicatorsRepository @Inject() (
         .aggregate(agg)
         .toFuture()
     }
-
 
   def insert(indicator: RepositoryHealthIndicator): Future[Unit] =
     collection

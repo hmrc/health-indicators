@@ -4,19 +4,36 @@
 This service provides metrics about the health of a repository on the Platform.
 
 #### How it works
-The service collects information from various sources which PlatOps deems important to services health, and stores it in a Mongo repository.
+The service collects information from various sources which PlatOps deems important to a service's health, and stores it in a Mongo repository.
 
 # Nomenclature
 - Rater
-  - A Rater is the specific metric a repo is scored on e.g. leak-detection, readME.
-  - Each Rater uses unique functionally depenendent on the metric
-  - These Raters create Ratings
+  - The evaluation of a specific metric for a github repo e.g. leak-detection, readME.
+  - Each Rater uses unique functionally dependent on the metric
+  - Raters create an Indicator
+  
+- Repository Health Indicator
+   - Each repo has one Repository Health Indicator which is stored in Mongo
+   - An Indicator contains the indicator type, results of each metric
+   - Results contain a result type and description
+   - One Indicator can have multiple results
+
+- Score
+   - The number of "points" given to a repo based on the results inside Indicators
+   - Can be positive or negative depending on the results
+   - The total number of points defines a Rating Score for a repo
+
 - Rating
-  - A Rating is the un-weighted score applied to each repo, for each metric
-  - These can be seen as default Ratings
-- Weight
-  - A weight is a calculation applied to all of a repos Ratings, to produce a *weighted score*
-  - A weighted score is what determines the health of a repo/service
+  - Displays the Service Health of a repo that includes:
+    - Rating Score (total score)
+    - Ratings for each repo:
+        - Rating Type e.g leak-detection, readME
+        - Score given for each rating based on the Indicator
+        - Breakdown of the Score with a description
+
+### How to Run Locally
+- Start catalogue with Service Manager: sm --start CATALOGUE
+- Run with sbt and github access token: sbt -Dgithub.open.api.token=<> run
 
 ### License
 
