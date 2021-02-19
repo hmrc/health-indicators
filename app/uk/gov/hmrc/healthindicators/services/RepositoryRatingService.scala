@@ -39,10 +39,10 @@ class RepositoryRatingService @Inject() (repository: HealthIndicatorsRepository,
 
   def rate(healthIndicators: Seq[RepositoryHealthIndicator]): Seq[RepositoryRating] =
     for {
-      healthIndicators <- healthIndicators
-      ratings          = healthIndicators.indicators.map(createRating)
-      repositoryScore  = ratings.map(_.ratingScore).sum
-      repositoryRating = RepositoryRating(healthIndicators.repositoryName, repositoryScore, Some(ratings))
+      indicator <- healthIndicators
+      rating          = indicator.indicators.map(createRating)
+      repositoryScore  = rating.map(_.ratingScore).sum
+      repositoryRating = RepositoryRating(indicator.repositoryName, repositoryScore, Some(rating))
     } yield repositoryRating
 
   private def createRating(indicator: Indicator): Rating = {
