@@ -4,7 +4,8 @@
 This service provides metrics about the health of a repository on the Platform.
 
 #### How it works
-The service collects information from various sources which PlatOps deems important to a service's health, and stores it in a Mongo repository.
+- Collects information from various sources which are deemed important to a service's health, and stores them in a Mongo repository
+- A total score will be calculated that represents the health of a service
 
 # Nomenclature
 - Rater
