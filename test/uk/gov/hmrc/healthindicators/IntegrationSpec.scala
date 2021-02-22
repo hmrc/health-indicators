@@ -87,7 +87,7 @@ class IntegrationSpec
         willRespondWith = (404, None))
 
       eventually{
-        val response = ws.url(s"http://localhost:$port/repositories/auth").get.futureValue
+        val response = ws.url(s"http://localhost:$port/health-indicators/repositories/auth").get.futureValue
         response.status shouldBe 200
         response.body shouldBe expectedResponse }
     }
