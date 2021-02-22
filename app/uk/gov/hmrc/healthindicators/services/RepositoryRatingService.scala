@@ -29,25 +29,21 @@ class RepositoryRatingService @Inject() (repository: HealthIndicatorsRepository,
 
   def rateRepository(repo: String): Future[Option[RepositoryRating]] =
     repository.latestRepositoryHealthIndicators(repo).map { maybeHealthIndicator =>
-      for {
-        indicators <- maybeHealthIndicator.map(_.indicators)
-        ratings          = indicators.map(createRating)
-        repositoryScore  = ratings.map(_.ratingScore).sum
-        repositoryRating = RepositoryRating(repo, repositoryScore, Some(ratings))
-      } yield repositoryRating
+      rate(maybeHealthIndicator.toSeq).headOption
     }
 
   def rateAllRepositories(): Future[Seq[RepositoryRating]] =
     repository.latestAllRepositoryHealthIndicators().map { healthIndicators =>
-      for {
-        healthIndicators <- healthIndicators
-        ratings          = healthIndicators.indicators.map(createRating)
-        repositoryScore  = ratings.map(_.ratingScore).sum
-        repositoryRating = RepositoryRating(healthIndicators.repositoryName, repositoryScore, Some(ratings))
-      } yield repositoryRating
+      rate(healthIndicators)
     }
 
-  //TODO: Can you extract a method here?
+  def rate(healthIndicators: Seq[RepositoryHealthIndicator]): Seq[RepositoryRating] =
+    for {
+      indicator <- healthIndicators
+      rating          = indicator.indicators.map(createRating)
+      repositoryScore  = rating.map(_.ratingScore).sum
+      repositoryRating = RepositoryRating(indicator.repositoryName, repositoryScore, Some(rating))
+    } yield repositoryRating
 
   private def createRating(indicator: Indicator): Rating = {
     val scores      = indicator.results.map(createScore)

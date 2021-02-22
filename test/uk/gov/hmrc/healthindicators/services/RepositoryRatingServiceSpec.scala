@@ -38,23 +38,56 @@ class RepositoryRatingServiceSpec extends AnyWordSpec with Matchers with Mockito
   private val readMeRating: Indicator = Indicator(ReadMeIndicatorType, Seq(Result(NoReadme, "desc", None)))
   private val leakDetectionRating: Indicator =
     Indicator(LeakDetectionIndicatorType, Seq(Result(LeakDetectionViolation, "desc", None)))
-  private val healthIndicator: RepositoryHealthIndicator =
+  private val healthIndicatorOne: RepositoryHealthIndicator =
     RepositoryHealthIndicator("foo", Instant.now(), Seq(bobbyRulesRating, readMeRating, leakDetectionRating))
+  private val healthIndicatorTwo: RepositoryHealthIndicator =
+    RepositoryHealthIndicator("bar", Instant.now(), Seq(bobbyRulesRating, readMeRating, leakDetectionRating))
 
   private val scoreConfig       = new ScoreConfig
   private val repoScorerService = new RepositoryRatingService(mockRepository, scoreConfig)
 
   "repoScore" should {
 
-    "Return a Total Score based on Ratings and Weights" in {
+    "Return a Rating for a single Repository" in {
       when(mockRepository.latestRepositoryHealthIndicators("foo"))
-        .thenReturn(Future.successful(Some(healthIndicator)))
+        .thenReturn(Future.successful(Some(healthIndicatorOne)))
 
       val result = repoScorerService.rateRepository("foo")
 
       result.futureValue mustBe Some(
         RepositoryRating(
           "foo",
+          -200,
+          Some(
+            Seq(
+              Rating(BobbyRule, -100, Seq(Score(-100, "desc", None))),
+              Rating(ReadMe, -50, Seq(Score(-50, "desc", None))),
+              Rating(LeakDetection, -50, Seq(Score(-50, "desc", None)))
+            )
+          )
+        )
+      )
+    }
+
+    "Return a Rating for each Repository" in {
+      when(mockRepository.latestAllRepositoryHealthIndicators)
+        .thenReturn(Future.successful(Seq(healthIndicatorOne, healthIndicatorTwo)))
+
+      val result = repoScorerService.rateAllRepositories()
+
+      result.futureValue mustBe Seq(
+        RepositoryRating(
+          "foo",
+          -200,
+          Some(
+            Seq(
+              Rating(BobbyRule, -100, Seq(Score(-100, "desc", None))),
+              Rating(ReadMe, -50, Seq(Score(-50, "desc", None))),
+              Rating(LeakDetection, -50, Seq(Score(-50, "desc", None)))
+            )
+          )
+        ),  RepositoryRating(
+          "bar",
           -200,
           Some(
             Seq(
