@@ -19,7 +19,7 @@ package uk.gov.hmrc.healthindicators.controllers
 import org.mockito.MockitoSugar
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
-
+import play.api.libs.json.Json
 import play.api.test.Helpers.{contentAsJson, defaultAwaitTimeout, status}
 import play.api.test.{FakeRequest, Helpers}
 import uk.gov.hmrc.healthindicators.models.RepositoryRating
@@ -30,49 +30,109 @@ import scala.concurrent.Future
 
 class RepoScoreControllerSpec extends AnyWordSpec with Matchers with MockitoSugar {
 
-  private val mockWeightedRepoScorerService: RepositoryRatingService = mock[RepositoryRatingService]
-  private val weightedRepoScoreController =
-    new RepoScoreController(mockWeightedRepoScorerService, Helpers.stubControllerComponents())
+  private val repoScorerService: RepositoryRatingService = mock[RepositoryRatingService]
+  private val repoScoreController =
+    new RepoScoreController(repoScorerService, Helpers.stubControllerComponents())
 
   val repoRating: RepositoryRating = RepositoryRating("repo1", 100, Some(Seq()))
 
-  val allRepoScores = Seq(
-    RepositoryRating("repo1", 100, Some(Seq.empty)),
-    RepositoryRating("repo2", 100, Some(Seq.empty)),
-    RepositoryRating("repo3", 100, Some(Seq.empty)),
-    RepositoryRating("repo4", 100, Some(Seq.empty)),
-    RepositoryRating("repo5", 100, Some(Seq.empty))
+  val allRepoScoresAscending = Seq(
+    RepositoryRating("repo1", -300, Some(Seq.empty)),
+    RepositoryRating("repo2", -200, Some(Seq.empty)),
+    RepositoryRating("repo3", -100, Some(Seq.empty)),
+    RepositoryRating("repo4",   50, Some(Seq.empty)),
+    RepositoryRating("repo5",  100, Some(Seq.empty))
   )
 
   "repoScore" should {
     "get score for individual repo" in {
       val fakeRequest = FakeRequest("GET", "/repositories/repo1")
-      when(mockWeightedRepoScorerService.rateRepository("repo1"))
+      when(repoScorerService.rateRepository("repo1"))
         .thenReturn(Future.successful(Some(repoRating)))
 
-      val result = weightedRepoScoreController.scoreForRepo("repo1")(fakeRequest)
+      val result = repoScoreController.scoreForRepo("repo1")(fakeRequest)
       contentAsJson(result).toString() shouldBe s"""{"repositoryName":"repo1","repositoryScore":100,"ratings":[]}"""
     }
 
     "return 404 when repo not found" in {
       val fakeRequest = FakeRequest("GET", "/repositories/repo1")
-      when(mockWeightedRepoScorerService.rateRepository("repo1"))
+      when(repoScorerService.rateRepository("repo1"))
         .thenReturn(Future.successful(None))
 
-       val result = weightedRepoScoreController.scoreForRepo("repo1")(fakeRequest)
+       val result = repoScoreController.scoreForRepo("repo1")(fakeRequest)
       status(result) shouldBe 404
     }
 
-    "get scores for all repos" in {
+    "get scores for all repos in ascending order" in {
       val fakeRequest = FakeRequest("GET", "/repositories")
-      when(mockWeightedRepoScorerService.rateAllRepositories())
-        .thenReturn(Future.successful(allRepoScores))
-      val result = weightedRepoScoreController.scoreAllRepos()(fakeRequest)
-      val expectedResult =
-        s"""[{"repositoryName":"repo1","repositoryScore":100,"ratings":[]},{"repositoryName":"repo2","repositoryScore":100,"ratings":[]},{"repositoryName":"repo3","repositoryScore":100,"ratings":[]},{"repositoryName":"repo4","repositoryScore":100,"ratings":[]},{"repositoryName":"repo5","repositoryScore":100,"ratings":[]}]""".stripMargin
-      contentAsJson(result).toString() shouldBe expectedResult
+      when(repoScorerService.rateAllRepositories(false))
+        .thenReturn(Future.successful(allRepoScoresAscending))
+      val result = repoScoreController.scoreAllRepos(false)(fakeRequest)
+
+
+     contentAsJson(result) shouldBe Json.parse(
+     """ |[{
+         |  "repositoryName":"repo1",
+         |  "repositoryScore":-300,
+         |  "ratings":[]
+         |},
+         |{
+         |  "repositoryName":"repo2",
+         |  "repositoryScore":-200,
+         |  "ratings":[]
+         |},
+         |{
+         |  "repositoryName":"repo3",
+         |  "repositoryScore":-100,
+         |  "ratings":[]
+         |},
+         |{
+         |  "repositoryName":"repo4",
+         |  "repositoryScore":50,
+         |  "ratings":[]
+         |},
+         |{
+         |  "repositoryName":"repo5",
+         |  "repositoryScore":100,
+         |  "ratings":[]
+         |}]""".stripMargin
+     )
     }
 
+    "get scores for all repos in descending order, when sort equals true" in {
+      val fakeRequest = FakeRequest("GET", "/repositories/sort?=true")
+      when(repoScorerService.rateAllRepositories(true))
+        .thenReturn(Future.successful(allRepoScoresAscending.reverse))
+      val result = repoScoreController.scoreAllRepos(true)(fakeRequest)
 
+
+      contentAsJson(result) shouldBe Json.parse(
+      """ |[{
+          |  "repositoryName":"repo5",
+          |  "repositoryScore":100,
+          |  "ratings":[]
+          |},
+          |{
+          |  "repositoryName":"repo4",
+          |  "repositoryScore":50,
+          |  "ratings":[]
+          |},
+          |{
+          |  "repositoryName":"repo3",
+          |  "repositoryScore":-100,
+          |  "ratings":[]
+          |},
+          |{
+          | "repositoryName":"repo2",
+          | "repositoryScore":-200,
+          | "ratings":[]
+          |},
+          |{
+          |  "repositoryName":"repo1",
+          |  "repositoryScore":-300,
+          |  "ratings":[]
+          |}]""".stripMargin
+      )
+    }
   }
 }
