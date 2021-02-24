@@ -35,13 +35,14 @@ class RepositoryRatingServiceSpec extends AnyWordSpec with Matchers with Mockito
 
   private val bobbyRulesRating: Indicator =
     Indicator(BobbyRuleIndicatorType, Seq(Result(BobbyRuleActive, "desc", None)))
-  private val readMeRating: Indicator = Indicator(ReadMeIndicatorType, Seq(Result(NoReadme, "desc", None)))
+  private val readMeRatingOne: Indicator = Indicator(ReadMeIndicatorType, Seq(Result(NoReadme, "desc", None)))
+  private val readMeRatingTwo: Indicator = Indicator(ReadMeIndicatorType, Seq(Result(ValidReadme, "desc", None)))
   private val leakDetectionRating: Indicator =
     Indicator(LeakDetectionIndicatorType, Seq(Result(LeakDetectionViolation, "desc", None)))
   private val healthIndicatorOne: RepositoryHealthIndicator =
-    RepositoryHealthIndicator("foo", Instant.now(), Seq(bobbyRulesRating, readMeRating, leakDetectionRating))
+    RepositoryHealthIndicator("foo", Instant.now(), Seq(bobbyRulesRating, readMeRatingOne, leakDetectionRating))
   private val healthIndicatorTwo: RepositoryHealthIndicator =
-    RepositoryHealthIndicator("bar", Instant.now(), Seq(bobbyRulesRating, readMeRating, leakDetectionRating))
+    RepositoryHealthIndicator("bar", Instant.now(), Seq(bobbyRulesRating, readMeRatingTwo, leakDetectionRating))
 
   private val scoreConfig       = new ScoreConfig
   private val repoScorerService = new RepositoryRatingService(mockRepository, scoreConfig)
@@ -69,11 +70,11 @@ class RepositoryRatingServiceSpec extends AnyWordSpec with Matchers with Mockito
       )
     }
 
-    "Return a Rating for each Repository" in {
+    "Return a Rating for each Repository in ascending order" in {
       when(mockRepository.latestAllRepositoryHealthIndicators)
         .thenReturn(Future.successful(Seq(healthIndicatorOne, healthIndicatorTwo)))
 
-      val result = repoScorerService.rateAllRepositories()
+      val result = repoScorerService.rateAllRepositories(sort = false)
 
       result.futureValue mustBe Seq(
         RepositoryRating(
@@ -88,6 +89,37 @@ class RepositoryRatingServiceSpec extends AnyWordSpec with Matchers with Mockito
           )
         ),  RepositoryRating(
           "bar",
+          -100,
+          Some(
+            Seq(
+              Rating(BobbyRule, -100, Seq(Score(-100, "desc", None))),
+              Rating(ReadMe, 50, Seq(Score(50, "desc", None))),
+              Rating(LeakDetection, -50, Seq(Score(-50, "desc", None)))
+            )
+          )
+        )
+      )
+    }
+
+    "Return a Rating for each Repository in descending order, when sort equals true" in {
+      when(mockRepository.latestAllRepositoryHealthIndicators)
+        .thenReturn(Future.successful(Seq(healthIndicatorTwo, healthIndicatorOne)))
+
+      val result = repoScorerService.rateAllRepositories(sort = true)
+
+      result.futureValue mustBe Seq(
+        RepositoryRating(
+          "bar",
+          -100,
+          Some(
+            Seq(
+              Rating(BobbyRule, -100, Seq(Score(-100, "desc", None))),
+              Rating(ReadMe, 50, Seq(Score(50, "desc", None))),
+              Rating(LeakDetection, -50, Seq(Score(-50, "desc", None)))
+            )
+          )
+        ),  RepositoryRating(
+          "foo",
           -200,
           Some(
             Seq(
@@ -101,3 +133,6 @@ class RepositoryRatingServiceSpec extends AnyWordSpec with Matchers with Mockito
     }
   }
 }
+
+
+
