@@ -16,10 +16,11 @@
 
 package uk.gov.hmrc.healthindicators.connectors
 
-import play.api.libs.json.{Reads, __}
+import play.api.libs.json.{Format, JsError, JsResult, JsString, JsSuccess, JsValue, Reads, __}
 import uk.gov.hmrc.healthindicators.configs.AppConfig
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
 import uk.gov.hmrc.http.HttpReads.Implicits._
+import play.api.libs.functional.syntax._
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
@@ -39,11 +40,45 @@ class TeamsAndRepositoriesConnector @Inject() (
 }
 
 //TODO: Rename this case class
+sealed trait RepositoryType
+
+object RepositoryType {
+  case object Service extends RepositoryType
+  case object Prototype extends RepositoryType
+  case object Library extends RepositoryType
+  case object Other extends RepositoryType
+
+
+  val format: Format[RepositoryType] = new Format[RepositoryType] {
+    override def reads(json: JsValue): JsResult[RepositoryType] =
+      json.validate[String].flatMap {
+        case "Service"        => JsSuccess(Service)
+        case "Prototype" => JsSuccess(Prototype)
+        case "Library"     => JsSuccess(Library)
+        case "Other"     => JsSuccess(Other)
+        case s                          => JsError(s"Invalid RepositoryType: $s")
+      }
+
+    override def writes(o: RepositoryType): JsValue =
+      o match {
+        case Service        => JsString("Service")
+        case Prototype => JsString("Prototype")
+        case Library     => JsString("Library")
+        case Other     => JsString("Other")
+        case s                          => JsString(s"$s")
+      }
+  }
+}
+
 case class TeamsAndRepos(
-  name: String
+  name: String,
+  repositoryType: RepositoryType
 )
 
 object TeamsAndRepos {
-  val reads: Reads[TeamsAndRepos] =
-    (__ \ "name").read[String].map(TeamsAndRepos.apply)
+  val reads: Reads[TeamsAndRepos] = {
+    implicit val rtF: Format[RepositoryType] = RepositoryType.format
+    ((__ \ "name").read[String]
+      ~ (__ \ "repoType").format[RepositoryType]) (TeamsAndRepos.apply _)
+  }
 }

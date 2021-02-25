@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.healthindicators.persistence
 
-import javax.inject.Inject
+import org.mongodb.scala.bson.conversions
 import org.mongodb.scala.model.Accumulators._
 import org.mongodb.scala.model.Aggregates._
 import org.mongodb.scala.model.Filters.equal
@@ -27,13 +27,13 @@ import uk.gov.hmrc.healthindicators.models.RepositoryHealthIndicator
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 
+import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 class HealthIndicatorsRepository @Inject() (
   mongoComponent: MongoComponent,
   config: SchedulerConfigs
                                            //TODO: is config actually used?
-  //Todo: Function that retrieves in an order based on score?
 )(implicit ec: ExecutionContext)
     extends PlayMongoRepository[RepositoryHealthIndicator](
       collectionName = "serviceHealthIndicators",
@@ -41,7 +41,8 @@ class HealthIndicatorsRepository @Inject() (
       domainFormat = RepositoryHealthIndicator.mongoFormats,
       indexes = Seq(
         IndexModel(hashed("repositoryName"), IndexOptions().background(true)),
-        IndexModel(descending("timestamp"), IndexOptions().background(true))
+        IndexModel(descending("timestamp"), IndexOptions().background(true)),
+        IndexModel(hashed("repositoryType"), IndexOptions().background(true))
       )
     ) {
 
@@ -51,16 +52,25 @@ class HealthIndicatorsRepository @Inject() (
       .sort(descending("timestamp"))
       .headOption()
 
-    def latestAllRepositoryHealthIndicators(): Future[Seq[RepositoryHealthIndicator]] = {
-      val agg = List(
-        sort(descending("timestamp")),
-        group("$repositoryName", first("obj", "$$ROOT")),
-        replaceRoot("$obj")
-      )
-      collection
-        .aggregate(agg)
-        .toFuture()
+  private def createPipeline(repoType: Option[String]): List[conversions.Bson] = {
+    val getLatest = List(
+      sort(descending("timestamp")),
+      group("$repositoryName", first("obj", "$$ROOT")),
+      replaceRoot("$obj")
+    )
+
+    if (repoType.isDefined){
+      `match`(equal("repositoryType", repoType.get)) +: getLatest
+    } else {
+      getLatest
     }
+  }
+
+  def latestAllRepositoryHealthIndicators(repoType: Option[String]): Future[Seq[RepositoryHealthIndicator]] = {
+    collection
+      .aggregate(createPipeline(repoType))
+      .toFuture()
+  }
 
   def insert(indicator: RepositoryHealthIndicator): Future[Unit] =
     collection

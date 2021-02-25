@@ -156,5 +156,5 @@ class IntegrationSpec
   """
 
     val expectedResponse =
-      """{"repositoryName":"auth","repositoryScore":-120,"ratings":[{"ratingType":"BobbyRule","ratingScore":-20,"breakdown":[{"points":-20,"description":"simple-reactivemongo - TEST DEPRECATION"}]},{"ratingType":"LeakDetection","ratingScore":-50,"breakdown":[{"points":-50,"description":"test123","ratings":"https://test-url"}]},{"ratingType":"ReadMe","ratingScore":-50,"breakdown":[{"points":-50,"description":"No Readme defined"}]}]}"""
+      """{"repositoryName":"auth","repositoryType":"Prototype","repositoryScore":-120,"ratings":[{"ratingType":"BobbyRule","ratingScore":-20,"breakdown":[{"points":-20,"description":"simple-reactivemongo - TEST DEPRECATION"}]},{"ratingType":"LeakDetection","ratingScore":-50,"breakdown":[{"points":-50,"description":"test123","ratings":"https://test-url"}]},{"ratingType":"ReadMe","ratingScore":-50,"breakdown":[{"points":-50,"description":"No Readme defined"}]}]}"""
 }

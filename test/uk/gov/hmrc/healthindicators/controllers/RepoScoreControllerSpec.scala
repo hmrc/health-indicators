@@ -22,6 +22,7 @@ import org.scalatest.wordspec.AnyWordSpec
 import play.api.libs.json.Json
 import play.api.test.Helpers.{contentAsJson, defaultAwaitTimeout, status}
 import play.api.test.{FakeRequest, Helpers}
+import uk.gov.hmrc.healthindicators.connectors.RepositoryType.Service
 import uk.gov.hmrc.healthindicators.models.{RepositoryRating, SortType}
 import uk.gov.hmrc.healthindicators.services.RepositoryRatingService
 
@@ -34,14 +35,14 @@ class RepoScoreControllerSpec extends AnyWordSpec with Matchers with MockitoSuga
   private val repoScoreController =
     new RepoScoreController(repoScorerService, Helpers.stubControllerComponents())
 
-  val repoRating: RepositoryRating = RepositoryRating("repo1", 100, Some(Seq()))
+  val repoRating: RepositoryRating = RepositoryRating("repo1", Service, 100, Some(Seq()))
 
   val allRepoScoresAscending = Seq(
-    RepositoryRating("repo1", -300, Some(Seq.empty)),
-    RepositoryRating("repo2", -200, Some(Seq.empty)),
-    RepositoryRating("repo3", -100, Some(Seq.empty)),
-    RepositoryRating("repo4",   50, Some(Seq.empty)),
-    RepositoryRating("repo5",  100, Some(Seq.empty))
+    RepositoryRating("repo1", Service, -300, Some(Seq.empty)),
+    RepositoryRating("repo2", Service, -200, Some(Seq.empty)),
+    RepositoryRating("repo3", Service, -100, Some(Seq.empty)),
+    RepositoryRating("repo4", Service,  50, Some(Seq.empty)),
+    RepositoryRating("repo5", Service, 100, Some(Seq.empty))
   )
 
   "repoScore" should {
@@ -51,7 +52,7 @@ class RepoScoreControllerSpec extends AnyWordSpec with Matchers with MockitoSuga
         .thenReturn(Future.successful(Some(repoRating)))
 
       val result = repoScoreController.scoreForRepo("repo1")(fakeRequest)
-      contentAsJson(result).toString() shouldBe s"""{"repositoryName":"repo1","repositoryScore":100,"ratings":[]}"""
+      contentAsJson(result).toString() shouldBe s"""{"repositoryName":"repo1","repositoryType":"Service","repositoryScore":100,"ratings":[]}"""
     }
 
     "return 404 when repo not found" in {
@@ -65,34 +66,39 @@ class RepoScoreControllerSpec extends AnyWordSpec with Matchers with MockitoSuga
 
     "get scores for all repos in ascending order" in {
       val fakeRequest = FakeRequest("GET", "/repositories")
-      when(repoScorerService.rateAllRepositories(SortType.Ascending))
+      when(repoScorerService.rateAllRepositories(repoType = None, SortType.Ascending))
         .thenReturn(Future.successful(allRepoScoresAscending))
-      val result = repoScoreController.scoreAllRepos(SortType.Ascending)(fakeRequest)
+      val result = repoScoreController.scoreAllRepos(repoType = None, SortType.Ascending)(fakeRequest)
 
 
      contentAsJson(result) shouldBe Json.parse(
      """ |[{
          |  "repositoryName":"repo1",
+         |  "repositoryType":"Service",
          |  "repositoryScore":-300,
          |  "ratings":[]
          |},
          |{
          |  "repositoryName":"repo2",
+         |  "repositoryType":"Service",
          |  "repositoryScore":-200,
          |  "ratings":[]
          |},
          |{
          |  "repositoryName":"repo3",
+         |  "repositoryType":"Service",
          |  "repositoryScore":-100,
          |  "ratings":[]
          |},
          |{
          |  "repositoryName":"repo4",
+         |  "repositoryType":"Service",
          |  "repositoryScore":50,
          |  "ratings":[]
          |},
          |{
          |  "repositoryName":"repo5",
+         |  "repositoryType":"Service",
          |  "repositoryScore":100,
          |  "ratings":[]
          |}]""".stripMargin
@@ -101,34 +107,39 @@ class RepoScoreControllerSpec extends AnyWordSpec with Matchers with MockitoSuga
 
     "get scores for all repos in descending order, when sort equals true" in {
       val fakeRequest = FakeRequest("GET", "/repositories/")
-      when(repoScorerService.rateAllRepositories(SortType.Descending))
+      when(repoScorerService.rateAllRepositories(repoType = None, SortType.Descending))
         .thenReturn(Future.successful(allRepoScoresAscending.reverse))
-      val result = repoScoreController.scoreAllRepos(SortType.Descending)(fakeRequest)
+      val result = repoScoreController.scoreAllRepos(repoType = None, SortType.Descending)(fakeRequest)
 
 
       contentAsJson(result) shouldBe Json.parse(
       """ |[{
           |  "repositoryName":"repo5",
+          |  "repositoryType":"Service",
           |  "repositoryScore":100,
           |  "ratings":[]
           |},
           |{
           |  "repositoryName":"repo4",
+          |  "repositoryType":"Service",
           |  "repositoryScore":50,
           |  "ratings":[]
           |},
           |{
           |  "repositoryName":"repo3",
+          |  "repositoryType":"Service",
           |  "repositoryScore":-100,
           |  "ratings":[]
           |},
           |{
           | "repositoryName":"repo2",
+          | "repositoryType":"Service",
           | "repositoryScore":-200,
           | "ratings":[]
           |},
           |{
           |  "repositoryName":"repo1",
+          |  "repositoryType":"Service",
           |  "repositoryScore":-300,
           |  "ratings":[]
           |}]""".stripMargin

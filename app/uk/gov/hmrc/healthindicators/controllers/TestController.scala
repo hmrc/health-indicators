@@ -41,7 +41,7 @@ class TestController @Inject() (
 
   def test: Action[AnyContent] =
     Action {
-      val result = repository.latestAllRepositoryHealthIndicators()
+      val result = repository.latestAllRepositoryHealthIndicators(None)
       Ok(Await.result(result, 5.seconds).toString)
     }
 }

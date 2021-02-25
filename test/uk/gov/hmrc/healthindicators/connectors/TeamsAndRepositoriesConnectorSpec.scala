@@ -25,6 +25,7 @@ import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
 import uk.gov.hmrc.healthindicators.WireMockEndpoints
+import uk.gov.hmrc.healthindicators.connectors.RepositoryType.Prototype
 import uk.gov.hmrc.http.HeaderCarrier
 
 class TeamsAndRepositoriesConnectorSpec
@@ -88,9 +89,9 @@ class TeamsAndRepositoriesConnectorSpec
         .futureValue
 
       val expectedResult = List(
-        TeamsAndRepos("2-way-messaging-prototype"),
-        TeamsAndRepos("2way-testbed-prototype"),
-        TeamsAndRepos("5mld-prototype")
+        TeamsAndRepos("2-way-messaging-prototype", Prototype),
+        TeamsAndRepos("2way-testbed-prototype", Prototype),
+        TeamsAndRepos("5mld-prototype", Prototype)
       )
 
       response shouldBe expectedResult

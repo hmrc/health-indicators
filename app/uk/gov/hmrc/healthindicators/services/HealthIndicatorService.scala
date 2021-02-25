@@ -17,11 +17,11 @@
 package uk.gov.hmrc.healthindicators.services
 
 import java.time.Instant
-
 import cats.implicits._
+
 import javax.inject.Inject
 import play.api.Logger
-import uk.gov.hmrc.healthindicators.connectors.TeamsAndRepositoriesConnector
+import uk.gov.hmrc.healthindicators.connectors.{TeamsAndRepos, TeamsAndRepositoriesConnector}
 import uk.gov.hmrc.healthindicators.models.RepositoryHealthIndicator
 import uk.gov.hmrc.healthindicators.persistence.HealthIndicatorsRepository
 import uk.gov.hmrc.healthindicators.raters.Rater
@@ -42,16 +42,16 @@ class HealthIndicatorService @Inject() (
       repos <- teamsAndRepositoriesConnector.allRepositories
       _ <- repos.foldLeftM(())((_, r) =>
              for {
-               indicators <- createRepositoryIndicators(r.name)
+               indicators <- createRepositoryIndicators(r)
                _          <- repository.insert(indicators)
              } yield ()
            )
     } yield ()
 
-  private def createRepositoryIndicators(repo: String): Future[RepositoryHealthIndicator] = {
+  private def createRepositoryIndicators(repo: TeamsAndRepos): Future[RepositoryHealthIndicator] = {
     logger.info(s"Rating Repository: $repo")
     for {
-      indicators <- raters.traverse(_.rate(repo))
-    } yield RepositoryHealthIndicator(repo, Instant.now(), indicators)
+      indicators <- raters.traverse(_.rate(repo.name))
+    } yield RepositoryHealthIndicator(repo.name, Instant.now(), repo.repositoryType, indicators)
   }
 }

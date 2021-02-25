@@ -18,15 +18,16 @@ package uk.gov.hmrc.healthindicators.persistence
 
 import java.time.Instant
 import java.time.temporal.ChronoUnit
-
 import cats.implicits._
 import org.mockito.MockitoSugar
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import play.api.Configuration
 import uk.gov.hmrc.healthindicators.configs.SchedulerConfigs
+import uk.gov.hmrc.healthindicators.connectors.RepositoryType.{Prototype, Service}
 import uk.gov.hmrc.healthindicators.models.RepositoryHealthIndicator
 import uk.gov.hmrc.mongo.test.DefaultPlayMongoRepositorySupport
+
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class HealthIndicatorsRepositorySpec
@@ -47,7 +48,7 @@ class HealthIndicatorsRepositorySpec
 
   "insert" should {
 
-    val healthIndicator = RepositoryHealthIndicator("test", Instant.now, Seq.empty)
+    val healthIndicator = RepositoryHealthIndicator("test", Instant.now, Service, Seq.empty)
 
     "insert correctly" in {
       repository.insert(healthIndicator)
@@ -57,9 +58,9 @@ class HealthIndicatorsRepositorySpec
 
   "latestRepoRatings" should {
 
-    val latest = RepositoryHealthIndicator("test", Instant.now, Seq.empty)
-    val older  = RepositoryHealthIndicator("test", Instant.now.minus(1, ChronoUnit.DAYS), Seq.empty)
-    val oldest = RepositoryHealthIndicator("test", Instant.now.minus(2, ChronoUnit.DAYS), Seq.empty)
+    val latest = RepositoryHealthIndicator("test", Instant.now, Service, Seq.empty)
+    val older  = RepositoryHealthIndicator("test", Instant.now.minus(1, ChronoUnit.DAYS), Service, Seq.empty)
+    val oldest = RepositoryHealthIndicator("test", Instant.now.minus(2, ChronoUnit.DAYS), Service, Seq.empty)
 
     "return the latest repoRatings for repo" in {
       List(latest, older, oldest).traverse(repository.insert).futureValue
@@ -74,29 +75,44 @@ class HealthIndicatorsRepositorySpec
 
   "RepoRatingsPersistence.latestRepoRatingsAllRepos" should {
 
-    val fooLatest = RepositoryHealthIndicator("foo", Instant.now, Seq.empty)
-    val fooOlder  = RepositoryHealthIndicator("foo", Instant.now.minus(1, ChronoUnit.DAYS), Seq.empty)
-    val fooOldest = RepositoryHealthIndicator("foo", Instant.now.minus(2, ChronoUnit.DAYS), Seq.empty)
+    val fooLatest = RepositoryHealthIndicator("foo", Instant.now, Service, Seq.empty)
+    val fooOlder  = RepositoryHealthIndicator("foo", Instant.now.minus(1, ChronoUnit.DAYS), Service, Seq.empty)
+    val fooOldest = RepositoryHealthIndicator("foo", Instant.now.minus(2, ChronoUnit.DAYS), Service,Seq.empty)
 
-    val barLatest = RepositoryHealthIndicator("bar", Instant.now, Seq.empty)
-    val barOlder  = RepositoryHealthIndicator("bar", Instant.now.minus(1, ChronoUnit.DAYS), Seq.empty)
-    val barOldest = RepositoryHealthIndicator("bar", Instant.now.minus(2, ChronoUnit.DAYS), Seq.empty)
+    val barLatest = RepositoryHealthIndicator("bar", Instant.now, Prototype, Seq.empty)
+    val barOlder  = RepositoryHealthIndicator("bar", Instant.now.minus(1, ChronoUnit.DAYS), Prototype, Seq.empty)
+    val barOldest = RepositoryHealthIndicator("bar", Instant.now.minus(2, ChronoUnit.DAYS), Prototype, Seq.empty)
 
-    "return the latest repoRatings for all repos" in {
+    "return the latest repoRatings for all repos when no filter is applied" in {
       List(fooLatest, fooOlder, fooOldest, barLatest, barOlder, barOldest).traverse(repository.insert).futureValue
-      repository.latestAllRepositoryHealthIndicators().futureValue must contain theSameElementsAs Seq(
+      repository.latestAllRepositoryHealthIndicators(None).futureValue must contain theSameElementsAs Seq(
         fooLatest,
         barLatest
       )
     }
 
     "returns empty list when no results are found" in {
-      repository.latestAllRepositoryHealthIndicators().futureValue mustBe List()
+      repository.latestAllRepositoryHealthIndicators(None).futureValue mustBe List()
     }
 
     "returns only one result when there is a duplicate" in {
       List(fooLatest, fooLatest).traverse(repository.insert).futureValue
-      repository.latestAllRepositoryHealthIndicators().futureValue mustBe List(fooLatest)
+      repository.latestAllRepositoryHealthIndicators(None).futureValue mustBe List(fooLatest)
+    }
+
+    "returns only Services when filtered by Service" in {
+      List(fooLatest, barLatest).traverse(repository.insert).futureValue
+      repository.latestAllRepositoryHealthIndicators(Some("Service")).futureValue mustBe List(fooLatest)
+    }
+
+    "returns only Prototypes when filtered by Prototype" in {
+      List(fooLatest, barLatest).traverse(repository.insert).futureValue
+      repository.latestAllRepositoryHealthIndicators(Some("Prototype")).futureValue mustBe List(barLatest)
+    }
+
+    "returns no result when filtered by incorrect repoType" in {
+      List(fooLatest, barLatest).traverse(repository.insert).futureValue
+      repository.latestAllRepositoryHealthIndicators(Some("blah")).futureValue mustBe List()
     }
   }
 }
