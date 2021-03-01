@@ -85,19 +85,19 @@ class HealthIndicatorsRepositorySpec
 
     "return the latest repoRatings for all repos when no filter is applied" in {
       List(fooLatest, fooOlder, fooOldest, barLatest, barOlder, barOldest).traverse(repository.insert).futureValue
-      repository.latestAllRepositoryHealthIndicators(None).futureValue must contain theSameElementsAs Seq(
+      repository.latestAllRepositoryHealthIndicators(repoType = None).futureValue must contain theSameElementsAs Seq(
         fooLatest,
         barLatest
       )
     }
 
     "returns empty list when no results are found" in {
-      repository.latestAllRepositoryHealthIndicators(None).futureValue mustBe List()
+      repository.latestAllRepositoryHealthIndicators(repoType = None).futureValue mustBe List()
     }
 
     "returns only one result when there is a duplicate" in {
       List(fooLatest, fooLatest).traverse(repository.insert).futureValue
-      repository.latestAllRepositoryHealthIndicators(None).futureValue mustBe List(fooLatest)
+      repository.latestAllRepositoryHealthIndicators(repoType = None).futureValue mustBe List(fooLatest)
     }
 
     "returns only Services when filtered by Service" in {
