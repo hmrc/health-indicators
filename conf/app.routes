@@ -1,4 +1,4 @@
 GET             /repositories/:service               @uk.gov.hmrc.healthindicators.controllers.RepoScoreController.scoreForRepo(service)
-GET             /repositories                        @uk.gov.hmrc.healthindicators.controllers.RepoScoreController.scoreAllRepos(repoType: Option[RepositoryType], sort : SortType)
+GET             /repositories                        @uk.gov.hmrc.healthindicators.controllers.RepoScoreController.scoreAllRepos(repoType: Option[RepositoryType] ?= None, sort : SortType)
 
 POST            /admin/rerun                         @uk.gov.hmrc.healthindicators.controllers.AdminController.rerun
