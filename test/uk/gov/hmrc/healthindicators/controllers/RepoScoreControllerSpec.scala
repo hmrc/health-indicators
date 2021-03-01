@@ -22,7 +22,7 @@ import org.scalatest.wordspec.AnyWordSpec
 import play.api.libs.json.Json
 import play.api.test.Helpers.{contentAsJson, defaultAwaitTimeout, status}
 import play.api.test.{FakeRequest, Helpers}
-import uk.gov.hmrc.healthindicators.models.RepositoryRating
+import uk.gov.hmrc.healthindicators.models.{RepositoryRating, SortType}
 import uk.gov.hmrc.healthindicators.services.RepositoryRatingService
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -65,9 +65,9 @@ class RepoScoreControllerSpec extends AnyWordSpec with Matchers with MockitoSuga
 
     "get scores for all repos in ascending order" in {
       val fakeRequest = FakeRequest("GET", "/repositories")
-      when(repoScorerService.rateAllRepositories(false))
+      when(repoScorerService.rateAllRepositories(SortType.Ascending))
         .thenReturn(Future.successful(allRepoScoresAscending))
-      val result = repoScoreController.scoreAllRepos(false)(fakeRequest)
+      val result = repoScoreController.scoreAllRepos(SortType.Ascending)(fakeRequest)
 
 
      contentAsJson(result) shouldBe Json.parse(
@@ -100,10 +100,10 @@ class RepoScoreControllerSpec extends AnyWordSpec with Matchers with MockitoSuga
     }
 
     "get scores for all repos in descending order, when sort equals true" in {
-      val fakeRequest = FakeRequest("GET", "/repositories/sort?=true")
-      when(repoScorerService.rateAllRepositories(true))
+      val fakeRequest = FakeRequest("GET", "/repositories/")
+      when(repoScorerService.rateAllRepositories(SortType.Descending))
         .thenReturn(Future.successful(allRepoScoresAscending.reverse))
-      val result = repoScoreController.scoreAllRepos(true)(fakeRequest)
+      val result = repoScoreController.scoreAllRepos(SortType.Descending)(fakeRequest)
 
 
       contentAsJson(result) shouldBe Json.parse(

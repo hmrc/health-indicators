@@ -95,7 +95,11 @@ This service provides metrics about the health of a repository on the Platform.
 
 ### How to Run Locally
 - Start catalogue with Service Manager: sm --start CATALOGUE
+- Remember to: sm --stop HEALTH_INDICATORS
 - Run with sbt and github access token: sbt -Dgithub.open.api.token=<> run
+- Sort JSON by Score: Ascending or Descending order using query params
+    - http://localhost:9018/health-indicators/repositories?sort=asc
+    - http://localhost:9018/health-indicators/repositories?sort=desc
 
 ### License
 

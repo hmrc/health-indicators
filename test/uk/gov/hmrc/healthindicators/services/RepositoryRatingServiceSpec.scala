@@ -74,7 +74,7 @@ class RepositoryRatingServiceSpec extends AnyWordSpec with Matchers with Mockito
       when(mockRepository.latestAllRepositoryHealthIndicators)
         .thenReturn(Future.successful(Seq(healthIndicatorOne, healthIndicatorTwo)))
 
-      val result = repoScorerService.rateAllRepositories(sort = false)
+      val result = repoScorerService.rateAllRepositories(SortType.Ascending)
 
       result.futureValue mustBe Seq(
         RepositoryRating(
@@ -87,7 +87,7 @@ class RepositoryRatingServiceSpec extends AnyWordSpec with Matchers with Mockito
               Rating(LeakDetection, -50, Seq(Score(-50, "desc", None)))
             )
           )
-        ),  RepositoryRating(
+        ),RepositoryRating(
           "bar",
           -100,
           Some(
@@ -105,7 +105,7 @@ class RepositoryRatingServiceSpec extends AnyWordSpec with Matchers with Mockito
       when(mockRepository.latestAllRepositoryHealthIndicators)
         .thenReturn(Future.successful(Seq(healthIndicatorTwo, healthIndicatorOne)))
 
-      val result = repoScorerService.rateAllRepositories(sort = true)
+      val result = repoScorerService.rateAllRepositories(SortType.Descending)
 
       result.futureValue mustBe Seq(
         RepositoryRating(

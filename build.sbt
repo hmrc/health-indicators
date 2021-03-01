@@ -1,3 +1,4 @@
+import play.sbt.routes.RoutesKeys
 import uk.gov.hmrc.DefaultBuildSettings.integrationTestSettings
 import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin.publishingSettings
 
@@ -10,7 +11,10 @@ lazy val microservice = Project(appName, file("."))
   .disablePlugins(JUnitXmlReportPlugin) //Required to prevent https://github.com/scalatest/scalatest/issues/1427
   .settings(
     majorVersion                     := 0,
-    libraryDependencies              ++= AppDependencies.compile ++ AppDependencies.test
+    libraryDependencies              ++= AppDependencies.compile ++ AppDependencies.test,
+    RoutesKeys.routesImport ++= Seq(
+      "uk.gov.hmrc.healthindicators.models.SortType"
+    )
   )
   .settings(publishingSettings: _*)
   .configs(IntegrationTest)

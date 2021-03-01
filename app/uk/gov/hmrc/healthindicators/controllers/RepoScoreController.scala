@@ -19,7 +19,7 @@ package uk.gov.hmrc.healthindicators.controllers
 import javax.inject.{Inject, Singleton}
 import play.api.libs.json.{Json, Writes}
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
-import uk.gov.hmrc.healthindicators.models.RepositoryRating
+import uk.gov.hmrc.healthindicators.models.{RepositoryRating, SortType}
 import uk.gov.hmrc.healthindicators.services.RepositoryRatingService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
@@ -40,15 +40,13 @@ class RepoScoreController @Inject() (
       } yield result
     }
 
-  def scoreAllRepos(sort: Boolean): Action[AnyContent] = {
+  def scoreAllRepos(sort: SortType): Action[AnyContent] = {
     implicit val writes: Writes[RepositoryRating] = RepositoryRating.writes
     Action.async {
-      implicit request => {
         for {
           allRepos <- repoScorerService.rateAllRepositories(sort)
           result = Ok(Json.toJson(allRepos))
         } yield result
-      }
     }
   }
 }

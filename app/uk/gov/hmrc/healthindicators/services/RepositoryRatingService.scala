@@ -32,10 +32,13 @@ class RepositoryRatingService @Inject() (repository: HealthIndicatorsRepository,
       rate(maybeHealthIndicator.toSeq).headOption
     }
 
-  def rateAllRepositories(sort: Boolean): Future[Seq[RepositoryRating]] =
+  def rateAllRepositories(sort: SortType): Future[Seq[RepositoryRating]] =
     repository.latestAllRepositoryHealthIndicators().map { healthIndicators =>
       val repoRatings = rate(healthIndicators).sortBy(_.repositoryScore)
-      if (sort) repoRatings.reverse else repoRatings
+      sort match {
+        case SortType.Ascending => repoRatings
+        case SortType.Descending => repoRatings.reverse
+      }
     }
 
   def rate(healthIndicators: Seq[RepositoryHealthIndicator]): Seq[RepositoryRating] =
