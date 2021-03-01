@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.healthindicators.persistence
 
-import org.mongodb.scala.bson.conversions
+import org.mongodb.scala.bson.{BsonDocument, conversions}
 import org.mongodb.scala.model.Accumulators._
 import org.mongodb.scala.model.Aggregates._
 import org.mongodb.scala.model.Filters.equal
@@ -60,10 +60,9 @@ class HealthIndicatorsRepository @Inject() (
       replaceRoot("$obj")
     )
 
-    if (repoType.isDefined){
-      `match`(equal("repositoryType", repoType.get.toString)) +: getLatest
-    } else {
-      getLatest
+    repoType match {
+      case Some(rt) => `match`(equal("repositoryType", rt.toString)) +: getLatest
+      case None => getLatest
     }
   }
 
