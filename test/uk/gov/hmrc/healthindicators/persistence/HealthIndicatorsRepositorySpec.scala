@@ -102,17 +102,12 @@ class HealthIndicatorsRepositorySpec
 
     "returns only Services when filtered by Service" in {
       List(fooLatest, barLatest).traverse(repository.insert).futureValue
-      repository.latestAllRepositoryHealthIndicators(Some("Service")).futureValue mustBe List(fooLatest)
+      repository.latestAllRepositoryHealthIndicators(Some(Service)).futureValue mustBe List(fooLatest)
     }
 
     "returns only Prototypes when filtered by Prototype" in {
       List(fooLatest, barLatest).traverse(repository.insert).futureValue
-      repository.latestAllRepositoryHealthIndicators(Some("Prototype")).futureValue mustBe List(barLatest)
-    }
-
-    "returns no result when filtered by incorrect repoType" in {
-      List(fooLatest, barLatest).traverse(repository.insert).futureValue
-      repository.latestAllRepositoryHealthIndicators(Some("blah")).futureValue mustBe List()
+      repository.latestAllRepositoryHealthIndicators(Some(Prototype)).futureValue mustBe List(barLatest)
     }
   }
 }

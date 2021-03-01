@@ -23,6 +23,7 @@ import org.mongodb.scala.model.Filters.equal
 import org.mongodb.scala.model.Indexes._
 import org.mongodb.scala.model.{IndexModel, IndexOptions}
 import uk.gov.hmrc.healthindicators.configs.SchedulerConfigs
+import uk.gov.hmrc.healthindicators.connectors.RepositoryType
 import uk.gov.hmrc.healthindicators.models.RepositoryHealthIndicator
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
@@ -52,7 +53,7 @@ class HealthIndicatorsRepository @Inject() (
       .sort(descending("timestamp"))
       .headOption()
 
-  private def createPipeline(repoType: Option[String]): List[conversions.Bson] = {
+  private def createPipeline(repoType: Option[RepositoryType]): List[conversions.Bson] = {
     val getLatest = List(
       sort(descending("timestamp")),
       group("$repositoryName", first("obj", "$$ROOT")),
@@ -60,13 +61,13 @@ class HealthIndicatorsRepository @Inject() (
     )
 
     if (repoType.isDefined){
-      `match`(equal("repositoryType", repoType.get)) +: getLatest
+      `match`(equal("repositoryType", repoType.get.toString)) +: getLatest
     } else {
       getLatest
     }
   }
 
-  def latestAllRepositoryHealthIndicators(repoType: Option[String]): Future[Seq[RepositoryHealthIndicator]] = {
+  def latestAllRepositoryHealthIndicators(repoType: Option[RepositoryType]): Future[Seq[RepositoryHealthIndicator]] = {
     collection
       .aggregate(createPipeline(repoType))
       .toFuture()

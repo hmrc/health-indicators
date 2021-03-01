@@ -21,6 +21,7 @@ import uk.gov.hmrc.healthindicators.configs.AppConfig
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
 import uk.gov.hmrc.http.HttpReads.Implicits._
 import play.api.libs.functional.syntax._
+import play.api.mvc.QueryStringBindable
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
@@ -39,7 +40,6 @@ class TeamsAndRepositoriesConnector @Inject() (
   }
 }
 
-//TODO: Rename this case class
 sealed trait RepositoryType
 
 object RepositoryType {
@@ -67,6 +67,23 @@ object RepositoryType {
         case Other     => JsString("Other")
         case s                          => JsString(s"$s")
       }
+  }
+
+  implicit def queryStringBindable(implicit stringBinder: QueryStringBindable[String]) = new QueryStringBindable[RepositoryType] {
+    override def bind(key: String, params: Map[String, Seq[String]]): Option[Either[String, RepositoryType]] = {
+      val repositoryTypeString = params.get(key)
+      repositoryTypeString.map({
+        case Seq("Service") => Right(Service)
+        case Seq("Prototype") => Right(Prototype)
+        case Seq("Library") => Right(Library)
+        case Seq("Other") => Right(Other)
+        case _ => Left("unable to bind RepositoryType from url")
+      })
+    }
+
+    override def unbind(key: String, repositoryType: RepositoryType): String = {
+      stringBinder.unbind("repositoryType", repositoryType.toString)
+    }
   }
 }
 

@@ -17,6 +17,7 @@
 package uk.gov.hmrc.healthindicators.models
 
 import play.api.libs.functional.syntax.{toFunctionalBuilderOps, unlift}
+import play.api.libs.json.Format.GenericFormat
 import play.api.libs.json.{Format, JsString, Writes, __}
 import uk.gov.hmrc.healthindicators.connectors.RepositoryType
 

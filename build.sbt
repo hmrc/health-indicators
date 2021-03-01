@@ -1,6 +1,7 @@
 import play.sbt.routes.RoutesKeys
 import uk.gov.hmrc.DefaultBuildSettings.integrationTestSettings
 import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin.publishingSettings
+import play.sbt.routes.RoutesKeys.routesImport
 
 val appName = "health-indicators"
 
@@ -30,3 +31,5 @@ lazy val microservice = Project(appName, file("."))
       "com.github.ghik" % "silencer-lib" % silencerVersion % Provided cross CrossVersion.full
     )
   )
+
+routesImport += "uk.gov.hmrc.healthindicators.connectors.RepositoryType"
