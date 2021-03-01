@@ -19,6 +19,8 @@ package uk.gov.hmrc.healthindicators.models
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import play.api.libs.json.{Writes, _}
+import uk.gov.hmrc.healthindicators.connectors.RepositoryType.Service
+import uk.gov.hmrc.healthindicators.models.RatingType.{BobbyRule, LeakDetection, ReadMe}
 
 class RatingSpec extends AnyWordSpec with Matchers {
 
@@ -68,9 +70,10 @@ class RatingSpec extends AnyWordSpec with Matchers {
     "write correct json" in {
       val score = Score(10, "Foo", Some("www.google.com"))
       val rating = Rating(ReadMe, 10, Seq(score))
-      val repositoryRating = RepositoryRating("foo", 10, Some(Seq(rating)))
+      val repositoryRating = RepositoryRating("foo", Service, 10, Seq(rating))
       Json.toJson(repositoryRating) mustBe Json.parse(
         """{"repositoryName":"foo",
+          |"repositoryType":"Service",
           |"repositoryScore":10,
           |"ratings":[{
           |   "ratingType":"ReadMe",

@@ -17,6 +17,8 @@
 package uk.gov.hmrc.healthindicators.services
 
 import uk.gov.hmrc.healthindicators.configs.ScoreConfig
+import uk.gov.hmrc.healthindicators.connectors.RepositoryType
+import uk.gov.hmrc.healthindicators.models.RatingType.{BobbyRule, LeakDetection, ReadMe}
 import uk.gov.hmrc.healthindicators.models._
 import uk.gov.hmrc.healthindicators.persistence.HealthIndicatorsRepository
 
@@ -32,8 +34,8 @@ class RepositoryRatingService @Inject() (repository: HealthIndicatorsRepository,
       rate(maybeHealthIndicator.toSeq).headOption
     }
 
-  def rateAllRepositories(sort: SortType): Future[Seq[RepositoryRating]] =
-    repository.latestAllRepositoryHealthIndicators().map { healthIndicators =>
+  def rateAllRepositories(repoType: Option[RepositoryType], sort: SortType): Future[Seq[RepositoryRating]] =
+    repository.latestAllRepositoryHealthIndicators(repoType).map { healthIndicators =>
       val repoRatings = rate(healthIndicators).sortBy(_.repositoryScore)
       sort match {
         case SortType.Ascending => repoRatings
@@ -46,7 +48,7 @@ class RepositoryRatingService @Inject() (repository: HealthIndicatorsRepository,
       indicator <- healthIndicators
       rating          = indicator.indicators.map(createRating)
       repositoryScore  = rating.map(_.ratingScore).sum
-      repositoryRating = RepositoryRating(indicator.repositoryName, repositoryScore, Some(rating))
+      repositoryRating = RepositoryRating(indicator.repositoryName, indicator.repositoryType, repositoryScore, rating)
     } yield repositoryRating
 
   private def createRating(indicator: Indicator): Rating = {

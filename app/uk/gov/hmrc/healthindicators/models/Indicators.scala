@@ -17,9 +17,9 @@
 package uk.gov.hmrc.healthindicators.models
 
 import java.time.Instant
-
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
+import uk.gov.hmrc.healthindicators.connectors.RepositoryType
 import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats
 
 sealed trait ResultType
@@ -117,14 +117,16 @@ object Indicator {
   }
 }
 
-case class RepositoryHealthIndicator(repositoryName: String, timestamp: Instant, indicators: Seq[Indicator])
+case class RepositoryHealthIndicator(repositoryName: String, timestamp: Instant, repositoryType: RepositoryType, indicators: Seq[Indicator])
 
 object RepositoryHealthIndicator {
   val mongoFormats: OFormat[RepositoryHealthIndicator] = {
     implicit val instantFormat: Format[Instant]     = MongoJavatimeFormats.instantFormats
     implicit val indicatorFormat: Format[Indicator] = Indicator.format
+    implicit val repositoryTypeFormat: Format[RepositoryType] = RepositoryType.format
     ((__ \ "repositoryName").format[String]
       ~ (__ \ "timestamp").format[Instant]
+      ~ (__ \ "repositoryType").format[RepositoryType]
       ~ (__ \ "indicators")
         .format[Seq[Indicator]])(RepositoryHealthIndicator.apply, unlift(RepositoryHealthIndicator.unapply))
   }

@@ -25,6 +25,7 @@ import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
 import uk.gov.hmrc.healthindicators.WireMockEndpoints
+import uk.gov.hmrc.healthindicators.connectors.RepositoryType.{Library, Other, Prototype, Service}
 import uk.gov.hmrc.http.HeaderCarrier
 
 class TeamsAndRepositoriesConnectorSpec
@@ -88,14 +89,47 @@ class TeamsAndRepositoriesConnectorSpec
         .futureValue
 
       val expectedResult = List(
-        TeamsAndRepos("2-way-messaging-prototype"),
-        TeamsAndRepos("2way-testbed-prototype"),
-        TeamsAndRepos("5mld-prototype")
+        TeamsAndRepos("2-way-messaging-prototype", Prototype),
+        TeamsAndRepos("2way-testbed-prototype", Prototype),
+        TeamsAndRepos("5mld-prototype", Prototype)
       )
 
       response shouldBe expectedResult
     }
+
+    "bind query string correctly when given a valid repoType" in {
+      val paramsPrototype = Map("repoType" -> Seq(Prototype.toString))
+      val paramsService = Map("repoType" -> Seq(Service.toString))
+      val paramsLibrary = Map("repoType" -> Seq(Library.toString))
+      val paramsOther = Map("repoType" -> Seq(Other.toString))
+
+      RepositoryType.queryStringBindable.bind(key = "repoType", paramsPrototype).value shouldBe Right(Prototype)
+      RepositoryType.queryStringBindable.bind(key = "repoType", paramsService).value shouldBe Right(Service)
+      RepositoryType.queryStringBindable.bind(key = "repoType", paramsLibrary).value shouldBe Right(Library)
+      RepositoryType.queryStringBindable.bind(key = "repoType", paramsOther).value shouldBe Right(Other)
+    }
+
+    "not bind when no query string is given" in {
+      RepositoryType.queryStringBindable.bind(key = "repoType", Map.empty) shouldBe None
+    }
+
+    "fail to bind when there is no matching value" in {
+      val params = Map("sort" -> Seq.empty)
+      RepositoryType.queryStringBindable.bind(key = "repoType", params) shouldBe None
+    }
+
+    "fail to bind when value is not recognised" in {
+      val params = Map("sort" -> Seq("unknown"))
+      RepositoryType.queryStringBindable.bind(key = "repoType", params) shouldBe None
+    }
+
+    "fail to bind when more than one value is given" in {
+      val params = Map("sort" -> Seq(Prototype.toString, Library.toString))
+      RepositoryType.queryStringBindable.bind(key = "repoType", params) shouldBe None
+    }
   }
+
+
 
   private trait Setup {
     implicit val headerCarrier: HeaderCarrier = HeaderCarrier()

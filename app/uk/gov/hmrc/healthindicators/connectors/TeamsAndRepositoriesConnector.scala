@@ -16,10 +16,12 @@
 
 package uk.gov.hmrc.healthindicators.connectors
 
-import play.api.libs.json.{Reads, __}
+import play.api.libs.json.{Format, JsError, JsResult, JsString, JsSuccess, JsValue, Reads, __}
 import uk.gov.hmrc.healthindicators.configs.AppConfig
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
 import uk.gov.hmrc.http.HttpReads.Implicits._
+import play.api.libs.functional.syntax._
+import play.api.mvc.QueryStringBindable
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
@@ -38,12 +40,62 @@ class TeamsAndRepositoriesConnector @Inject() (
   }
 }
 
-//TODO: Rename this case class
+sealed trait RepositoryType
+
+object RepositoryType {
+  case object Service extends RepositoryType
+  case object Prototype extends RepositoryType
+  case object Library extends RepositoryType
+  case object Other extends RepositoryType
+
+
+  val format: Format[RepositoryType] = new Format[RepositoryType] {
+    override def reads(json: JsValue): JsResult[RepositoryType] =
+      json.validate[String].flatMap {
+        case "Service"        => JsSuccess(Service)
+        case "Prototype" => JsSuccess(Prototype)
+        case "Library"     => JsSuccess(Library)
+        case "Other"     => JsSuccess(Other)
+        case s                          => JsError(s"Invalid RepositoryType: $s")
+      }
+
+    override def writes(o: RepositoryType): JsValue =
+      o match {
+        case Service        => JsString("Service")
+        case Prototype => JsString("Prototype")
+        case Library     => JsString("Library")
+        case Other     => JsString("Other")
+        case s                          => JsString(s"$s")
+      }
+  }
+
+  implicit def queryStringBindable(implicit stringBinder: QueryStringBindable[String]) = new QueryStringBindable[RepositoryType] {
+    override def bind(key: String, params: Map[String, Seq[String]]): Option[Either[String, RepositoryType]] = {
+      val repositoryTypeString = params.get(key)
+      repositoryTypeString.map({
+        case Seq("Service") => Right(Service)
+        case Seq("Prototype") => Right(Prototype)
+        case Seq("Library") => Right(Library)
+        case Seq("Other") => Right(Other)
+        case _ => Left("unable to bind RepositoryType from url")
+      })
+    }
+
+    override def unbind(key: String, repositoryType: RepositoryType): String = {
+      stringBinder.unbind("repositoryType", repositoryType.toString)
+    }
+  }
+}
+
 case class TeamsAndRepos(
-  name: String
+  name: String,
+  repositoryType: RepositoryType
 )
 
 object TeamsAndRepos {
-  val reads: Reads[TeamsAndRepos] =
-    (__ \ "name").read[String].map(TeamsAndRepos.apply)
+  val reads: Reads[TeamsAndRepos] = {
+    implicit val rtF: Format[RepositoryType] = RepositoryType.format
+    ((__ \ "name").read[String]
+      ~ (__ \ "repoType").format[RepositoryType]) (TeamsAndRepos.apply _)
+  }
 }

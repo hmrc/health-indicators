@@ -22,6 +22,7 @@ import org.scalatest.concurrent.Eventually
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.time.{Millis, Seconds, Span}
 import org.scalatest.wordspec.AnyWordSpec
+import uk.gov.hmrc.healthindicators.connectors.RepositoryType.Service
 import uk.gov.hmrc.healthindicators.connectors.{TeamsAndRepos, TeamsAndRepositoriesConnector}
 import uk.gov.hmrc.healthindicators.models.{Indicator, ReadMeIndicatorType, Result, ValidReadme}
 import uk.gov.hmrc.healthindicators.persistence.HealthIndicatorsRepository
@@ -54,9 +55,9 @@ class HealthIndicatorServiceSpec extends AnyWordSpec with Matchers with MockitoS
       implicit val hc: HeaderCarrier = HeaderCarrier()
       when(teamsAndRepositoriesConnector.allRepositories) thenReturn
         Future.successful(List(
-          TeamsAndRepos("repo1"),
-          TeamsAndRepos("repo2"),
-          TeamsAndRepos("repo3")))
+          TeamsAndRepos("repo1", Service),
+          TeamsAndRepos("repo2", Service),
+          TeamsAndRepos("repo3", Service)))
 
       when(mockRater.rate(any)) thenReturn
         Future.successful(Indicator(ReadMeIndicatorType, Seq(Result(ValidReadme, "bar", None))))

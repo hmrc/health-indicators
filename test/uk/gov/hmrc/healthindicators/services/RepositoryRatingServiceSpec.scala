@@ -17,12 +17,13 @@
 package uk.gov.hmrc.healthindicators.services
 
 import java.time.Instant
-
 import org.mockito.MockitoSugar
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import uk.gov.hmrc.healthindicators.configs.ScoreConfig
+import uk.gov.hmrc.healthindicators.connectors.RepositoryType.Service
+import uk.gov.hmrc.healthindicators.models.RatingType.{BobbyRule, LeakDetection, ReadMe}
 import uk.gov.hmrc.healthindicators.models._
 import uk.gov.hmrc.healthindicators.persistence.HealthIndicatorsRepository
 
@@ -40,9 +41,9 @@ class RepositoryRatingServiceSpec extends AnyWordSpec with Matchers with Mockito
   private val leakDetectionRating: Indicator =
     Indicator(LeakDetectionIndicatorType, Seq(Result(LeakDetectionViolation, "desc", None)))
   private val healthIndicatorOne: RepositoryHealthIndicator =
-    RepositoryHealthIndicator("foo", Instant.now(), Seq(bobbyRulesRating, readMeRatingOne, leakDetectionRating))
+    RepositoryHealthIndicator("foo", Instant.now(), Service, Seq(bobbyRulesRating, readMeRatingOne, leakDetectionRating))
   private val healthIndicatorTwo: RepositoryHealthIndicator =
-    RepositoryHealthIndicator("bar", Instant.now(), Seq(bobbyRulesRating, readMeRatingTwo, leakDetectionRating))
+    RepositoryHealthIndicator("bar", Instant.now(), Service, Seq(bobbyRulesRating, readMeRatingTwo, leakDetectionRating))
 
   private val scoreConfig       = new ScoreConfig
   private val repoScorerService = new RepositoryRatingService(mockRepository, scoreConfig)
@@ -58,76 +59,71 @@ class RepositoryRatingServiceSpec extends AnyWordSpec with Matchers with Mockito
       result.futureValue mustBe Some(
         RepositoryRating(
           "foo",
+          Service,
           -200,
-          Some(
             Seq(
               Rating(BobbyRule, -100, Seq(Score(-100, "desc", None))),
               Rating(ReadMe, -50, Seq(Score(-50, "desc", None))),
               Rating(LeakDetection, -50, Seq(Score(-50, "desc", None)))
             )
-          )
         )
       )
     }
 
     "Return a Rating for each Repository in ascending order" in {
-      when(mockRepository.latestAllRepositoryHealthIndicators)
+      when(mockRepository.latestAllRepositoryHealthIndicators(None))
         .thenReturn(Future.successful(Seq(healthIndicatorOne, healthIndicatorTwo)))
 
-      val result = repoScorerService.rateAllRepositories(SortType.Ascending)
+      val result = repoScorerService.rateAllRepositories(repoType = None, SortType.Ascending)
 
       result.futureValue mustBe Seq(
         RepositoryRating(
           "foo",
+          Service,
           -200,
-          Some(
             Seq(
               Rating(BobbyRule, -100, Seq(Score(-100, "desc", None))),
               Rating(ReadMe, -50, Seq(Score(-50, "desc", None))),
               Rating(LeakDetection, -50, Seq(Score(-50, "desc", None)))
             )
-          )
         ),RepositoryRating(
           "bar",
+          Service,
           -100,
-          Some(
             Seq(
               Rating(BobbyRule, -100, Seq(Score(-100, "desc", None))),
               Rating(ReadMe, 50, Seq(Score(50, "desc", None))),
               Rating(LeakDetection, -50, Seq(Score(-50, "desc", None)))
             )
-          )
         )
       )
     }
 
     "Return a Rating for each Repository in descending order, when sort equals true" in {
-      when(mockRepository.latestAllRepositoryHealthIndicators)
+      when(mockRepository.latestAllRepositoryHealthIndicators(None))
         .thenReturn(Future.successful(Seq(healthIndicatorTwo, healthIndicatorOne)))
 
-      val result = repoScorerService.rateAllRepositories(SortType.Descending)
+      val result = repoScorerService.rateAllRepositories(repoType = None, SortType.Descending)
 
       result.futureValue mustBe Seq(
         RepositoryRating(
           "bar",
+          Service,
           -100,
-          Some(
             Seq(
               Rating(BobbyRule, -100, Seq(Score(-100, "desc", None))),
               Rating(ReadMe, 50, Seq(Score(50, "desc", None))),
               Rating(LeakDetection, -50, Seq(Score(-50, "desc", None)))
             )
-          )
         ),  RepositoryRating(
           "foo",
+          Service,
           -200,
-          Some(
             Seq(
               Rating(BobbyRule, -100, Seq(Score(-100, "desc", None))),
               Rating(ReadMe, -50, Seq(Score(-50, "desc", None))),
               Rating(LeakDetection, -50, Seq(Score(-50, "desc", None)))
             )
-          )
         )
       )
     }
