@@ -60,7 +60,7 @@ object Rating {
   }
 }
 
-case class RepositoryRating(repositoryName: String, repositoryType: RepositoryType, repositoryScore: Int, ratings: Option[Seq[Rating]])
+case class RepositoryRating(repositoryName: String, repositoryType: RepositoryType, repositoryScore: Int, ratings: Seq[Rating])
 
 object RepositoryRating {
   val writes: Writes[RepositoryRating] = {
@@ -69,6 +69,6 @@ object RepositoryRating {
     ((__ \ "repositoryName").write[String]
       ~ (__ \ "repositoryType").write[RepositoryType]
       ~ (__ \ "repositoryScore").write[Int]
-      ~ (__ \ "ratings").writeNullable[Seq[Rating]])(unlift(RepositoryRating.unapply))
+      ~ (__ \ "ratings").write[Seq[Rating]])(unlift(RepositoryRating.unapply))
   }
 }

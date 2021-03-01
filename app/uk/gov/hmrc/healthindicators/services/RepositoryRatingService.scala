@@ -48,7 +48,7 @@ class RepositoryRatingService @Inject() (repository: HealthIndicatorsRepository,
       indicator <- healthIndicators
       rating          = indicator.indicators.map(createRating)
       repositoryScore  = rating.map(_.ratingScore).sum
-      repositoryRating = RepositoryRating(indicator.repositoryName, indicator.repositoryType, repositoryScore, Some(rating))
+      repositoryRating = RepositoryRating(indicator.repositoryName, indicator.repositoryType, repositoryScore, rating)
     } yield repositoryRating
 
   private def createRating(indicator: Indicator): Rating = {

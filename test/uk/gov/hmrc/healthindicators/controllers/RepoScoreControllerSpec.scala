@@ -35,14 +35,14 @@ class RepoScoreControllerSpec extends AnyWordSpec with Matchers with MockitoSuga
   private val repoScoreController =
     new RepoScoreController(repoScorerService, Helpers.stubControllerComponents())
 
-  val repoRating: RepositoryRating = RepositoryRating("repo1", Service, 100, Some(Seq()))
+  val repoRating: RepositoryRating = RepositoryRating("repo1", Service, 100, Seq())
 
   val allRepoScoresAscending = Seq(
-    RepositoryRating("repo1", Service, -300, Some(Seq.empty)),
-    RepositoryRating("repo2", Service, -200, Some(Seq.empty)),
-    RepositoryRating("repo3", Service, -100, Some(Seq.empty)),
-    RepositoryRating("repo4", Service,  50, Some(Seq.empty)),
-    RepositoryRating("repo5", Service, 100, Some(Seq.empty))
+    RepositoryRating("repo1", Service, -300, Seq.empty),
+    RepositoryRating("repo2", Service, -200, Seq.empty),
+    RepositoryRating("repo3", Service, -100, Seq.empty),
+    RepositoryRating("repo4", Service,  50, Seq.empty),
+    RepositoryRating("repo5", Service, 100, Seq.empty)
   )
 
   "repoScore" should {

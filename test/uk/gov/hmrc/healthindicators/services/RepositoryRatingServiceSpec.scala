@@ -61,13 +61,11 @@ class RepositoryRatingServiceSpec extends AnyWordSpec with Matchers with Mockito
           "foo",
           Service,
           -200,
-          Some(
             Seq(
               Rating(BobbyRule, -100, Seq(Score(-100, "desc", None))),
               Rating(ReadMe, -50, Seq(Score(-50, "desc", None))),
               Rating(LeakDetection, -50, Seq(Score(-50, "desc", None)))
             )
-          )
         )
       )
     }
@@ -83,24 +81,20 @@ class RepositoryRatingServiceSpec extends AnyWordSpec with Matchers with Mockito
           "foo",
           Service,
           -200,
-          Some(
             Seq(
               Rating(BobbyRule, -100, Seq(Score(-100, "desc", None))),
               Rating(ReadMe, -50, Seq(Score(-50, "desc", None))),
               Rating(LeakDetection, -50, Seq(Score(-50, "desc", None)))
             )
-          )
         ),RepositoryRating(
           "bar",
           Service,
           -100,
-          Some(
             Seq(
               Rating(BobbyRule, -100, Seq(Score(-100, "desc", None))),
               Rating(ReadMe, 50, Seq(Score(50, "desc", None))),
               Rating(LeakDetection, -50, Seq(Score(-50, "desc", None)))
             )
-          )
         )
       )
     }
@@ -116,24 +110,20 @@ class RepositoryRatingServiceSpec extends AnyWordSpec with Matchers with Mockito
           "bar",
           Service,
           -100,
-          Some(
             Seq(
               Rating(BobbyRule, -100, Seq(Score(-100, "desc", None))),
               Rating(ReadMe, 50, Seq(Score(50, "desc", None))),
               Rating(LeakDetection, -50, Seq(Score(-50, "desc", None)))
             )
-          )
         ),  RepositoryRating(
           "foo",
           Service,
           -200,
-          Some(
             Seq(
               Rating(BobbyRule, -100, Seq(Score(-100, "desc", None))),
               Rating(ReadMe, -50, Seq(Score(-50, "desc", None))),
               Rating(LeakDetection, -50, Seq(Score(-50, "desc", None)))
             )
-          )
         )
       )
     }

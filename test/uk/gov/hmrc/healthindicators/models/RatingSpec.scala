@@ -70,7 +70,7 @@ class RatingSpec extends AnyWordSpec with Matchers {
     "write correct json" in {
       val score = Score(10, "Foo", Some("www.google.com"))
       val rating = Rating(ReadMe, 10, Seq(score))
-      val repositoryRating = RepositoryRating("foo", Service, 10, Some(Seq(rating)))
+      val repositoryRating = RepositoryRating("foo", Service, 10, Seq(rating))
       Json.toJson(repositoryRating) mustBe Json.parse(
         """{"repositoryName":"foo",
           |"repositoryType":"Service",
