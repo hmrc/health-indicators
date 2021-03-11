@@ -17,15 +17,16 @@
 package uk.gov.hmrc.healthindicators.controllers
 
 import javax.inject.{Inject, Singleton}
-import play.api.libs.json.Writes
+import play.api.libs.json.{Json, Writes}
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
-import uk.gov.hmrc.healthindicators.connectors.LeakDetectionConnector
+import uk.gov.hmrc.healthindicators.connectors.{JenkinsConnector, JenkinsUrl, LeakDetectionConnector, TeamsAndRepositoriesConnector}
 import uk.gov.hmrc.healthindicators.models.RepositoryRating
 import uk.gov.hmrc.healthindicators.persistence.HealthIndicatorsRepository
 import uk.gov.hmrc.healthindicators.services.HealthIndicatorService
+import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
-import scala.concurrent.Await
+import scala.concurrent.{Await, ExecutionContext}
 import scala.concurrent.duration.DurationInt
 
 @Singleton
@@ -34,14 +35,19 @@ class TestController @Inject() (
   repoRatingsPersistence: HealthIndicatorsRepository,
   repository: HealthIndicatorsRepository,
   ratingService: HealthIndicatorService,
+  teamsAndRepositoriesConnector: TeamsAndRepositoriesConnector,
+  jenkinsConnector: JenkinsConnector,
   cc: ControllerComponents
-) extends BackendController(cc) {
+) (implicit ec: ExecutionContext)
+  extends BackendController(cc) {
 
-  implicit val rrW: Writes[RepositoryRating] = RepositoryRating.writes
-
-  def test: Action[AnyContent] =
-    Action {
-      val result = repository.latestAllRepositoryHealthIndicators(None)
-      Ok(Await.result(result, 5.seconds).toString)
+  def test(repo: String): Action[AnyContent] = {
+    Action.async {
+      implicit val hc: HeaderCarrier = HeaderCarrier()
+      for {
+        url <- teamsAndRepositoriesConnector.getJenkinsUrl(repo)
+        result = Ok(Json.toJson(url))
+      } yield result
     }
+  }
 }

@@ -25,22 +25,23 @@ import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats
 sealed trait ResultType
 
 sealed trait ReadMeResultType extends ResultType
-
 case object NoReadme extends ReadMeResultType
-
 case object DefaultReadme extends ReadMeResultType
-
 case object ValidReadme extends ReadMeResultType
 
 sealed trait LeakDetectionResultType extends ResultType
-
 case object LeakDetectionViolation extends LeakDetectionResultType
 
 sealed trait BobbyRuleResultType extends ResultType
-
 case object BobbyRulePending extends BobbyRuleResultType
-
 case object BobbyRuleActive extends BobbyRuleResultType
+
+sealed trait JenkinsResultType extends ResultType
+case object JenkinsBuildStable extends JenkinsResultType
+case object JenkinsBuildUnstable extends JenkinsResultType
+case object JenkinsBuildNotFound extends JenkinsResultType
+case object JenkinsBuildOutdated extends JenkinsResultType
+
 
 object ResultType {
   val format: Format[ResultType] = new Format[ResultType] {
@@ -52,6 +53,10 @@ object ResultType {
         case "leak-detection-violation" => JsSuccess(LeakDetectionViolation)
         case "bobby-rule-pending"       => JsSuccess(BobbyRulePending)
         case "bobby-rule-active"        => JsSuccess(BobbyRuleActive)
+        case "jenkins-build-stable"     => JsSuccess(JenkinsBuildStable)
+        case "jenkins-build-unstable"   => JsSuccess(JenkinsBuildUnstable)
+        case "jenkins-build-not-found"  => JsSuccess(JenkinsBuildNotFound)
+        case "jenkins-build-outdated"   => JsSuccess(JenkinsBuildOutdated)
         case s                          => JsError(s"Invalid Result Type: $s")
       }
 
@@ -63,6 +68,10 @@ object ResultType {
         case LeakDetectionViolation => JsString("leak-detection-violation")
         case BobbyRulePending       => JsString("bobby-rule-pending")
         case BobbyRuleActive        => JsString("bobby-rule-active")
+        case JenkinsBuildStable     => JsString("jenkins-build-stable")
+        case JenkinsBuildUnstable   => JsString("jenkins-build-unstable")
+        case JenkinsBuildNotFound   => JsString("jenkins-build-not-found")
+        case JenkinsBuildOutdated   => JsString("jenkins-build-outdated")
       }
   }
 }
@@ -86,22 +95,26 @@ case object LeakDetectionIndicatorType extends IndicatorType
 
 case object BobbyRuleIndicatorType extends IndicatorType
 
+case object BuildStabilityIndicatorType extends IndicatorType
+
 object IndicatorType {
   val format: Format[IndicatorType] = new Format[IndicatorType] {
     override def reads(json: JsValue): JsResult[IndicatorType] =
       json.validate[String].flatMap {
-        case "read-me-indicator"        => JsSuccess(ReadMeIndicatorType)
-        case "leak-detection-indicator" => JsSuccess(LeakDetectionIndicatorType)
-        case "bobby-rule-indicator"     => JsSuccess(BobbyRuleIndicatorType)
-        case s                          => JsError(s"Invalid Indicator: $s")
+        case "read-me-indicator"            => JsSuccess(ReadMeIndicatorType)
+        case "leak-detection-indicator"     => JsSuccess(LeakDetectionIndicatorType)
+        case "bobby-rule-indicator"         => JsSuccess(BobbyRuleIndicatorType)
+        case "build-stability-indicator"  => JsSuccess(BuildStabilityIndicatorType)
+        case s                              => JsError(s"Invalid Indicator: $s")
       }
 
     override def writes(o: IndicatorType): JsValue =
       o match {
-        case ReadMeIndicatorType        => JsString("read-me-indicator")
-        case LeakDetectionIndicatorType => JsString("leak-detection-indicator")
-        case BobbyRuleIndicatorType     => JsString("bobby-rule-indicator")
-        case s                          => JsString(s"$s")
+        case ReadMeIndicatorType          => JsString("read-me-indicator")
+        case LeakDetectionIndicatorType   => JsString("leak-detection-indicator")
+        case BobbyRuleIndicatorType       => JsString("bobby-rule-indicator")
+        case BuildStabilityIndicatorType  => JsString("build-stability-indicator")
+        case s                            => JsString(s"$s")
       }
   }
 }

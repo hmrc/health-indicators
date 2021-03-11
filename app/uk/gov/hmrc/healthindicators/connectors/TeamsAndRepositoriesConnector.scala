@@ -16,14 +16,14 @@
 
 package uk.gov.hmrc.healthindicators.connectors
 
-import play.api.libs.json.{Format, JsError, JsResult, JsString, JsSuccess, JsValue, Reads, __}
+import play.api.libs.json.{Format, JsError, JsResult, JsString, JsSuccess, JsValue, Json, Reads, __}
 import uk.gov.hmrc.healthindicators.configs.AppConfig
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
 import uk.gov.hmrc.http.HttpReads.Implicits._
 import play.api.libs.functional.syntax._
 import play.api.mvc.QueryStringBindable
-
 import javax.inject.{Inject, Singleton}
+
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
@@ -37,6 +37,11 @@ class TeamsAndRepositoriesConnector @Inject() (
   def allRepositories(implicit hc: HeaderCarrier): Future[List[TeamsAndRepos]] = {
     implicit val reads: Reads[TeamsAndRepos] = TeamsAndRepos.reads
     httpClient.GET[List[TeamsAndRepos]](s"$teamsAndRepositoriesBaseUrl/api/repositories")
+  }
+
+  def getJenkinsUrl(repo: String)(implicit hc: HeaderCarrier): Future[Option[JenkinsUrl]] = {
+    implicit val reads: Reads[JenkinsUrl] = JenkinsUrl.juF
+    httpClient.GET[Option[JenkinsUrl]](s"$teamsAndRepositoriesBaseUrl/api/jenkins-url/$repo")
   }
 }
 
@@ -99,3 +104,13 @@ object TeamsAndRepos {
       ~ (__ \ "repoType").format[RepositoryType]) (TeamsAndRepos.apply _)
   }
 }
+
+case class JenkinsUrl(jenkinsURL: String)
+
+object JenkinsUrl {
+  implicit val juF: Format[JenkinsUrl] = Json.format[JenkinsUrl]
+}
+
+
+
+
