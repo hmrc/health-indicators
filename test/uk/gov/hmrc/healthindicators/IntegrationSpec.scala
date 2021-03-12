@@ -17,6 +17,7 @@
 package uk.gov.hmrc.healthindicators
 
 import com.github.tomakehurst.wiremock.http.RequestMethod.GET
+import com.google.common.io.BaseEncoding
 import org.scalatest.concurrent.{Eventually, ScalaFutures}
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.time.{Millis, Seconds, Span}
@@ -24,21 +25,21 @@ import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.play.guice.GuiceOneServerPerSuite
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.ws.WSClient
-import play.api.{Application}
+import play.api.Application
 import uk.gov.hmrc.healthindicators.models.RepositoryHealthIndicator
 import uk.gov.hmrc.healthindicators.persistence.HealthIndicatorsRepository
 import uk.gov.hmrc.mongo.test.DefaultPlayMongoRepositorySupport
 
 
+
 class IntegrationSpec
   extends AnyWordSpec
-  with DefaultPlayMongoRepositorySupport[RepositoryHealthIndicator]
-  with GuiceOneServerPerSuite
-  with WireMockEndpoints
-  with Matchers
-  with ScalaFutures
-  with Eventually
-  {
+    with DefaultPlayMongoRepositorySupport[RepositoryHealthIndicator]
+    with GuiceOneServerPerSuite
+    with WireMockEndpoints
+    with Matchers
+    with ScalaFutures
+    with Eventually {
 
   implicit override val patienceConfig: PatienceConfig =
     PatienceConfig(timeout = scaled(Span(10, Seconds)), interval = scaled(Span(1000, Millis)))
@@ -52,8 +53,8 @@ class IntegrationSpec
       .configure(
         Map(
           "mongodb.uri" -> mongoUri,
-          "reporatings.refresh.enabled"      -> "true",
-          "reporatings.refresh.interval"     -> "5.minutes",
+          "reporatings.refresh.enabled" -> "true",
+          "reporatings.refresh.interval" -> "5.minutes",
           "reporatings.refresh.initialDelay" -> "5.seconds",
           "microservice.services.service-dependencies.port" -> endpointPort,
           "microservice.services.service-dependencies.host" -> host,
@@ -61,6 +62,8 @@ class IntegrationSpec
           "microservice.services.leak-detection.host" -> host,
           "github.open.api.rawurl" -> endpointMockUrl,
           "github.open.api.token" -> "test-token",
+          "jenkins.username" -> "test-username",
+          "jenkins.token" -> "test-token",
           "microservice.services.teams-and-repositories.port" -> endpointPort,
           "microservice.services.teams-and-repositories.host" -> host,
           "metrics.jvm" -> false
@@ -78,16 +81,31 @@ class IntegrationSpec
     "return correct json when scoreForRepo receives a get request with valid repo name" in {
 
       serviceEndpoint(GET, "/api/repositories", willRespondWith = (200, Some(teamsAndReposJson)))
+
       serviceEndpoint(GET, "/api/dependencies/auth", willRespondWith = (200, Some(serviceDependenciesJson)))
+
       serviceEndpoint(GET, "/api/reports/repositories/auth", willRespondWith = (200, Some(leakDetectionJson)))
-      serviceEndpoint(GET, "/hmrc/auth/master/README.md",
-        requestHeaders = Map("Authorization" -> s"token test-token"),
+
+      serviceEndpoint(GET, "/api/jenkins-url/auth", willRespondWith = (200, Some(teamsAndReposJenkinsJson)))
+
+      val jenkinsCred = s"Basic ${BaseEncoding.base64().encode("test-username:test-token".getBytes("UTF-8"))}"
+      serviceEndpoint(GET, s"$endpointMockUrl/job/GG/job/auth/api/json.*",
+        queryParameters = Seq("depth" -> "1", "tree" -> "lastCompletedBuild%5Bresult,timestamp%5D"),
+        extraHeaders = Map("Authorization" -> jenkinsCred),
         willRespondWith = (404, None))
 
-      eventually{
+      serviceEndpoint(GET, "/hmrc/auth/master/README.md",
+        requestHeaders = Map("Authorization" -> s"token test-token"), willRespondWith = (404, None))
+
+      eventually {
         val response = ws.url(s"http://localhost:$port/health-indicators/repositories/auth").get.futureValue
         response.status shouldBe 200
-        response.body shouldBe expectedResponse }
+        response.body should include (expectedResponse)
+        response.body should include (bobbyRuleResponse)
+        response.body should include (leakDetectionResponse)
+        response.body should include (readMeResponse)
+        response.body should include (buildStabilityResponse)
+      }
     }
   }
 
@@ -108,7 +126,8 @@ class IntegrationSpec
          ]
       }"""
 
-  val serviceDependenciesJson = """{
+  val serviceDependenciesJson =
+    """{
     "repositoryName": "auth",
     "libraryDependencies": [
     {
@@ -142,17 +161,27 @@ class IntegrationSpec
             }"""
 
   val teamsAndReposJson =
-   """
-    [{
-      "name": "auth",
-      "createdAt": 1541588042000,
-      "lastUpdatedAt": 1601630778000,
-      "repoType": "Prototype",
-      "language": "HTML",
-      "archived": false
-    }]
-  """
+    """
+      [{
+        "name": "auth",
+        "createdAt": 1541588042000,
+        "lastUpdatedAt": 1601630778000,
+        "repoType": "Prototype",
+        "language": "HTML",
+        "archived": false
+      }]
+    """
 
-    val expectedResponse =
-      """{"repositoryName":"auth","repositoryType":"Prototype","repositoryScore":-120,"ratings":[{"ratingType":"BobbyRule","ratingScore":-20,"breakdown":[{"points":-20,"description":"simple-reactivemongo - TEST DEPRECATION"}]},{"ratingType":"LeakDetection","ratingScore":-50,"breakdown":[{"points":-50,"description":"test123","ratings":"https://test-url"}]},{"ratingType":"ReadMe","ratingScore":-50,"breakdown":[{"points":-50,"description":"No Readme defined"}]}]}"""
+  val teamsAndReposJenkinsJson =
+    s"""
+       |{
+       | "jenkinsURL": "$endpointMockUrl/job/GG/job/auth/"
+       |}
+       |""".stripMargin
+
+  val bobbyRuleResponse = """{"ratingType":"BobbyRule","ratingScore":-20,"breakdown":[{"points":-20,"description":"simple-reactivemongo - TEST DEPRECATION"}]}"""
+  val leakDetectionResponse = """{"ratingType":"LeakDetection","ratingScore":-50,"breakdown":[{"points":-50,"description":"test123","ratings":"https://test-url"}]}"""
+  val readMeResponse = """{"ratingType":"ReadMe","ratingScore":-50,"breakdown":[{"points":-50,"description":"No Readme defined"}]}"""
+  val buildStabilityResponse = """{"ratingType":"BuildStability","ratingScore":0,"breakdown":[{"points":0,"description":"No Jenkins Build Found for: auth"}]}"""
+  val expectedResponse = """"repositoryName":"auth","repositoryType":"Prototype","repositoryScore":-120,"""
 }
