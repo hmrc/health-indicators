@@ -38,5 +38,12 @@ class ScoreConfig {
           case BobbyRulePending => -20
           case BobbyRuleActive  => -100
         }
+      case j: JenkinsResultType =>
+        j match {
+          case JenkinsBuildStable => 50
+          case JenkinsBuildUnstable => -50
+          case JenkinsBuildNotFound => 0
+          case JenkinsBuildOutdated => -50
+        }
     }
 }

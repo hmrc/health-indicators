@@ -31,7 +31,6 @@ class LeakDetectionRater @Inject() (
 
   private val logger = Logger(this.getClass)
 
-  //TODO: Test
   override def rate(repo: String): Future[Indicator] = {
     logger.info(s"Rating LeakDetection for: $repo")
     leakDetectionConnector.findLatestMasterReport(repo).map { maybeReport =>

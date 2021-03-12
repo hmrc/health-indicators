@@ -48,6 +48,43 @@ class TeamsAndRepositoriesConnectorSpec
 
   private lazy val teamsAndRepositoriesConnector = app.injector.instanceOf[TeamsAndRepositoriesConnector]
 
+  "GET jenkinsUrl" should {
+    "use repository name to return a jenkins url" in new Setup {
+      serviceEndpoint(
+        GET,
+        "/api/jenkins-url/test",
+        willRespondWith = (
+          200,
+          Some(
+            """
+              |{
+              | "jenkinsURL": "https://build.tax.service.gov.uk/job/GG/job/test"
+              |}
+              |""".stripMargin
+          )
+        )
+      )
+
+      val response = teamsAndRepositoriesConnector
+        .getJenkinsUrl("test")
+        .futureValue
+
+      val expectedResult = Some(JenkinsUrl("https://build.tax.service.gov.uk/job/GG/job/test"))
+
+      response shouldBe expectedResult
+    }
+
+    "use repository name to return a None when no jenkins url found" in new Setup {
+      serviceEndpoint(GET, "/api/jenkins-url/test", willRespondWith = (404, None))
+      val response = teamsAndRepositoriesConnector
+      .getJenkinsUrl("test")
+      .futureValue
+
+      response shouldBe None
+      }
+  }
+
+
   "GET allRepositories" should {
     "return a list of all repositories" in new Setup {
       serviceEndpoint(
