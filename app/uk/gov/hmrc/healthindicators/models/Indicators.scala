@@ -25,53 +25,71 @@ import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats
 sealed trait ResultType
 
 sealed trait ReadMeResultType extends ResultType
-case object NoReadme extends ReadMeResultType
-case object DefaultReadme extends ReadMeResultType
-case object ValidReadme extends ReadMeResultType
+
+case object ValidReadme extends ReadMeResultType {
+  override def toString: String = "valid-readme"
+}
+case object DefaultReadme extends ReadMeResultType {
+  override def toString: String = "default-readme"
+}
+case object NoReadme extends ReadMeResultType {
+  override def toString: String = "no-readme"
+}
 
 sealed trait LeakDetectionResultType extends ResultType
-case object LeakDetectionViolation extends LeakDetectionResultType
+
+case object LeakDetectionViolation extends LeakDetectionResultType {
+  override def toString: String = "leak-detection-violation"
+}
 
 sealed trait BobbyRuleResultType extends ResultType
-case object BobbyRulePending extends BobbyRuleResultType
-case object BobbyRuleActive extends BobbyRuleResultType
+
+case object BobbyRulePending extends BobbyRuleResultType {
+  override def toString: String = "bobby-rule-pending"
+}
+case object BobbyRuleActive extends BobbyRuleResultType {
+  override def toString: String = "bobby-rule-active"
+}
 
 sealed trait JenkinsResultType extends ResultType
-case object JenkinsBuildStable extends JenkinsResultType
-case object JenkinsBuildUnstable extends JenkinsResultType
-case object JenkinsBuildNotFound extends JenkinsResultType
-case object JenkinsBuildOutdated extends JenkinsResultType
+
+case object JenkinsBuildStable extends JenkinsResultType {
+  override def toString: String = "jenkins-build-stable"
+}
+case object JenkinsBuildUnstable extends JenkinsResultType {
+  override def toString: String = "jenkins-build-unstable"
+}
+case object JenkinsBuildNotFound extends JenkinsResultType {
+  override def toString: String = "jenkins-build-not-found"
+}
+case object JenkinsBuildOutdated extends JenkinsResultType {
+  override def toString: String = "jenkins-build-outdated"
+}
 
 object ResultType {
+
+  private val resultTypes = Set(
+    ValidReadme,
+    DefaultReadme,
+    NoReadme,
+    LeakDetectionViolation,
+    BobbyRulePending,
+    BobbyRuleActive,
+    JenkinsBuildStable,
+    JenkinsBuildUnstable,
+    JenkinsBuildNotFound,
+    JenkinsBuildOutdated
+  )
+
+  def apply(value: String): Option[ResultType] = resultTypes.find(_.toString == value)
+
   val format: Format[ResultType] = new Format[ResultType] {
     override def reads(json: JsValue): JsResult[ResultType] =
-      json.validate[String].flatMap {
-        case "valid-readme"             => JsSuccess(ValidReadme)
-        case "default-readme"           => JsSuccess(DefaultReadme)
-        case "no-readme"                => JsSuccess(NoReadme)
-        case "leak-detection-violation" => JsSuccess(LeakDetectionViolation)
-        case "bobby-rule-pending"       => JsSuccess(BobbyRulePending)
-        case "bobby-rule-active"        => JsSuccess(BobbyRuleActive)
-        case "jenkins-build-stable"     => JsSuccess(JenkinsBuildStable)
-        case "jenkins-build-unstable"   => JsSuccess(JenkinsBuildUnstable)
-        case "jenkins-build-not-found"  => JsSuccess(JenkinsBuildNotFound)
-        case "jenkins-build-outdated"   => JsSuccess(JenkinsBuildOutdated)
-        case s                          => JsError(s"Invalid Result Type: $s")
+      json.validate[String].flatMap { str =>
+        ResultType(str).fold[JsResult[ResultType]](JsError(s"Invalid Result Type: $str"))(JsSuccess(_))
       }
 
-    override def writes(o: ResultType): JsValue =
-      o match {
-        case ValidReadme            => JsString("valid-readme")
-        case DefaultReadme          => JsString("default-readme")
-        case NoReadme               => JsString("no-readme")
-        case LeakDetectionViolation => JsString("leak-detection-violation")
-        case BobbyRulePending       => JsString("bobby-rule-pending")
-        case BobbyRuleActive        => JsString("bobby-rule-active")
-        case JenkinsBuildStable     => JsString("jenkins-build-stable")
-        case JenkinsBuildUnstable   => JsString("jenkins-build-unstable")
-        case JenkinsBuildNotFound   => JsString("jenkins-build-not-found")
-        case JenkinsBuildOutdated   => JsString("jenkins-build-outdated")
-      }
+    override def writes(o: ResultType): JsValue = JsString(o.toString)
   }
 }
 
