@@ -89,33 +89,36 @@ object Result {
 
 sealed trait IndicatorType
 
-case object ReadMeIndicatorType extends IndicatorType
+case object ReadMeIndicatorType extends IndicatorType {
+  override def toString: String = "read-me-indicator"
+}
 
-case object LeakDetectionIndicatorType extends IndicatorType
+case object LeakDetectionIndicatorType extends IndicatorType {
+  override def toString: String = "leak-detection-indicator"
+}
 
-case object BobbyRuleIndicatorType extends IndicatorType
+case object BobbyRuleIndicatorType extends IndicatorType {
+  override def toString: String = "bobby-rule-indicator"
+}
 
-case object BuildStabilityIndicatorType extends IndicatorType
+case object BuildStabilityIndicatorType extends IndicatorType {
+  override def toString: String = "build-stability-indicator"
+}
 
 object IndicatorType {
+
+  private val indicatorTypes = Set(ReadMeIndicatorType, LeakDetectionIndicatorType, BobbyRuleIndicatorType,
+    BuildStabilityIndicatorType)
+
+  def apply(value: String): Option[IndicatorType] = indicatorTypes.find(_.toString == value)
+
   val format: Format[IndicatorType] = new Format[IndicatorType] {
     override def reads(json: JsValue): JsResult[IndicatorType] =
-      json.validate[String].flatMap {
-        case "read-me-indicator"            => JsSuccess(ReadMeIndicatorType)
-        case "leak-detection-indicator"     => JsSuccess(LeakDetectionIndicatorType)
-        case "bobby-rule-indicator"         => JsSuccess(BobbyRuleIndicatorType)
-        case "build-stability-indicator"  => JsSuccess(BuildStabilityIndicatorType)
-        case s                              => JsError(s"Invalid Indicator: $s")
+      json.validate[String].flatMap { str =>
+        IndicatorType(str).fold[JsResult[IndicatorType]](JsError(s"Invalid Indicator: $str"))(JsSuccess(_))
       }
 
-    override def writes(o: IndicatorType): JsValue =
-      o match {
-        case ReadMeIndicatorType          => JsString("read-me-indicator")
-        case LeakDetectionIndicatorType   => JsString("leak-detection-indicator")
-        case BobbyRuleIndicatorType       => JsString("bobby-rule-indicator")
-        case BuildStabilityIndicatorType  => JsString("build-stability-indicator")
-        case s                            => JsString(s"$s")
-      }
+    override def writes(o: IndicatorType): JsValue = JsString(o.toString)
   }
 }
 
