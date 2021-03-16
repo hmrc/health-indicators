@@ -40,7 +40,7 @@ class ScoreConfig {
         }
       case j: JenkinsResultType =>
         j match {
-          case JenkinsBuildStable => 50
+          case JenkinsBuildStable   => 50
           case JenkinsBuildUnstable => -50
           case JenkinsBuildNotFound => 0
           case JenkinsBuildOutdated => -50

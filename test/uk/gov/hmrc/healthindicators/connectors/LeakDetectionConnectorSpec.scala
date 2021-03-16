@@ -28,7 +28,7 @@ import uk.gov.hmrc.healthindicators.WireMockEndpoints
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 
 class LeakDetectionConnectorSpec
-  extends AnyWordSpec
+    extends AnyWordSpec
     with Matchers
     with GuiceOneAppPerSuite
     with OptionValues
@@ -41,8 +41,9 @@ class LeakDetectionConnectorSpec
         Map(
           "microservice.services.leak-detection.port" -> endpointPort,
           "microservice.services.leak-detection.host" -> host,
-          "metrics.jvm" -> false
-        ))
+          "metrics.jvm"                               -> false
+        )
+      )
       .build()
 
   private lazy val leakDetectionConnector = app.injector.instanceOf[LeakDetectionConnector]
@@ -70,7 +71,8 @@ class LeakDetectionConnectorSpec
             |     }
             |   ]
               }""".stripMargin
-          ))
+          )
+        )
       )
 
       val response = leakDetectionConnector
@@ -78,17 +80,20 @@ class LeakDetectionConnectorSpec
         .futureValue
         .value
 
-      val expectedOutput = Report("123",
-        Seq(ReportLine(
-          "/this/is/a/test",
-          "fileName",
-           1,
-          "https://test-url",
-          Some("filename_test"),
-          "test123",
-          "test.text"
+      val expectedOutput = Report(
+        "123",
+        Seq(
+          ReportLine(
+            "/this/is/a/test",
+            "fileName",
+            1,
+            "https://test-url",
+            Some("filename_test"),
+            "test123",
+            "test.text"
+          )
         )
-        ))
+      )
       response shouldBe expectedOutput
     }
 
@@ -101,7 +106,6 @@ class LeakDetectionConnectorSpec
 
       response shouldBe None
     }
-
 
     "ReportLine" should {
       implicit val rlR: Reads[ReportLine] = ReportLine.reads
@@ -121,18 +125,19 @@ class LeakDetectionConnectorSpec
 
         val objectOutput = Json.parse(jsonInput).validate[ReportLine]
         objectOutput shouldBe
-          JsSuccess(ReportLine(
-            "/this/is/a/test",
-            "fileName",
-             1,
-            "https://test-url",
-            Some("filename_test"),
-            "test123",
-            "test.text"
-          ))
+          JsSuccess(
+            ReportLine(
+              "/this/is/a/test",
+              "fileName",
+              1,
+              "https://test-url",
+              Some("filename_test"),
+              "test123",
+              "test.text"
+            )
+          )
       }
     }
   }
-
 
 }

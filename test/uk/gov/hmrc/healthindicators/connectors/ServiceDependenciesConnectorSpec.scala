@@ -32,7 +32,7 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 class ServiceDependenciesConnectorSpec
-  extends AnyWordSpec
+    extends AnyWordSpec
     with Matchers
     with GuiceOneAppPerSuite
     with OptionValues
@@ -45,8 +45,9 @@ class ServiceDependenciesConnectorSpec
         Map(
           "microservice.services.service-dependencies.port" -> endpointPort,
           "microservice.services.service-dependencies.host" -> host,
-          "metrics.jvm" -> false
-        ))
+          "metrics.jvm"                                     -> false
+        )
+      )
       .build()
 
   private lazy val serviceDependenciesConnector = app.injector.instanceOf[ServiceDependenciesConnector]
@@ -91,10 +92,7 @@ class ServiceDependenciesConnectorSpec
       serviceEndpoint(
         GET,
         "/api/dependencies/repo1",
-        willRespondWith = (
-          200,
-          Some(testJson
-          ))
+        willRespondWith = (200, Some(testJson))
       )
       val response: Dependencies = serviceDependenciesConnector
         .dependencies("repo1")
@@ -103,18 +101,18 @@ class ServiceDependenciesConnectorSpec
 
       val expectedResponse: Dependencies = Dependencies(
         "auth",
-        Seq(Dependency(
-          Seq(BobbyRuleViolation(
-            "TEST DEPRECATION",
-            LocalDate.parse("2050-05-01"),
-            "(,99.99.99)")),
-          "simple-reactivemongo")),
-
+        Seq(
+          Dependency(
+            Seq(BobbyRuleViolation("TEST DEPRECATION", LocalDate.parse("2050-05-01"), "(,99.99.99)")),
+            "simple-reactivemongo"
+          )
+        ),
         Seq(),
-        Seq())
+        Seq()
+      )
 
       implicit val df: Reads[Dependencies] = Dependencies.reads
-      val objectOutput = Json.parse(testJson).validate[Dependencies]
+      val objectOutput                     = Json.parse(testJson).validate[Dependencies]
       println(objectOutput.toString)
 
       response shouldBe expectedResponse
@@ -126,7 +124,8 @@ class ServiceDependenciesConnectorSpec
         willRespondWith = (
           404,
           None
-      ))
+        )
+      )
 
       val response = serviceDependenciesConnector
         .dependencies("repo1")
@@ -140,16 +139,12 @@ class ServiceDependenciesConnectorSpec
     implicit val brvR: Reads[BobbyRuleViolation] = BobbyRuleViolation.reads
     "parse json correctly" in {
       val dateFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
-      val jsonInput = """{"reason": "reason", "from": "1999-01-01", "range": "range"}"""
-      val objectOutput = Json.parse(jsonInput).validate[BobbyRuleViolation]
+      val jsonInput                        = """{"reason": "reason", "from": "1999-01-01", "range": "range"}"""
+      val objectOutput                     = Json.parse(jsonInput).validate[BobbyRuleViolation]
       objectOutput shouldBe
-        JsSuccess(BobbyRuleViolation(
-          "reason",
-          LocalDate.parse("1999-01-01", dateFormatter),
-          "range"))
+        JsSuccess(BobbyRuleViolation("reason", LocalDate.parse("1999-01-01", dateFormatter), "range"))
     }
   }
-
 
 }
 

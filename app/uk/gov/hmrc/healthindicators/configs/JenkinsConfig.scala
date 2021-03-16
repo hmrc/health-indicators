@@ -19,10 +19,10 @@ package uk.gov.hmrc.healthindicators.configs
 import javax.inject.Inject
 import play.api.Configuration
 
-class JenkinsConfig @Inject()(config: Configuration) {
+class JenkinsConfig @Inject() (config: Configuration) {
 
-  lazy val username: String = config.get[String]("jenkins.username")
-  lazy val token: String = config.get[String]("jenkins.token")
+  lazy val username: String    = config.get[String]("jenkins.username")
+  lazy val token: String       = config.get[String]("jenkins.token")
   lazy val jenkinsHost: String = config.get[String]("jenkins.host")
 
 }

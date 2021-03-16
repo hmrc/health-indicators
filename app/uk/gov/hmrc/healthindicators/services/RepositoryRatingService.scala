@@ -38,7 +38,7 @@ class RepositoryRatingService @Inject() (repository: HealthIndicatorsRepository,
     repository.latestAllRepositoryHealthIndicators(repoType).map { healthIndicators =>
       val repoRatings = rate(healthIndicators).sortBy(_.repositoryScore)
       sort match {
-        case SortType.Ascending => repoRatings
+        case SortType.Ascending  => repoRatings
         case SortType.Descending => repoRatings.reverse
       }
     }
@@ -46,7 +46,7 @@ class RepositoryRatingService @Inject() (repository: HealthIndicatorsRepository,
   def rate(healthIndicators: Seq[RepositoryHealthIndicator]): Seq[RepositoryRating] =
     for {
       indicator <- healthIndicators
-      rating          = indicator.indicators.map(createRating)
+      rating           = indicator.indicators.map(createRating)
       repositoryScore  = rating.map(_.ratingScore).sum
       repositoryRating = RepositoryRating(indicator.repositoryName, indicator.repositoryType, repositoryScore, rating)
     } yield repositoryRating
@@ -65,9 +65,9 @@ class RepositoryRatingService @Inject() (repository: HealthIndicatorsRepository,
 
   private def translateIndicatorType(indicatorType: IndicatorType): RatingType =
     indicatorType match {
-      case ReadMeIndicatorType        => ReadMe
-      case LeakDetectionIndicatorType => LeakDetection
-      case BobbyRuleIndicatorType     => BobbyRule
+      case ReadMeIndicatorType         => ReadMe
+      case LeakDetectionIndicatorType  => LeakDetection
+      case BobbyRuleIndicatorType      => BobbyRule
       case BuildStabilityIndicatorType => BuildStability
     }
 }

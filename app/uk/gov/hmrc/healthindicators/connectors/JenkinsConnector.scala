@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.healthindicators.connectors
 
-
 import java.time.Instant
 
 import com.google.common.io.BaseEncoding
@@ -29,10 +28,9 @@ import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, StringContextOps}
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class JenkinsConnector @Inject()(config: JenkinsConfig, http: HttpClient) {
+class JenkinsConnector @Inject() (config: JenkinsConfig, http: HttpClient) {
 
   import JenkinsApiReads._
-
 
   def getBuildJob(baseUrl: String)(implicit ec: ExecutionContext): Future[Option[JenkinsBuildReport]] = {
 
@@ -43,7 +41,7 @@ class JenkinsConnector @Inject()(config: JenkinsConfig, http: HttpClient) {
       s"Basic ${BaseEncoding.base64().encode(s"${config.username}:${config.token}".getBytes("UTF-8"))}"
 
     implicit val hc: HeaderCarrier = HeaderCarrier()
-    val url = url"${baseUrl}api/json?depth=1&tree=lastCompletedBuild[result,timestamp]"
+    val url                        = url"${baseUrl}api/json?depth=1&tree=lastCompletedBuild[result,timestamp]"
 
     http
       .GET[Option[JenkinsBuildReport]](
@@ -57,14 +55,11 @@ case class JenkinsBuildReport(lastCompletedBuild: Option[JenkinsBuildStatus])
 case class JenkinsBuildStatus(result: String, timeStamp: Instant)
 
 object JenkinsApiReads {
-  implicit val readsInstant: Reads[Instant] = (json: JsValue) =>
-    json.validate[Long].map(Instant.ofEpochMilli)
+  implicit val readsInstant: Reads[Instant] = (json: JsValue) => json.validate[Long].map(Instant.ofEpochMilli)
 
   implicit val jenkinsBuildStatus: Reads[JenkinsBuildStatus] =
-    ( (__ \ "result").read[String]
-      ~ (__ \ "timestamp").read[Instant]
-    )(JenkinsBuildStatus.apply _)
-
+    ((__ \ "result").read[String]
+      ~ (__ \ "timestamp").read[Instant])(JenkinsBuildStatus.apply _)
 
   implicit val jenkinsBuildReport: Reads[JenkinsBuildReport] = Json.reads[JenkinsBuildReport]
 

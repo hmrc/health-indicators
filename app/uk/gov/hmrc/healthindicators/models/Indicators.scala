@@ -42,7 +42,6 @@ case object JenkinsBuildUnstable extends JenkinsResultType
 case object JenkinsBuildNotFound extends JenkinsResultType
 case object JenkinsBuildOutdated extends JenkinsResultType
 
-
 object ResultType {
   val format: Format[ResultType] = new Format[ResultType] {
     override def reads(json: JsValue): JsResult[ResultType] =
@@ -107,8 +106,8 @@ case object BuildStabilityIndicatorType extends IndicatorType {
 
 object IndicatorType {
 
-  private val indicatorTypes = Set(ReadMeIndicatorType, LeakDetectionIndicatorType, BobbyRuleIndicatorType,
-    BuildStabilityIndicatorType)
+  private val indicatorTypes =
+    Set(ReadMeIndicatorType, LeakDetectionIndicatorType, BobbyRuleIndicatorType, BuildStabilityIndicatorType)
 
   def apply(value: String): Option[IndicatorType] = indicatorTypes.find(_.toString == value)
 
@@ -133,12 +132,17 @@ object Indicator {
   }
 }
 
-case class RepositoryHealthIndicator(repositoryName: String, timestamp: Instant, repositoryType: RepositoryType, indicators: Seq[Indicator])
+case class RepositoryHealthIndicator(
+  repositoryName: String,
+  timestamp: Instant,
+  repositoryType: RepositoryType,
+  indicators: Seq[Indicator]
+)
 
 object RepositoryHealthIndicator {
   val mongoFormats: OFormat[RepositoryHealthIndicator] = {
-    implicit val instantFormat: Format[Instant]     = MongoJavatimeFormats.instantFormats
-    implicit val indicatorFormat: Format[Indicator] = Indicator.format
+    implicit val instantFormat: Format[Instant]               = MongoJavatimeFormats.instantFormats
+    implicit val indicatorFormat: Format[Indicator]           = Indicator.format
     implicit val repositoryTypeFormat: Format[RepositoryType] = RepositoryType.format
     ((__ \ "repositoryName").format[String]
       ~ (__ \ "timestamp").format[Instant]

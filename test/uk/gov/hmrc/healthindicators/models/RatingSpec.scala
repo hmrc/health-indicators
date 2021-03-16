@@ -57,10 +57,9 @@ class RatingSpec extends AnyWordSpec with Matchers {
   "Rating" should {
     implicit val rW: Writes[Rating] = Rating.writes
     "write correct json" in {
-      val score = Score(10, "Foo", Some("www.google.com"))
+      val score  = Score(10, "Foo", Some("www.google.com"))
       val rating = Rating(ReadMe, 10, Seq(score))
-      Json.toJson(rating) mustBe Json.parse(
-        """{"ratingType":"ReadMe",
+      Json.toJson(rating) mustBe Json.parse("""{"ratingType":"ReadMe",
           |"ratingScore":10,
           |"breakdown":[{"points":10,
             |"description":"Foo",
@@ -72,11 +71,10 @@ class RatingSpec extends AnyWordSpec with Matchers {
   "RepositoryRating" should {
     implicit val sW: Writes[RepositoryRating] = RepositoryRating.writes
     "write correct json" in {
-      val score = Score(10, "Foo", Some("www.google.com"))
-      val rating = Rating(ReadMe, 10, Seq(score))
+      val score            = Score(10, "Foo", Some("www.google.com"))
+      val rating           = Rating(ReadMe, 10, Seq(score))
       val repositoryRating = RepositoryRating("foo", Service, 10, Seq(rating))
-      Json.toJson(repositoryRating) mustBe Json.parse(
-        """{"repositoryName":"foo",
+      Json.toJson(repositoryRating) mustBe Json.parse("""{"repositoryName":"foo",
           |"repositoryType":"Service",
           |"repositoryScore":10,
           |"ratings":[{

@@ -27,7 +27,7 @@ import uk.gov.hmrc.healthindicators.WireMockEndpoints
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 
 class GithubConnectorSpec
-  extends AnyWordSpec
+    extends AnyWordSpec
     with Matchers
     with GuiceOneAppPerSuite
     with OptionValues
@@ -39,9 +39,10 @@ class GithubConnectorSpec
       .configure(
         Map(
           "github.open.api.rawurl" -> endpointMockUrl,
-          "github.open.api.token" -> "test-token",
-          "metrics.jvm" -> false
-        ))
+          "github.open.api.token"  -> "test-token",
+          "metrics.jvm"            -> false
+        )
+      )
       .build()
 
   private lazy val githubConnector = app.injector.instanceOf[GithubConnector]
@@ -53,7 +54,8 @@ class GithubConnectorSpec
         GET,
         "/hmrc/repo1/master/README.md",
         requestHeaders = Map("Authorization" -> s"token test-token"),
-        willRespondWith = (200, Some("Hello World")))
+        willRespondWith = (200, Some("Hello World"))
+      )
 
       val response = githubConnector
         .findReadMe("repo1")
@@ -69,7 +71,8 @@ class GithubConnectorSpec
         GET,
         "/hmrc/repo1/master/README.md",
         requestHeaders = Map("Authorization" -> s"token test-token"),
-        willRespondWith = (404, None))
+        willRespondWith = (404, None)
+      )
 
       val response = githubConnector
         .findReadMe("repo1")
@@ -78,6 +81,5 @@ class GithubConnectorSpec
       response shouldBe None
     }
   }
-
 
 }
