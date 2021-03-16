@@ -34,7 +34,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class HealthIndicatorsRepository @Inject() (
   mongoComponent: MongoComponent,
   config: SchedulerConfigs
-                                           //TODO: is config actually used?
+  //TODO: is config actually used?
 )(implicit ec: ExecutionContext)
     extends PlayMongoRepository[RepositoryHealthIndicator](
       collectionName = "serviceHealthIndicators",
@@ -62,15 +62,14 @@ class HealthIndicatorsRepository @Inject() (
 
     repoType match {
       case Some(rt) => `match`(equal("repositoryType", rt.toString)) +: getLatest
-      case None => getLatest
+      case None     => getLatest
     }
   }
 
-  def latestAllRepositoryHealthIndicators(repoType: Option[RepositoryType]): Future[Seq[RepositoryHealthIndicator]] = {
+  def latestAllRepositoryHealthIndicators(repoType: Option[RepositoryType]): Future[Seq[RepositoryHealthIndicator]] =
     collection
       .aggregate(createPipeline(repoType))
       .toFuture()
-  }
 
   def insert(indicator: RepositoryHealthIndicator): Future[Unit] =
     collection

@@ -18,7 +18,6 @@ package uk.gov.hmrc.healthindicators.raters
 
 import java.time.{Duration, Instant}
 
-
 import org.mockito.{ArgumentMatchersSugar, MockitoSugar}
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.must.Matchers
@@ -30,21 +29,25 @@ import uk.gov.hmrc.http.HeaderCarrier
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-
-class BuildStabilityRaterSpec extends AnyWordSpec with Matchers with MockitoSugar with ScalaFutures with ArgumentMatchersSugar {
+class BuildStabilityRaterSpec
+    extends AnyWordSpec
+    with Matchers
+    with MockitoSugar
+    with ScalaFutures
+    with ArgumentMatchersSugar {
 
   private val mockTeamsAndRepositoriesConnector: TeamsAndRepositoriesConnector = mock[TeamsAndRepositoriesConnector]
-  private val mockJenkinsConnector: JenkinsConnector = mock[JenkinsConnector]
-  private val rater: BuildStabilityRater = new BuildStabilityRater(mockJenkinsConnector, mockTeamsAndRepositoriesConnector)
+  private val mockJenkinsConnector: JenkinsConnector                           = mock[JenkinsConnector]
+  private val rater: BuildStabilityRater =
+    new BuildStabilityRater(mockJenkinsConnector, mockTeamsAndRepositoriesConnector)
 
   implicit val hc: HeaderCarrier = HeaderCarrier()
-
-
 
   "BuildStability rate" should {
 
     "return Indicator with JenkinsBuildNotFound result when no build is found" in {
-      when(mockTeamsAndRepositoriesConnector.getJenkinsUrl(eqTo("foo"))(any[HeaderCarrier])).thenReturn(Future.successful(None))
+      when(mockTeamsAndRepositoriesConnector.getJenkinsUrl(eqTo("foo"))(any[HeaderCarrier]))
+        .thenReturn(Future.successful(None))
       when(mockJenkinsConnector.getBuildJob("foo")).thenReturn(Future.successful(Some(JenkinsBuildReport(None))))
 
       val result = rater.rate("foo").futureValue
@@ -56,7 +59,8 @@ class BuildStabilityRaterSpec extends AnyWordSpec with Matchers with MockitoSuga
     "return Indicator with JenkinsBuildNotFound result when no jenkins job matches URL" in {
       val url = new JenkinsUrl("foo/123")
 
-      when(mockTeamsAndRepositoriesConnector.getJenkinsUrl(eqTo("foo"))(any[HeaderCarrier])).thenReturn(Future.successful(Some(url)))
+      when(mockTeamsAndRepositoriesConnector.getJenkinsUrl(eqTo("foo"))(any[HeaderCarrier]))
+        .thenReturn(Future.successful(Some(url)))
       when(mockJenkinsConnector.getBuildJob(url.jenkinsURL)).thenReturn(Future.successful(None))
 
       val result = rater.rate("foo").futureValue
@@ -66,10 +70,11 @@ class BuildStabilityRaterSpec extends AnyWordSpec with Matchers with MockitoSuga
     }
 
     "return Indicator with JenkinsBuildStable result when build is found" in {
-      val url = new JenkinsUrl("foo/123")
+      val url         = new JenkinsUrl("foo/123")
       val buildReport = JenkinsBuildReport(Some(JenkinsBuildStatus("SUCCESS", Instant.now())))
 
-      when(mockTeamsAndRepositoriesConnector.getJenkinsUrl(eqTo("foo"))(any[HeaderCarrier])).thenReturn(Future.successful(Some(url)))
+      when(mockTeamsAndRepositoriesConnector.getJenkinsUrl(eqTo("foo"))(any[HeaderCarrier]))
+        .thenReturn(Future.successful(Some(url)))
       when(mockJenkinsConnector.getBuildJob(url.jenkinsURL)).thenReturn(Future.successful(Some(buildReport)))
 
       val result = rater.rate("foo").futureValue
@@ -79,13 +84,13 @@ class BuildStabilityRaterSpec extends AnyWordSpec with Matchers with MockitoSuga
     }
   }
 
-
   "getResultType" should {
     "be stable if last build was successful" in {
       val jenkinsBuildStable =
         JenkinsBuildReport(Some(JenkinsBuildStatus("SUCCESS", Instant.now())))
 
-      BuildStabilityRater.getResultType(jenkinsBuildStable) mustBe Result(JenkinsBuildStable, "Build Stable: Everything is good", None)
+      BuildStabilityRater
+        .getResultType(jenkinsBuildStable) mustBe Result(JenkinsBuildStable, "Build Stable: Everything is good", None)
 
     }
 
@@ -93,7 +98,11 @@ class BuildStabilityRaterSpec extends AnyWordSpec with Matchers with MockitoSuga
       val jenkinsBuildOutdated =
         JenkinsBuildReport(Some(JenkinsBuildStatus("SUCCESS", Instant.now().minus(Duration.ofDays(301)))))
 
-      BuildStabilityRater.getResultType(jenkinsBuildOutdated) mustBe Result(JenkinsBuildOutdated, "Build Outdated: Not been built in the last 300 days", None)
+      BuildStabilityRater.getResultType(jenkinsBuildOutdated) mustBe Result(
+        JenkinsBuildOutdated,
+        "Build Outdated: Not been built in the last 300 days",
+        None
+      )
 
     }
 
@@ -101,16 +110,23 @@ class BuildStabilityRaterSpec extends AnyWordSpec with Matchers with MockitoSuga
       val jenkinsBuildStable =
         JenkinsBuildReport(Some(JenkinsBuildStatus("FAILURE", Instant.now().minus(Duration.ofDays(1)))))
 
-      BuildStabilityRater.getResultType(jenkinsBuildStable) mustBe Result(JenkinsBuildStable, "Build Stable: Build recently failed", None)
+      BuildStabilityRater.getResultType(jenkinsBuildStable) mustBe Result(
+        JenkinsBuildStable,
+        "Build Stable: Build recently failed",
+        None
+      )
 
     }
-
 
     "be unstable when build has been broken for more than 2 days" in {
       val jenkinsBuildUnstable =
         JenkinsBuildReport(Some(JenkinsBuildStatus("FAILURE", Instant.now().minus(Duration.ofDays(3)))))
 
-      BuildStabilityRater.getResultType(jenkinsBuildUnstable) mustBe Result(JenkinsBuildUnstable, "Build Unstable: has been broken for more than 2 days", None)
+      BuildStabilityRater.getResultType(jenkinsBuildUnstable) mustBe Result(
+        JenkinsBuildUnstable,
+        "Build Unstable: has been broken for more than 2 days",
+        None
+      )
 
     }
 
@@ -118,15 +134,20 @@ class BuildStabilityRaterSpec extends AnyWordSpec with Matchers with MockitoSuga
       val jenkinsBuildNotFound =
         JenkinsBuildReport(Some(JenkinsBuildStatus("UNKNOWN STATUS", Instant.now().minus(Duration.ofDays(3)))))
 
-      BuildStabilityRater.getResultType(jenkinsBuildNotFound) mustBe Result(JenkinsBuildNotFound, "Unknown Status: UNKNOWN STATUS", None)
+      BuildStabilityRater
+        .getResultType(jenkinsBuildNotFound) mustBe Result(JenkinsBuildNotFound, "Unknown Status: UNKNOWN STATUS", None)
 
-      }
+    }
 
     "build is not found when it has never been built" in {
       val jenkinsBuildNotFound =
         JenkinsBuildReport(None)
 
-      BuildStabilityRater.getResultType(jenkinsBuildNotFound) mustBe Result(JenkinsBuildNotFound, "Build Not Found: Never been built", None)
+      BuildStabilityRater.getResultType(jenkinsBuildNotFound) mustBe Result(
+        JenkinsBuildNotFound,
+        "Build Not Found: Never been built",
+        None
+      )
 
     }
   }

@@ -38,10 +38,10 @@ class TestController @Inject() (
   teamsAndRepositoriesConnector: TeamsAndRepositoriesConnector,
   jenkinsConnector: JenkinsConnector,
   cc: ControllerComponents
-) (implicit ec: ExecutionContext)
-  extends BackendController(cc) {
+)(implicit ec: ExecutionContext)
+    extends BackendController(cc) {
 
-  def test(repo: String): Action[AnyContent] = {
+  def test(repo: String): Action[AnyContent] =
     Action.async {
       implicit val hc: HeaderCarrier = HeaderCarrier()
       for {
@@ -49,5 +49,4 @@ class TestController @Inject() (
         result = Ok(Json.toJson(url))
       } yield result
     }
-  }
 }

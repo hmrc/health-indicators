@@ -16,14 +16,11 @@
 
 package uk.gov.hmrc.healthindicators.models
 
-
-
 import play.api.mvc.{QueryStringBindable}
 
-
-sealed trait SortType { def asString: String}
+sealed trait SortType { def asString: String }
 object SortType {
-  case object Ascending  extends SortType { val asString = "asc"  }
+  case object Ascending extends SortType { val asString = "asc" }
   case object Descending extends SortType { val asString = "desc" }
 
   val values: List[SortType] = List(Ascending, Descending)
@@ -33,18 +30,16 @@ object SortType {
 
   implicit val sortTypeBindable: QueryStringBindable[SortType] =
     new QueryStringBindable[SortType] {
-      override def bind(key: String, params: Map[String, Seq[String]]): Option[Either[String, SortType]] = {
+      override def bind(key: String, params: Map[String, Seq[String]]): Option[Either[String, SortType]] =
         params.get(key).map { values =>
-              values.toList match {
-                case Nil => Left("Missing sort value")
-                case head :: Nil => values.map(s => parse(s).toRight(s"invalid sort type")).head
-                case _ => Left("Too many sort values")
-              }
-            }
-      }
+          values.toList match {
+            case Nil         => Left("Missing sort value")
+            case head :: Nil => values.map(s => parse(s).toRight(s"invalid sort type")).head
+            case _           => Left("Too many sort values")
+          }
+        }
 
       override def unbind(key: String, value: SortType): String =
         value.asString
     }
 }
-

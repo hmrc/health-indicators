@@ -25,54 +25,71 @@ import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats
 sealed trait ResultType
 
 sealed trait ReadMeResultType extends ResultType
-case object NoReadme extends ReadMeResultType
-case object DefaultReadme extends ReadMeResultType
-case object ValidReadme extends ReadMeResultType
+
+case object ValidReadme extends ReadMeResultType {
+  override def toString: String = "valid-readme"
+}
+case object DefaultReadme extends ReadMeResultType {
+  override def toString: String = "default-readme"
+}
+case object NoReadme extends ReadMeResultType {
+  override def toString: String = "no-readme"
+}
 
 sealed trait LeakDetectionResultType extends ResultType
-case object LeakDetectionViolation extends LeakDetectionResultType
+
+case object LeakDetectionViolation extends LeakDetectionResultType {
+  override def toString: String = "leak-detection-violation"
+}
 
 sealed trait BobbyRuleResultType extends ResultType
-case object BobbyRulePending extends BobbyRuleResultType
-case object BobbyRuleActive extends BobbyRuleResultType
+
+case object BobbyRulePending extends BobbyRuleResultType {
+  override def toString: String = "bobby-rule-pending"
+}
+case object BobbyRuleActive extends BobbyRuleResultType {
+  override def toString: String = "bobby-rule-active"
+}
 
 sealed trait JenkinsResultType extends ResultType
-case object JenkinsBuildStable extends JenkinsResultType
-case object JenkinsBuildUnstable extends JenkinsResultType
-case object JenkinsBuildNotFound extends JenkinsResultType
-case object JenkinsBuildOutdated extends JenkinsResultType
 
+case object JenkinsBuildStable extends JenkinsResultType {
+  override def toString: String = "jenkins-build-stable"
+}
+case object JenkinsBuildUnstable extends JenkinsResultType {
+  override def toString: String = "jenkins-build-unstable"
+}
+case object JenkinsBuildNotFound extends JenkinsResultType {
+  override def toString: String = "jenkins-build-not-found"
+}
+case object JenkinsBuildOutdated extends JenkinsResultType {
+  override def toString: String = "jenkins-build-outdated"
+}
 
 object ResultType {
+
+  private val resultTypes = Set(
+    ValidReadme,
+    DefaultReadme,
+    NoReadme,
+    LeakDetectionViolation,
+    BobbyRulePending,
+    BobbyRuleActive,
+    JenkinsBuildStable,
+    JenkinsBuildUnstable,
+    JenkinsBuildNotFound,
+    JenkinsBuildOutdated
+  )
+
+  def apply(value: String): Option[ResultType] = resultTypes.find(_.toString == value)
+
   val format: Format[ResultType] = new Format[ResultType] {
     override def reads(json: JsValue): JsResult[ResultType] =
-      json.validate[String].flatMap {
-        case "valid-readme"             => JsSuccess(ValidReadme)
-        case "default-readme"           => JsSuccess(DefaultReadme)
-        case "no-readme"                => JsSuccess(NoReadme)
-        case "leak-detection-violation" => JsSuccess(LeakDetectionViolation)
-        case "bobby-rule-pending"       => JsSuccess(BobbyRulePending)
-        case "bobby-rule-active"        => JsSuccess(BobbyRuleActive)
-        case "jenkins-build-stable"     => JsSuccess(JenkinsBuildStable)
-        case "jenkins-build-unstable"   => JsSuccess(JenkinsBuildUnstable)
-        case "jenkins-build-not-found"  => JsSuccess(JenkinsBuildNotFound)
-        case "jenkins-build-outdated"   => JsSuccess(JenkinsBuildOutdated)
-        case s                          => JsError(s"Invalid Result Type: $s")
+      json.validate[String].flatMap { str =>
+        ResultType(str).fold[JsResult[ResultType]](JsError(s"Invalid Result Type: $str"))(JsSuccess(_))
       }
 
-    override def writes(o: ResultType): JsValue =
-      o match {
-        case ValidReadme            => JsString("valid-readme")
-        case DefaultReadme          => JsString("default-readme")
-        case NoReadme               => JsString("no-readme")
-        case LeakDetectionViolation => JsString("leak-detection-violation")
-        case BobbyRulePending       => JsString("bobby-rule-pending")
-        case BobbyRuleActive        => JsString("bobby-rule-active")
-        case JenkinsBuildStable     => JsString("jenkins-build-stable")
-        case JenkinsBuildUnstable   => JsString("jenkins-build-unstable")
-        case JenkinsBuildNotFound   => JsString("jenkins-build-not-found")
-        case JenkinsBuildOutdated   => JsString("jenkins-build-outdated")
-      }
+    override def writes(o: ResultType): JsValue = JsString(o.toString)
   }
 }
 
@@ -89,33 +106,36 @@ object Result {
 
 sealed trait IndicatorType
 
-case object ReadMeIndicatorType extends IndicatorType
+case object ReadMeIndicatorType extends IndicatorType {
+  override def toString: String = "read-me-indicator"
+}
 
-case object LeakDetectionIndicatorType extends IndicatorType
+case object LeakDetectionIndicatorType extends IndicatorType {
+  override def toString: String = "leak-detection-indicator"
+}
 
-case object BobbyRuleIndicatorType extends IndicatorType
+case object BobbyRuleIndicatorType extends IndicatorType {
+  override def toString: String = "bobby-rule-indicator"
+}
 
-case object BuildStabilityIndicatorType extends IndicatorType
+case object BuildStabilityIndicatorType extends IndicatorType {
+  override def toString: String = "build-stability-indicator"
+}
 
 object IndicatorType {
+
+  private val indicatorTypes =
+    Set(ReadMeIndicatorType, LeakDetectionIndicatorType, BobbyRuleIndicatorType, BuildStabilityIndicatorType)
+
+  def apply(value: String): Option[IndicatorType] = indicatorTypes.find(_.toString == value)
+
   val format: Format[IndicatorType] = new Format[IndicatorType] {
     override def reads(json: JsValue): JsResult[IndicatorType] =
-      json.validate[String].flatMap {
-        case "read-me-indicator"            => JsSuccess(ReadMeIndicatorType)
-        case "leak-detection-indicator"     => JsSuccess(LeakDetectionIndicatorType)
-        case "bobby-rule-indicator"         => JsSuccess(BobbyRuleIndicatorType)
-        case "build-stability-indicator"  => JsSuccess(BuildStabilityIndicatorType)
-        case s                              => JsError(s"Invalid Indicator: $s")
+      json.validate[String].flatMap { str =>
+        IndicatorType(str).fold[JsResult[IndicatorType]](JsError(s"Invalid Indicator: $str"))(JsSuccess(_))
       }
 
-    override def writes(o: IndicatorType): JsValue =
-      o match {
-        case ReadMeIndicatorType          => JsString("read-me-indicator")
-        case LeakDetectionIndicatorType   => JsString("leak-detection-indicator")
-        case BobbyRuleIndicatorType       => JsString("bobby-rule-indicator")
-        case BuildStabilityIndicatorType  => JsString("build-stability-indicator")
-        case s                            => JsString(s"$s")
-      }
+    override def writes(o: IndicatorType): JsValue = JsString(o.toString)
   }
 }
 
@@ -130,12 +150,17 @@ object Indicator {
   }
 }
 
-case class RepositoryHealthIndicator(repositoryName: String, timestamp: Instant, repositoryType: RepositoryType, indicators: Seq[Indicator])
+case class RepositoryHealthIndicator(
+  repositoryName: String,
+  timestamp: Instant,
+  repositoryType: RepositoryType,
+  indicators: Seq[Indicator]
+)
 
 object RepositoryHealthIndicator {
   val mongoFormats: OFormat[RepositoryHealthIndicator] = {
-    implicit val instantFormat: Format[Instant]     = MongoJavatimeFormats.instantFormats
-    implicit val indicatorFormat: Format[Indicator] = Indicator.format
+    implicit val instantFormat: Format[Instant]               = MongoJavatimeFormats.instantFormats
+    implicit val indicatorFormat: Format[Indicator]           = Indicator.format
     implicit val repositoryTypeFormat: Format[RepositoryType] = RepositoryType.format
     ((__ \ "repositoryName").format[String]
       ~ (__ \ "timestamp").format[Instant]

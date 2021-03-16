@@ -41,9 +41,19 @@ class RepositoryRatingServiceSpec extends AnyWordSpec with Matchers with Mockito
   private val leakDetectionRating: Indicator =
     Indicator(LeakDetectionIndicatorType, Seq(Result(LeakDetectionViolation, "desc", None)))
   private val healthIndicatorOne: RepositoryHealthIndicator =
-    RepositoryHealthIndicator("foo", Instant.now(), Service, Seq(bobbyRulesRating, readMeRatingOne, leakDetectionRating))
+    RepositoryHealthIndicator(
+      "foo",
+      Instant.now(),
+      Service,
+      Seq(bobbyRulesRating, readMeRatingOne, leakDetectionRating)
+    )
   private val healthIndicatorTwo: RepositoryHealthIndicator =
-    RepositoryHealthIndicator("bar", Instant.now(), Service, Seq(bobbyRulesRating, readMeRatingTwo, leakDetectionRating))
+    RepositoryHealthIndicator(
+      "bar",
+      Instant.now(),
+      Service,
+      Seq(bobbyRulesRating, readMeRatingTwo, leakDetectionRating)
+    )
 
   private val scoreConfig       = new ScoreConfig
   private val repoScorerService = new RepositoryRatingService(mockRepository, scoreConfig)
@@ -61,11 +71,11 @@ class RepositoryRatingServiceSpec extends AnyWordSpec with Matchers with Mockito
           "foo",
           Service,
           -200,
-            Seq(
-              Rating(BobbyRule, -100, Seq(Score(-100, "desc", None))),
-              Rating(ReadMe, -50, Seq(Score(-50, "desc", None))),
-              Rating(LeakDetection, -50, Seq(Score(-50, "desc", None)))
-            )
+          Seq(
+            Rating(BobbyRule, -100, Seq(Score(-100, "desc", None))),
+            Rating(ReadMe, -50, Seq(Score(-50, "desc", None))),
+            Rating(LeakDetection, -50, Seq(Score(-50, "desc", None)))
+          )
         )
       )
     }
@@ -81,20 +91,21 @@ class RepositoryRatingServiceSpec extends AnyWordSpec with Matchers with Mockito
           "foo",
           Service,
           -200,
-            Seq(
-              Rating(BobbyRule, -100, Seq(Score(-100, "desc", None))),
-              Rating(ReadMe, -50, Seq(Score(-50, "desc", None))),
-              Rating(LeakDetection, -50, Seq(Score(-50, "desc", None)))
-            )
-        ),RepositoryRating(
+          Seq(
+            Rating(BobbyRule, -100, Seq(Score(-100, "desc", None))),
+            Rating(ReadMe, -50, Seq(Score(-50, "desc", None))),
+            Rating(LeakDetection, -50, Seq(Score(-50, "desc", None)))
+          )
+        ),
+        RepositoryRating(
           "bar",
           Service,
           -100,
-            Seq(
-              Rating(BobbyRule, -100, Seq(Score(-100, "desc", None))),
-              Rating(ReadMe, 50, Seq(Score(50, "desc", None))),
-              Rating(LeakDetection, -50, Seq(Score(-50, "desc", None)))
-            )
+          Seq(
+            Rating(BobbyRule, -100, Seq(Score(-100, "desc", None))),
+            Rating(ReadMe, 50, Seq(Score(50, "desc", None))),
+            Rating(LeakDetection, -50, Seq(Score(-50, "desc", None)))
+          )
         )
       )
     }
@@ -110,25 +121,23 @@ class RepositoryRatingServiceSpec extends AnyWordSpec with Matchers with Mockito
           "bar",
           Service,
           -100,
-            Seq(
-              Rating(BobbyRule, -100, Seq(Score(-100, "desc", None))),
-              Rating(ReadMe, 50, Seq(Score(50, "desc", None))),
-              Rating(LeakDetection, -50, Seq(Score(-50, "desc", None)))
-            )
-        ),  RepositoryRating(
+          Seq(
+            Rating(BobbyRule, -100, Seq(Score(-100, "desc", None))),
+            Rating(ReadMe, 50, Seq(Score(50, "desc", None))),
+            Rating(LeakDetection, -50, Seq(Score(-50, "desc", None)))
+          )
+        ),
+        RepositoryRating(
           "foo",
           Service,
           -200,
-            Seq(
-              Rating(BobbyRule, -100, Seq(Score(-100, "desc", None))),
-              Rating(ReadMe, -50, Seq(Score(-50, "desc", None))),
-              Rating(LeakDetection, -50, Seq(Score(-50, "desc", None)))
-            )
+          Seq(
+            Rating(BobbyRule, -100, Seq(Score(-100, "desc", None))),
+            Rating(ReadMe, -50, Seq(Score(-50, "desc", None))),
+            Rating(LeakDetection, -50, Seq(Score(-50, "desc", None)))
+          )
         )
       )
     }
   }
 }
-
-
-

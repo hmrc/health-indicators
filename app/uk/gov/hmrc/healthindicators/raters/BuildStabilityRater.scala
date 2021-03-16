@@ -25,10 +25,11 @@ import scala.concurrent.{ExecutionContext, Future}
 import java.time.{Duration, Instant}
 import uk.gov.hmrc.healthindicators.raters.BuildStabilityRater.getResultType
 
-
-
-class BuildStabilityRater @Inject()(jenkinsConnector: JenkinsConnector, teamsAndRepositoriesConnector: TeamsAndRepositoriesConnector)(implicit val ec: ExecutionContext)
-  extends Rater {
+class BuildStabilityRater @Inject() (
+  jenkinsConnector: JenkinsConnector,
+  teamsAndRepositoriesConnector: TeamsAndRepositoriesConnector
+)(implicit val ec: ExecutionContext)
+    extends Rater {
 
   private val logger = Logger(this.getClass)
 
@@ -39,14 +40,17 @@ class BuildStabilityRater @Inject()(jenkinsConnector: JenkinsConnector, teamsAnd
 
     for {
       maybeUrl <- teamsAndRepositoriesConnector.getJenkinsUrl(repo)
-      buildReport <- maybeUrl.map(url => jenkinsConnector.getBuildJob(url.jenkinsURL)).getOrElse(Future.successful(None))
-      result = buildReport.map(i => getResultType(i)).getOrElse(Result(JenkinsBuildNotFound, s"No Jenkins Build Found for: $repo", None))
+      buildReport <-
+        maybeUrl.map(url => jenkinsConnector.getBuildJob(url.jenkinsURL)).getOrElse(Future.successful(None))
+      result = buildReport
+                 .map(i => getResultType(i))
+                 .getOrElse(Result(JenkinsBuildNotFound, s"No Jenkins Build Found for: $repo", None))
     } yield Indicator(BuildStabilityIndicatorType, Seq(result))
   }
 }
 
 object BuildStabilityRater {
-  def getResultType(jenkinsBuildReport: JenkinsBuildReport): Result = {
+  def getResultType(jenkinsBuildReport: JenkinsBuildReport): Result =
     jenkinsBuildReport.lastCompletedBuild match {
       case Some(JenkinsBuildStatus("FAILURE", timeStamp)) if Duration.between(timeStamp, Instant.now()).toDays > 2 =>
         Result(JenkinsBuildUnstable, "Build Unstable: has been broken for more than 2 days", None)
@@ -57,11 +61,11 @@ object BuildStabilityRater {
       case Some(JenkinsBuildStatus("SUCCESS", timeStamp)) if Duration.between(timeStamp, Instant.now()).toDays > 300 =>
         Result(JenkinsBuildOutdated, "Build Outdated: Not been built in the last 300 days", None)
 
-      case Some(JenkinsBuildStatus("SUCCESS", _)) => Result(JenkinsBuildStable, "Build Stable: Everything is good", None)
+      case Some(JenkinsBuildStatus("SUCCESS", _)) =>
+        Result(JenkinsBuildStable, "Build Stable: Everything is good", None)
 
       case Some(JenkinsBuildStatus(status, _)) => Result(JenkinsBuildNotFound, s"Unknown Status: $status", None)
 
       case None => Result(JenkinsBuildNotFound, "Build Not Found: Never been built", None)
     }
-  }
 }

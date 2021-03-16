@@ -21,8 +21,6 @@ import play.api.libs.json.Format.GenericFormat
 import play.api.libs.json.{Format, JsString, Writes, __}
 import uk.gov.hmrc.healthindicators.connectors.RepositoryType
 
-
-
 sealed trait RatingType
 
 object RatingType {
@@ -60,11 +58,16 @@ object Rating {
   }
 }
 
-case class RepositoryRating(repositoryName: String, repositoryType: RepositoryType, repositoryScore: Int, ratings: Seq[Rating])
+case class RepositoryRating(
+  repositoryName: String,
+  repositoryType: RepositoryType,
+  repositoryScore: Int,
+  ratings: Seq[Rating]
+)
 
 object RepositoryRating {
   val writes: Writes[RepositoryRating] = {
-    implicit val rW: Writes[Rating] = Rating.writes
+    implicit val rW: Writes[Rating]          = Rating.writes
     implicit val rtF: Format[RepositoryType] = RepositoryType.format
     ((__ \ "repositoryName").write[String]
       ~ (__ \ "repositoryType").write[RepositoryType]

@@ -33,7 +33,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 class JenkinsConnectorSpec
-  extends AnyWordSpec
+    extends AnyWordSpec
     with Matchers
     with GuiceOneAppPerSuite
     with OptionValues
@@ -45,8 +45,9 @@ class JenkinsConnectorSpec
       .configure(
         Map(
           "jenkins.username" -> "username",
-          "jenkins.token" -> "token",
-        ))
+          "jenkins.token"    -> "token"
+        )
+      )
       .build()
 
   val connector = app.injector.instanceOf[JenkinsConnector]
@@ -78,9 +79,7 @@ class JenkinsConnectorSpec
         .futureValue
         .value
 
-
       val expectedOutput = JenkinsBuildReport(Some(JenkinsBuildStatus("SUCCESS", Instant.ofEpochMilli(1614779578869L))))
-
 
       response shouldBe expectedOutput
     }
@@ -111,16 +110,17 @@ class JenkinsConnectorSpec
         .futureValue
         .value
 
-
       val expectedOutput = JenkinsBuildReport(Some(JenkinsBuildStatus("SUCCESS", Instant.ofEpochMilli(1614779578869L))))
-
 
       response shouldBe expectedOutput
     }
 
     "Return a None if build job not found" in {
-      serviceEndpoint(GET, "/job/GG/job/test/api/json?depth=1&tree=lastCompletedBuild%5Bresult,timestamp%5D",
-        willRespondWith = (404, None))
+      serviceEndpoint(
+        GET,
+        "/job/GG/job/test/api/json?depth=1&tree=lastCompletedBuild%5Bresult,timestamp%5D",
+        willRespondWith = (404, None)
+      )
 
       val response: Option[JenkinsBuildReport] = connector
         .getBuildJob(s"http://$host:$endpointPort/job/GG/job/non-existing/")
@@ -129,9 +129,5 @@ class JenkinsConnectorSpec
       response shouldBe None
     }
   }
-
-
-
-
 
 }

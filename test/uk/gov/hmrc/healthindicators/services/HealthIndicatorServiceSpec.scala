@@ -41,23 +41,20 @@ class HealthIndicatorServiceSpec extends AnyWordSpec with Matchers with MockitoS
     )
 
   val teamsAndRepositoriesConnector: TeamsAndRepositoriesConnector = mock[TeamsAndRepositoriesConnector]
-  val mockRater: Rater = mock[Rater]
-  val raterList = List(mockRater)
-  val healthIndicatorsRepository: HealthIndicatorsRepository = mock[HealthIndicatorsRepository]
+  val mockRater: Rater                                             = mock[Rater]
+  val raterList                                                    = List(mockRater)
+  val healthIndicatorsRepository: HealthIndicatorsRepository       = mock[HealthIndicatorsRepository]
 
-  val healthIndicatorService = new HealthIndicatorService(
-    teamsAndRepositoriesConnector,
-    raterList,
-    healthIndicatorsRepository)
+  val healthIndicatorService =
+    new HealthIndicatorService(teamsAndRepositoriesConnector, raterList, healthIndicatorsRepository)
 
   "insertHealthIndicators" should {
     "traverse all repos and create a repository indicator for each, inserting them into a mongo repo" in {
       implicit val hc: HeaderCarrier = HeaderCarrier()
       when(teamsAndRepositoriesConnector.allRepositories) thenReturn
-        Future.successful(List(
-          TeamsAndRepos("repo1", Service),
-          TeamsAndRepos("repo2", Service),
-          TeamsAndRepos("repo3", Service)))
+        Future.successful(
+          List(TeamsAndRepos("repo1", Service), TeamsAndRepos("repo2", Service), TeamsAndRepos("repo3", Service))
+        )
 
       when(mockRater.rate(any)) thenReturn
         Future.successful(Indicator(ReadMeIndicatorType, Seq(Result(ValidReadme, "bar", None))))

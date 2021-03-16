@@ -77,7 +77,7 @@ class HealthIndicatorsRepositorySpec
 
     val fooLatest = RepositoryHealthIndicator("foo", Instant.now, Service, Seq.empty)
     val fooOlder  = RepositoryHealthIndicator("foo", Instant.now.minus(1, ChronoUnit.DAYS), Service, Seq.empty)
-    val fooOldest = RepositoryHealthIndicator("foo", Instant.now.minus(2, ChronoUnit.DAYS), Service,Seq.empty)
+    val fooOldest = RepositoryHealthIndicator("foo", Instant.now.minus(2, ChronoUnit.DAYS), Service, Seq.empty)
 
     val barLatest = RepositoryHealthIndicator("bar", Instant.now, Prototype, Seq.empty)
     val barOlder  = RepositoryHealthIndicator("bar", Instant.now.minus(1, ChronoUnit.DAYS), Prototype, Seq.empty)

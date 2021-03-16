@@ -44,10 +44,10 @@ class RepoScoreController @Inject() (
   def scoreAllRepos(repoType: Option[RepositoryType], sort: SortType): Action[AnyContent] = {
     implicit val writes: Writes[RepositoryRating] = RepositoryRating.writes
     Action.async {
-        for {
-          allRepos <- repoScorerService.rateAllRepositories(repoType, sort)
-          result = Ok(Json.toJson(allRepos))
-        } yield result
+      for {
+        allRepos <- repoScorerService.rateAllRepositories(repoType, sort)
+        result = Ok(Json.toJson(allRepos))
+      } yield result
     }
   }
 }

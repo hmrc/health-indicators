@@ -29,11 +29,11 @@ import uk.gov.hmrc.healthindicators.connectors.RepositoryType.{Library, Other, P
 import uk.gov.hmrc.http.HeaderCarrier
 
 class TeamsAndRepositoriesConnectorSpec
-  extends AnyWordSpec
-  with Matchers
-  with GuiceOneAppPerSuite
-  with OptionValues
-  with WireMockEndpoints {
+    extends AnyWordSpec
+    with Matchers
+    with GuiceOneAppPerSuite
+    with OptionValues
+    with WireMockEndpoints {
 
   override def fakeApplication: Application =
     new GuiceApplicationBuilder()
@@ -42,8 +42,9 @@ class TeamsAndRepositoriesConnectorSpec
         Map(
           "microservice.services.teams-and-repositories.port" -> endpointPort,
           "microservice.services.teams-and-repositories.host" -> host,
-          "metrics.jvm" -> false
-        ))
+          "metrics.jvm"                                       -> false
+        )
+      )
       .build()
 
   private lazy val teamsAndRepositoriesConnector = app.injector.instanceOf[TeamsAndRepositoriesConnector]
@@ -77,13 +78,12 @@ class TeamsAndRepositoriesConnectorSpec
     "use repository name to return a None when no jenkins url found" in new Setup {
       serviceEndpoint(GET, "/api/jenkins-url/test", willRespondWith = (404, None))
       val response = teamsAndRepositoriesConnector
-      .getJenkinsUrl("test")
-      .futureValue
+        .getJenkinsUrl("test")
+        .futureValue
 
       response shouldBe None
-      }
+    }
   }
-
 
   "GET allRepositories" should {
     "return a list of all repositories" in new Setup {
@@ -117,9 +117,9 @@ class TeamsAndRepositoriesConnectorSpec
               "language": "CSS",
               "archived": false
             }]"""
-          ))
+          )
+        )
       )
-
 
       val response = teamsAndRepositoriesConnector
         .allRepositories(headerCarrier)
@@ -136,14 +136,14 @@ class TeamsAndRepositoriesConnectorSpec
 
     "bind query string correctly when given a valid repoType" in {
       val paramsPrototype = Map("repoType" -> Seq(Prototype.toString))
-      val paramsService = Map("repoType" -> Seq(Service.toString))
-      val paramsLibrary = Map("repoType" -> Seq(Library.toString))
-      val paramsOther = Map("repoType" -> Seq(Other.toString))
+      val paramsService   = Map("repoType" -> Seq(Service.toString))
+      val paramsLibrary   = Map("repoType" -> Seq(Library.toString))
+      val paramsOther     = Map("repoType" -> Seq(Other.toString))
 
       RepositoryType.queryStringBindable.bind(key = "repoType", paramsPrototype).value shouldBe Right(Prototype)
-      RepositoryType.queryStringBindable.bind(key = "repoType", paramsService).value shouldBe Right(Service)
-      RepositoryType.queryStringBindable.bind(key = "repoType", paramsLibrary).value shouldBe Right(Library)
-      RepositoryType.queryStringBindable.bind(key = "repoType", paramsOther).value shouldBe Right(Other)
+      RepositoryType.queryStringBindable.bind(key = "repoType", paramsService).value   shouldBe Right(Service)
+      RepositoryType.queryStringBindable.bind(key = "repoType", paramsLibrary).value   shouldBe Right(Library)
+      RepositoryType.queryStringBindable.bind(key = "repoType", paramsOther).value     shouldBe Right(Other)
     }
 
     "not bind when no query string is given" in {
@@ -165,8 +165,6 @@ class TeamsAndRepositoriesConnectorSpec
       RepositoryType.queryStringBindable.bind(key = "repoType", params) shouldBe None
     }
   }
-
-
 
   private trait Setup {
     implicit val headerCarrier: HeaderCarrier = HeaderCarrier()

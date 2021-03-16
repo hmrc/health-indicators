@@ -32,7 +32,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class HealthIndicatorService @Inject() (
   teamsAndRepositoriesConnector: TeamsAndRepositoriesConnector,
   raters: List[Rater],
-  repository: HealthIndicatorsRepository,
+  repository: HealthIndicatorsRepository
 )(implicit val ec: ExecutionContext) {
 
   private val logger = Logger(this.getClass)
