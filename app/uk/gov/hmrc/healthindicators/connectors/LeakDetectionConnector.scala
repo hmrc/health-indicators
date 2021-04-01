@@ -31,7 +31,6 @@ class LeakDetectionConnector @Inject() (
   healthIndicatorsConfig: AppConfig
 )(implicit val ec: ExecutionContext) {
 
-  //todo fix me
   private implicit val hc: HeaderCarrier = HeaderCarrier()
 
   private val leakDetectionBaseUrl: String = healthIndicatorsConfig.leakDetectionUrl

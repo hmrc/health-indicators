@@ -34,7 +34,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class HealthIndicatorsRepository @Inject() (
   mongoComponent: MongoComponent,
   config: SchedulerConfigs
-  //TODO: is config actually used?
+
 )(implicit ec: ExecutionContext)
     extends PlayMongoRepository[RepositoryHealthIndicator](
       collectionName = "serviceHealthIndicators",

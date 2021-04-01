@@ -16,21 +16,18 @@
 
 package uk.gov.hmrc.healthindicators.connectors
 
-import java.time.Instant
-
 import com.github.tomakehurst.wiremock.http.RequestMethod.GET
 import org.scalatest.OptionValues
 import org.scalatest.concurrent.ScalaFutures.convertScalaFuture
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
+import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.libs.json.{JsSuccess, Json, Reads}
 import uk.gov.hmrc.healthindicators.WireMockEndpoints
-import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 
+import java.time.Instant
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
 
 class JenkinsConnectorSpec
     extends AnyWordSpec
