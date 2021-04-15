@@ -23,6 +23,13 @@ import uk.gov.hmrc.healthindicators.models._
 class ScoreConfig {
   def scores(resultType: ResultType): Int =
     resultType match {
+      case o: OpenPRResultType =>
+        o match {
+          case PRsNotFound => 0
+          case NoOpenPRs => 0
+          case FreshPR => 0
+          case StalePR => -20
+        }
       case r: ReadMeResultType =>
         r match {
           case NoReadme      => -50

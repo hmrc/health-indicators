@@ -20,7 +20,7 @@ import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import play.api.libs.json.{Writes, _}
 import uk.gov.hmrc.healthindicators.connectors.RepositoryType.Service
-import uk.gov.hmrc.healthindicators.models.RatingType.{BobbyRule, BuildStability, LeakDetection, ReadMe}
+import uk.gov.hmrc.healthindicators.models.RatingType.{BobbyRule, BuildStability, LeakDetection, OpenPR, ReadMe}
 
 class RatingSpec extends AnyWordSpec with Matchers {
 
@@ -42,6 +42,10 @@ class RatingSpec extends AnyWordSpec with Matchers {
 
     "write BuildStability" in {
       Json.toJson(BuildStability) mustBe JsString("BuildStability")
+    }
+
+    "write OpenPRs" in {
+      Json.toJson(OpenPR) mustBe JsString("OpenPR")
     }
   }
 

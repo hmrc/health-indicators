@@ -24,6 +24,24 @@ import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats
 
 sealed trait ResultType
 
+sealed trait OpenPRResultType extends ResultType
+
+case object PRsNotFound extends OpenPRResultType {
+  override def toString: String = "prs-not-found"
+}
+
+case object NoOpenPRs extends OpenPRResultType {
+  override def toString: String = "no-open-prs"
+}
+
+case object StalePR extends OpenPRResultType {
+  override def toString: String = "stale-pr"
+}
+
+case object FreshPR extends OpenPRResultType {
+  override def toString: String = "fresh-pr"
+}
+
 sealed trait ReadMeResultType extends ResultType
 
 case object ValidReadme extends ReadMeResultType {
@@ -81,6 +99,10 @@ case object AlertConfigNotFound extends AlertConfigResultType {
 object ResultType {
 
   private val resultTypes = Set(
+    PRsNotFound,
+    NoOpenPRs,
+    StalePR,
+    FreshPR,
     ValidReadme,
     DefaultReadme,
     NoReadme,
@@ -121,6 +143,10 @@ object Result {
 
 sealed trait IndicatorType
 
+case object OpenPRIndicatorType extends IndicatorType {
+  override def toString: String = "open-pr-indicator"
+}
+
 case object ReadMeIndicatorType extends IndicatorType {
   override def toString: String = "read-me-indicator"
 }
@@ -144,7 +170,14 @@ case object AlertConfigIndicatorType extends IndicatorType {
 object IndicatorType {
 
   private val indicatorTypes =
-    Set(ReadMeIndicatorType, LeakDetectionIndicatorType, BobbyRuleIndicatorType, BuildStabilityIndicatorType, AlertConfigIndicatorType)
+    Set(
+      ReadMeIndicatorType,
+      LeakDetectionIndicatorType,
+      BobbyRuleIndicatorType,
+      BuildStabilityIndicatorType,
+      AlertConfigIndicatorType,
+      OpenPRIndicatorType
+    )
 
   def apply(value: String): Option[IndicatorType] = indicatorTypes.find(_.toString == value)
 

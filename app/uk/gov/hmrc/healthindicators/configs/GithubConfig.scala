@@ -21,7 +21,7 @@ import play.api.Configuration
 
 @Singleton
 class GithubConfig @Inject() (configuration: Configuration) {
-
+  val restUrl: String = configuration.get[String]("github.rest.api.url")
   val rawUrl: String = configuration.get[String]("github.open.api.rawurl")
   val token: String  = configuration.get[String]("github.open.api.token")
 }

@@ -26,6 +26,9 @@ import play.api.inject.guice.GuiceApplicationBuilder
 import uk.gov.hmrc.healthindicators.WireMockEndpoints
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+
 class GithubConnectorSpec
     extends AnyWordSpec
     with Matchers
@@ -39,6 +42,7 @@ class GithubConnectorSpec
       .configure(
         Map(
           "github.open.api.rawurl" -> endpointMockUrl,
+          "github.rest.api.url" -> endpointMockUrl,
           "github.open.api.token"  -> "test-token",
           "metrics.jvm"            -> false
         )
@@ -79,6 +83,64 @@ class GithubConnectorSpec
         .futureValue
 
       response shouldBe None
+    }
+  }
+
+  "getOpenPrs" should {
+    "respond with correct PR data" in {
+      val dateFormatter: DateTimeFormatter = DateTimeFormatter.ISO_DATE_TIME
+      val testJSON = Some(
+        """[{
+          |"title": "hello-world",
+          |"created_at": "2021-04-16T13:38:36Z",
+          |"updated_at": "2021-04-16T13:38:33Z"
+          |}]""".stripMargin)
+
+      serviceEndpoint(
+        GET,
+        "/repos/hmrc/repo2/pulls",
+        requestHeaders = Map("Authorization" -> s"token test-token"),
+        willRespondWith = (200, testJSON)
+      )
+
+      val response = githubConnector
+        .getOpenPRs("repo2")
+        .futureValue
+
+      response shouldBe Some(Seq(OpenPR("hello-world",
+        LocalDate.parse("2021-04-16T13:38:36Z", dateFormatter),
+        LocalDate.parse("2021-04-16T13:38:33Z", dateFormatter))))
+    }
+
+    "respond with None when repo not found" in {
+      serviceEndpoint(
+        GET,
+        "/repos/hmrc/repo2/pulls",
+        requestHeaders = Map("Authorization" -> s"token test-token"),
+        willRespondWith = (404, None)
+      )
+
+      val response = githubConnector
+        .getOpenPRs("repo2")
+        .futureValue
+
+      response shouldBe None
+    }
+
+    "respond with Seq.empty when no pulls found" in {
+      serviceEndpoint(
+        GET,
+        "/repos/hmrc/repo2/pulls",
+        requestHeaders = Map("Authorization" -> s"token test-token"),
+        willRespondWith = (200,
+          Some("""[]""".stripMargin))
+      )
+
+      val response = githubConnector
+        .getOpenPRs("repo2")
+        .futureValue
+
+      response shouldBe Some(Seq.empty)
     }
   }
 
