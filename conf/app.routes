@@ -3,5 +3,3 @@ GET             /repositories                        @uk.gov.hmrc.healthindicato
 
 
 POST            /admin/rerun                         @uk.gov.hmrc.healthindicators.controllers.AdminController.rerun
-
-GET             /test/:repo            @uk.gov.hmrc.healthindicators.controllers.TestController.test(repo)

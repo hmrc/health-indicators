@@ -28,7 +28,7 @@ import java.time.format.DateTimeFormatter
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class StalePRRaterSpec
+class StalePrRaterSpec
   extends AnyWordSpec
   with Matchers
   with MockitoSugar
@@ -36,7 +36,7 @@ class StalePRRaterSpec
   with ArgumentMatchersSugar{
 
   private val mockGithubConnector: GithubConnector = mock[GithubConnector]
-  private val rater: StalePRRater = new StalePRRater(mockGithubConnector)
+  private val rater: StalePrRater = new StalePrRater(mockGithubConnector)
 
   "StalePRRater.rate" should {
     val dateFormatter: DateTimeFormatter = DateTimeFormatter.ISO_DATE_TIME

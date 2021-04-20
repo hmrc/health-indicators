@@ -18,7 +18,7 @@ package uk.gov.hmrc.healthindicators
 
 import com.google.inject.{AbstractModule, Provides}
 import play.api.Logger
-import uk.gov.hmrc.healthindicators.raters.{AlertConfigRater, BobbyRulesRater, BuildStabilityRater, LeakDetectionRater, Rater, ReadMeRater, StalePRRater}
+import uk.gov.hmrc.healthindicators.raters.{AlertConfigRater, BobbyRulesRater, BuildStabilityRater, LeakDetectionRater, Rater, ReadMeRater, StalePrRater}
 
 class HealthIndicatorsModule() extends AbstractModule {
 
@@ -32,12 +32,12 @@ class HealthIndicatorsModule() extends AbstractModule {
     bobbyRulesRater: BobbyRulesRater,
     leakDetectionRater: LeakDetectionRater,
     readMeRater: ReadMeRater,
-    stalePRRater: StalePRRater,
     buildStabilityRater: BuildStabilityRater,
+    stalePrRater: StalePrRater,
     alertConfigRater: AlertConfigRater
   ): List[Rater] = {
     val raters =
-      List(bobbyRulesRater, leakDetectionRater, readMeRater, buildStabilityRater, alertConfigRater, stalePRRater)
+      List(bobbyRulesRater, leakDetectionRater, readMeRater, buildStabilityRater, alertConfigRater, stalePrRater)
     logger.info(s"Loaded Raters: ${raters.map(_.getClass.getSimpleName).mkString("[\n", "\n", "\n]")}")
     raters
   }

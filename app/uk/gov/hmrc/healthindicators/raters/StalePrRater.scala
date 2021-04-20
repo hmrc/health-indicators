@@ -24,7 +24,7 @@ import java.time.temporal.ChronoUnit
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class StalePRRater @Inject()(
+class StalePrRater @Inject()(
                               githubConnector: GithubConnector
                             )(
                               implicit val ec: ExecutionContext
