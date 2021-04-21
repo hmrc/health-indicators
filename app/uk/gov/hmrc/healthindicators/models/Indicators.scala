@@ -27,61 +27,61 @@ sealed trait ResultType
 sealed trait OpenPRResultType extends ResultType
 
 case object PRsNotFound extends OpenPRResultType {
-  override def toString: String = "prs-not-found"
+  override val toString: String = "prs-not-found"
 }
 
 case object NoOpenPRs extends OpenPRResultType {
-  override def toString: String = "no-open-prs"
+  override val toString: String = "no-open-prs"
 }
 
 case object StalePR extends OpenPRResultType {
-  override def toString: String = "stale-pr"
+  override val toString: String = "stale-pr"
 }
 
 case object FreshPR extends OpenPRResultType {
-  override def toString: String = "fresh-pr"
+  override val toString: String = "fresh-pr"
 }
 
 sealed trait ReadMeResultType extends ResultType
 
 case object ValidReadme extends ReadMeResultType {
-  override def toString: String = "valid-readme"
+  override val toString: String = "valid-readme"
 }
 case object DefaultReadme extends ReadMeResultType {
-  override def toString: String = "default-readme"
+  override val toString: String = "default-readme"
 }
 case object NoReadme extends ReadMeResultType {
-  override def toString: String = "no-readme"
+  override val toString: String = "no-readme"
 }
 
 sealed trait LeakDetectionResultType extends ResultType
 
 case object LeakDetectionViolation extends LeakDetectionResultType {
-  override def toString: String = "leak-detection-violation"
+  override val toString: String = "leak-detection-violation"
 }
 
 sealed trait BobbyRuleResultType extends ResultType
 
 case object BobbyRulePending extends BobbyRuleResultType {
-  override def toString: String = "bobby-rule-pending"
+  override val toString: String = "bobby-rule-pending"
 }
 case object BobbyRuleActive extends BobbyRuleResultType {
-  override def toString: String = "bobby-rule-active"
+  override val toString: String = "bobby-rule-active"
 }
 
 sealed trait JenkinsResultType extends ResultType
 
 case object JenkinsBuildStable extends JenkinsResultType {
-  override def toString: String = "jenkins-build-stable"
+  override val toString: String = "jenkins-build-stable"
 }
 case object JenkinsBuildUnstable extends JenkinsResultType {
-  override def toString: String = "jenkins-build-unstable"
+  override val toString: String = "jenkins-build-unstable"
 }
 case object JenkinsBuildNotFound extends JenkinsResultType {
-  override def toString: String = "jenkins-build-not-found"
+  override val toString: String = "jenkins-build-not-found"
 }
 case object JenkinsBuildOutdated extends JenkinsResultType {
-  override def toString: String = "jenkins-build-outdated"
+  override val toString: String = "jenkins-build-outdated"
 }
 
 sealed trait AlertConfigResultType extends ResultType

@@ -1,5 +1,6 @@
 .*
 
+app/uk/gov/hmrc/healthindicators/controllers/TestController.scala
 health-run.sh
 !.gitignore
 !.scalafmt.conf
