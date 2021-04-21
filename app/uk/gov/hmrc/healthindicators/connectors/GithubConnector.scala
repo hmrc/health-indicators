@@ -26,11 +26,12 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
+import uk.gov.hmrc.http.HttpReads.Implicits._
 
-class GithubConnector @Inject() (
-  httpClient: HttpClient,
-  githubConfig: GithubConfig
-)(implicit ec: ExecutionContext) {
+class GithubConnector @Inject()(
+                                 httpClient: HttpClient,
+                                 githubConfig: GithubConfig
+                               )(implicit ec: ExecutionContext) {
 
   private val configKey = githubConfig.token
 
@@ -39,7 +40,7 @@ class GithubConnector @Inject() (
       s"${githubConfig.rawUrl}/hmrc/$repo/master/README.md"
     implicit val hc: HeaderCarrier = HeaderCarrier().withExtraHeaders(("Authorization", s"token $configKey"))
 
-    httpClient.GET[HttpResponse](url).map(r => Some(r.body))
+    httpClient.GET[Option[HttpResponse]](url).map(_.map(_.body))
   }.recoverWith {
     case _: NotFoundException => Future.successful(None)
   }
@@ -47,15 +48,20 @@ class GithubConnector @Inject() (
   def getOpenPRs(repo: String): Future[Option[Seq[OpenPR]]] = {
     val url =
       s"${githubConfig.restUrl}/repos/hmrc/$repo/pulls"
-    implicit val hc: HeaderCarrier = HeaderCarrier().withExtraHeaders(("Authorization", s"token $configKey"))
+    implicit val hc: HeaderCarrier = HeaderCarrier()
     implicit val oR: Reads[OpenPR] = OpenPR.reads
     val logger = Logger(this.getClass)
 
-    httpClient.GET[Option[Seq[OpenPR]]](url).recoverWith {
-      case _: NotFoundException  =>
-        logger.error(s"An error occurred when connecting to ${githubConfig.restUrl}repos/hmrc/$repo/pulls")
-        Future.successful(None)
-    }
+    httpClient
+      .GET[Option[Seq[OpenPR]]](
+        url = url,
+        headers = Seq("Authorization" -> s"token $configKey")
+      )
+      .recoverWith {
+        case _: NotFoundException =>
+          logger.error(s"An error occurred when connecting to ${githubConfig.restUrl}repos/hmrc/$repo/pulls")
+          Future.successful(None)
+      }
   }
 }
 
@@ -70,5 +76,5 @@ object OpenPR {
   val reads: Reads[OpenPR] =
     ((__ \ "title").read[String]
       ~ (__ \ "created_at").read[LocalDate]
-      ~(__ \ "updated_at").read[LocalDate])(OpenPR.apply _)
+      ~ (__ \ "updated_at").read[LocalDate]) (OpenPR.apply _)
 }

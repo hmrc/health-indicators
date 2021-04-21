@@ -211,7 +211,7 @@ case class RepositoryHealthIndicator(
 
 object RepositoryHealthIndicator {
   val mongoFormats: OFormat[RepositoryHealthIndicator] = {
-    implicit val instantFormat: Format[Instant]               = MongoJavatimeFormats.instantFormats
+    implicit val instantFormat: Format[Instant]               = MongoJavatimeFormats.instantFormat
     implicit val indicatorFormat: Format[Indicator]           = Indicator.format
     implicit val repositoryTypeFormat: Format[RepositoryType] = RepositoryType.format
     ((__ \ "repositoryName").format[String]

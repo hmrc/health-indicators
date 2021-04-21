@@ -59,27 +59,27 @@ class IndicatorsSpec extends AnyWordSpec with Matchers {
     }
 
     "write ValidReadme" in {
-      Json.toJson(ValidReadme) mustBe JsString("valid-readme")
+      Json.toJson(ValidReadme: ResultType) mustBe JsString("valid-readme")
     }
 
     "write DefaultReadme" in {
-      Json.toJson(DefaultReadme) mustBe JsString("default-readme")
+      Json.toJson(DefaultReadme: ResultType) mustBe JsString("default-readme")
     }
 
     "write NoReadme" in {
-      Json.toJson(NoReadme) mustBe JsString("no-readme")
+      Json.toJson(NoReadme: ResultType) mustBe JsString("no-readme")
     }
 
     "write LeakDetectionViolation" in {
-      Json.toJson(LeakDetectionViolation) mustBe JsString("leak-detection-violation")
+      Json.toJson(LeakDetectionViolation: ResultType) mustBe JsString("leak-detection-violation")
     }
 
     "write BobbyRulePending" in {
-      Json.toJson(BobbyRulePending) mustBe JsString("bobby-rule-pending")
+      Json.toJson(BobbyRulePending: ResultType) mustBe JsString("bobby-rule-pending")
     }
 
     "write BobbyRuleActive" in {
-      Json.toJson(BobbyRuleActive) mustBe JsString("bobby-rule-active")
+      Json.toJson(BobbyRuleActive: ResultType) mustBe JsString("bobby-rule-active")
     }
   }
 }
