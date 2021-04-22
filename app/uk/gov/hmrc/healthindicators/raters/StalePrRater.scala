@@ -24,35 +24,32 @@ import java.time.temporal.ChronoUnit
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class StalePrRater @Inject()(
-                              githubConnector: GithubConnector
-                            )(
-                              implicit val ec: ExecutionContext
-                            )
-  extends Rater {
+class StalePrRater @Inject() (
+  githubConnector: GithubConnector
+)(implicit
+  val ec: ExecutionContext
+) extends Rater {
 
-  override def rate(repo: String): Future[Indicator] = {
-    githubConnector.getOpenPRs(repo)
-      .map(getResultType).map(result => {
-      Indicator(OpenPRIndicatorType, result)
-    })
-  }
+  override def rate(repo: String): Future[Indicator] =
+    githubConnector
+      .getOpenPRs(repo)
+      .map(getResultType)
+      .map { result =>
+        Indicator(OpenPRIndicatorType, result)
+      }
 
-  def getResultType(maybeOpenPRs: Option[Seq[OpenPR]]): Seq[Result] = {
+  def getResultType(maybeOpenPRs: Option[Seq[OpenPR]]): Seq[Result] =
     maybeOpenPRs match {
-      case None => Seq(Result(PRsNotFound, "PR information could not be found", None))
-      case Some(Seq()) => Seq(Result(NoOpenPRs, s"No Open PRs", None))
+      case None          => Seq(Result(PRsNotFound, "PR information could not be found", None))
+      case Some(Seq())   => Seq(Result(NoOpenPRs, s"No Open PRs", None))
       case Some(openPRs) => openPRs.map(isStale)
     }
-  }
 
   def isStale(openPR: OpenPR): Result = {
     val prStalenessDays = 30
 
-    if (ChronoUnit.DAYS.between(openPR.updatedAt, LocalDate.now()) > prStalenessDays) {
+    if (ChronoUnit.DAYS.between(openPR.updatedAt, LocalDate.now()) > prStalenessDays)
       Result(StalePR, s"${openPR.title}: PR older than $prStalenessDays days", None)
-    }
-
     else Result(FreshPR, s"${openPR.title}: Minty fresh PR", None)
   }
 }

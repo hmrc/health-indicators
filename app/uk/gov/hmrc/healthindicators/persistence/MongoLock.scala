@@ -16,9 +16,9 @@
 
 package uk.gov.hmrc.healthindicators.persistence
 
-import javax.inject.{Inject, Singleton}
-import uk.gov.hmrc.mongo.lock.{MongoLockRepository, LockService}
+import uk.gov.hmrc.mongo.lock.{LockService, MongoLockRepository}
 
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.duration._
 
 @Singleton

@@ -17,7 +17,6 @@
 package uk.gov.hmrc.healthindicators.schedulers
 
 import akka.actor.ActorSystem
-import javax.inject.{Inject, Singleton}
 import play.api.Logger
 import play.api.inject.ApplicationLifecycle
 import uk.gov.hmrc.healthindicators.configs.SchedulerConfigs
@@ -26,6 +25,7 @@ import uk.gov.hmrc.healthindicators.services.HealthIndicatorService
 import uk.gov.hmrc.healthindicators.utils.SchedulerUtils
 import uk.gov.hmrc.http.HeaderCarrier
 
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext.Implicits.global
 
 @Singleton

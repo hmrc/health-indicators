@@ -16,12 +16,12 @@
 
 package uk.gov.hmrc.healthindicators.controllers
 
-import javax.inject.Inject
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import uk.gov.hmrc.healthindicators.services.HealthIndicatorService
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
+import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 class AdminController @Inject() (ratingService: HealthIndicatorService, cc: ControllerComponents)(implicit

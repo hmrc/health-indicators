@@ -20,18 +20,18 @@ import play.api.Logger
 import play.api.libs.functional.syntax._
 import play.api.libs.json.{JsValue, Reads, __}
 import uk.gov.hmrc.healthindicators.configs.GithubConfig
+import uk.gov.hmrc.http.HttpReads.Implicits._
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse, NotFoundException}
 
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
-import uk.gov.hmrc.http.HttpReads.Implicits._
 
-class GithubConnector @Inject()(
-                                 httpClient: HttpClient,
-                                 githubConfig: GithubConfig
-                               )(implicit ec: ExecutionContext) {
+class GithubConnector @Inject() (
+  httpClient: HttpClient,
+  githubConfig: GithubConfig
+)(implicit ec: ExecutionContext) {
 
   private val configKey = githubConfig.token
 
@@ -50,7 +50,7 @@ class GithubConnector @Inject()(
       s"${githubConfig.restUrl}/repos/hmrc/$repo/pulls"
     implicit val hc: HeaderCarrier = HeaderCarrier()
     implicit val oR: Reads[OpenPR] = OpenPR.reads
-    val logger = Logger(this.getClass)
+    val logger                     = Logger(this.getClass)
 
     httpClient
       .GET[Option[Seq[OpenPR]]](
@@ -76,5 +76,5 @@ object OpenPR {
   val reads: Reads[OpenPR] =
     ((__ \ "title").read[String]
       ~ (__ \ "created_at").read[LocalDate]
-      ~ (__ \ "updated_at").read[LocalDate]) (OpenPR.apply _)
+      ~ (__ \ "updated_at").read[LocalDate])(OpenPR.apply _)
 }

@@ -42,7 +42,7 @@ class GithubConnectorSpec
       .configure(
         Map(
           "github.open.api.rawurl" -> endpointMockUrl,
-          "github.rest.api.url" -> endpointMockUrl,
+          "github.rest.api.url"    -> endpointMockUrl,
           "github.open.api.token"  -> "test-token",
           "metrics.jvm"            -> false
         )
@@ -89,8 +89,7 @@ class GithubConnectorSpec
   "getOpenPrs" should {
     "respond with correct PR data" in {
       val dateFormatter: DateTimeFormatter = DateTimeFormatter.ISO_DATE_TIME
-      val testJSON = Some(
-        """[{
+      val testJSON                         = Some("""[{
           |"title": "hello-world",
           |"created_at": "2021-04-16T13:38:36Z",
           |"updated_at": "2021-04-16T13:38:33Z"
@@ -107,9 +106,15 @@ class GithubConnectorSpec
         .getOpenPRs("repo2")
         .futureValue
 
-      response shouldBe Some(Seq(OpenPR("hello-world",
-        LocalDate.parse("2021-04-16T13:38:36Z", dateFormatter),
-        LocalDate.parse("2021-04-16T13:38:33Z", dateFormatter))))
+      response shouldBe Some(
+        Seq(
+          OpenPR(
+            "hello-world",
+            LocalDate.parse("2021-04-16T13:38:36Z", dateFormatter),
+            LocalDate.parse("2021-04-16T13:38:33Z", dateFormatter)
+          )
+        )
+      )
     }
 
     "respond with None when repo not found" in {
@@ -132,8 +137,7 @@ class GithubConnectorSpec
         GET,
         "/repos/hmrc/repo2/pulls",
         requestHeaders = Map("Authorization" -> s"token test-token"),
-        willRespondWith = (200,
-          Some("""[]""".stripMargin))
+        willRespondWith = (200, Some("""[]""".stripMargin))
       )
 
       val response = githubConnector

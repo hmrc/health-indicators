@@ -16,15 +16,15 @@
 
 package uk.gov.hmrc.healthindicators.raters
 
-import javax.inject.Inject
 import play.api.Logger
 import uk.gov.hmrc.healthindicators.connectors.{JenkinsBuildReport, JenkinsBuildStatus, JenkinsConnector, TeamsAndRepositoriesConnector}
-import uk.gov.hmrc.healthindicators.models.{BuildStabilityIndicatorType, Indicator, JenkinsBuildNotFound, JenkinsBuildOutdated, JenkinsBuildStable, JenkinsBuildUnstable, Result}
+import uk.gov.hmrc.healthindicators.models._
+import uk.gov.hmrc.healthindicators.raters.BuildStabilityRater.getResultType
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.{ExecutionContext, Future}
 import java.time.{Duration, Instant}
-import uk.gov.hmrc.healthindicators.raters.BuildStabilityRater.getResultType
+import javax.inject.Inject
+import scala.concurrent.{ExecutionContext, Future}
 
 class BuildStabilityRater @Inject() (
   jenkinsConnector: JenkinsConnector,

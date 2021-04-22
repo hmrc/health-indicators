@@ -16,9 +16,9 @@
 
 package uk.gov.hmrc.healthindicators.configs
 
-import javax.inject.{Inject, Singleton}
 import play.api.Configuration
 
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.duration.FiniteDuration
 
 case class SchedulerConfig(

@@ -16,8 +16,9 @@
 
 package uk.gov.hmrc.healthindicators.configs
 
-import javax.inject.Inject
 import play.api.Configuration
+
+import javax.inject.Inject
 
 class JenkinsConfig @Inject() (config: Configuration) {
 

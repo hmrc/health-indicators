@@ -18,7 +18,7 @@ package uk.gov.hmrc.healthindicators
 
 import com.google.inject.{AbstractModule, Provides}
 import play.api.Logger
-import uk.gov.hmrc.healthindicators.raters.{AlertConfigRater, BobbyRulesRater, BuildStabilityRater, LeakDetectionRater, Rater, ReadMeRater, StalePrRater}
+import uk.gov.hmrc.healthindicators.raters._
 
 class HealthIndicatorsModule() extends AbstractModule {
 

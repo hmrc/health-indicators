@@ -16,14 +16,14 @@
 
 package uk.gov.hmrc.healthindicators.connectors
 
-import play.api.libs.json.{Format, JsError, JsResult, JsString, JsSuccess, JsValue, Json, Reads, __}
-import uk.gov.hmrc.healthindicators.configs.AppConfig
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
-import uk.gov.hmrc.http.HttpReads.Implicits._
 import play.api.libs.functional.syntax._
+import play.api.libs.json._
 import play.api.mvc.QueryStringBindable
-import javax.inject.{Inject, Singleton}
+import uk.gov.hmrc.healthindicators.configs.AppConfig
+import uk.gov.hmrc.http.HttpReads.Implicits._
+import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
 
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton

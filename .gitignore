@@ -1,12 +1,11 @@
 .*
 
-app/uk/gov/hmrc/healthindicators/controllers/TestController.scala
+/app/uk/gov/hmrc/healthindicators/controllers/TestController.scala
 health-run.sh
 !.gitignore
 !.scalafmt.conf
 .cache
 /.classpath
-app/uk/gov/hmrc/healthindicators/controllers/TestController.scala
 db
 dist
 .DS_Store

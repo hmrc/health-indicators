@@ -16,8 +16,9 @@
 
 package uk.gov.hmrc.healthindicators.configs
 
-import javax.inject.Singleton
 import uk.gov.hmrc.healthindicators.models._
+
+import javax.inject.Singleton
 
 @Singleton
 class ScoreConfig {
@@ -26,9 +27,9 @@ class ScoreConfig {
       case o: OpenPRResultType =>
         o match {
           case PRsNotFound => 0
-          case NoOpenPRs => 0
-          case FreshPR => 0
-          case StalePR => -20
+          case NoOpenPRs   => 0
+          case FreshPR     => 0
+          case StalePR     => -20
         }
       case r: ReadMeResultType =>
         r match {

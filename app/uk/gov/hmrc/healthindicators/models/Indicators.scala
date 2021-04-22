@@ -16,11 +16,12 @@
 
 package uk.gov.hmrc.healthindicators.models
 
-import java.time.Instant
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
 import uk.gov.hmrc.healthindicators.connectors.RepositoryType
 import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats
+
+import java.time.Instant
 
 sealed trait ResultType
 

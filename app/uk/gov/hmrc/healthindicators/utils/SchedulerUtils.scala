@@ -19,8 +19,8 @@ package uk.gov.hmrc.healthindicators.utils
 import akka.actor.ActorSystem
 import play.api.Logger
 import play.api.inject.ApplicationLifecycle
-import uk.gov.hmrc.mongo.lock.LockService
 import uk.gov.hmrc.healthindicators.configs.SchedulerConfig
+import uk.gov.hmrc.mongo.lock.LockService
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.control.NonFatal

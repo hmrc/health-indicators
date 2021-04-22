@@ -16,16 +16,15 @@
 
 package uk.gov.hmrc.healthindicators.connectors
 
-import java.time.Instant
-
 import com.google.common.io.BaseEncoding
-import javax.inject.Inject
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
 import uk.gov.hmrc.healthindicators.configs.JenkinsConfig
 import uk.gov.hmrc.http.HttpReads.Implicits._
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, StringContextOps}
 
+import java.time.Instant
+import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 class JenkinsConnector @Inject() (config: JenkinsConfig, http: HttpClient) {
