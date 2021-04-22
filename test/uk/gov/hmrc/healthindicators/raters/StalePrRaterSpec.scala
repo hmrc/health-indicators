@@ -21,7 +21,7 @@ import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import uk.gov.hmrc.healthindicators.connectors.{GithubConnector, OpenPR}
-import uk.gov.hmrc.healthindicators.models.{FreshPR, NoOpenPRs, OpenPRIndicatorType, PRsNotFound, StalePR}
+import uk.gov.hmrc.healthindicators.models.{NoStalePRs, OpenPRIndicatorType, PRsNotFound, StalePR}
 
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -29,14 +29,14 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 class StalePrRaterSpec
-  extends AnyWordSpec
-  with Matchers
-  with MockitoSugar
-  with ScalaFutures
-  with ArgumentMatchersSugar{
+    extends AnyWordSpec
+    with Matchers
+    with MockitoSugar
+    with ScalaFutures
+    with ArgumentMatchersSugar {
 
   private val mockGithubConnector: GithubConnector = mock[GithubConnector]
-  private val rater: StalePrRater = new StalePrRater(mockGithubConnector)
+  private val rater: StalePrRater                  = new StalePrRater(mockGithubConnector)
 
   "StalePRRater.rate" should {
     val dateFormatter: DateTimeFormatter = DateTimeFormatter.ISO_DATE_TIME
@@ -46,7 +46,7 @@ class StalePrRaterSpec
 
       val result = rater.rate("foo").futureValue
 
-      result.indicatorType shouldBe OpenPRIndicatorType
+      result.indicatorType           shouldBe OpenPRIndicatorType
       result.results.head.resultType shouldBe PRsNotFound
     }
 
@@ -56,52 +56,67 @@ class StalePrRaterSpec
 
       val result = rater.rate("foo").futureValue
 
-      result.indicatorType shouldBe OpenPRIndicatorType
-      result.results.head.resultType shouldBe NoOpenPRs
+      result.indicatorType           shouldBe OpenPRIndicatorType
+      result.results.head.resultType shouldBe NoStalePRs
     }
 
     "return FreshPR when GithubConnector.getOpenPRs returns Some(Seq(OpenPR) with last edit less than 30 days" in {
       when(mockGithubConnector.getOpenPRs(eqTo("foo")))
-        .thenReturn(Future.successful(Some(Seq(OpenPR("hello-world",
-          LocalDate.parse("2021-04-16T13:38:36Z", dateFormatter),
-          LocalDate.now
-        )))))
+        .thenReturn(
+          Future.successful(
+            Some(Seq(OpenPR("hello-world", LocalDate.parse("2021-04-16T13:38:36Z", dateFormatter), LocalDate.now)))
+          )
+        )
 
       val result = rater.rate("foo").futureValue
 
-      result.indicatorType shouldBe OpenPRIndicatorType
-      result.results.head.resultType shouldBe FreshPR
+      result.indicatorType           shouldBe OpenPRIndicatorType
+      result.results.head.resultType shouldBe NoStalePRs
     }
 
     "return StalePR when GithubConnector.getOpenPRs returns Some(Seq(OpenPR) with last edit more than 30 days" in {
       when(mockGithubConnector.getOpenPRs(eqTo("foo")))
-        .thenReturn(Future.successful(Some(Seq(OpenPR("hello-world",
-          LocalDate.parse("2021-04-16T13:38:36Z", dateFormatter),
-          LocalDate.now.minusDays(31L)
-        )))))
+        .thenReturn(
+          Future.successful(
+            Some(
+              Seq(
+                OpenPR(
+                  "hello-world",
+                  LocalDate.parse("2021-04-16T13:38:36Z", dateFormatter),
+                  LocalDate.now.minusDays(31L)
+                )
+              )
+            )
+          )
+        )
 
       val result = rater.rate("foo").futureValue
 
-      result.indicatorType shouldBe OpenPRIndicatorType
+      result.indicatorType           shouldBe OpenPRIndicatorType
       result.results.head.resultType shouldBe StalePR
     }
 
-    "return 1 StalePR and 1 FreshPR when GithubConnector.getOpenPRs returns 2 OpenPRs, one with an edit in the last 30 days and the other without" in {
+    "return 1 StalePR when GithubConnector.getOpenPRs returns 2 OpenPRs, one with an edit in the last 30 days and the other without" in {
       when(mockGithubConnector.getOpenPRs(eqTo("foo")))
-        .thenReturn(Future.successful(Some(Seq(
-          OpenPR("hello-world-fresh",
-            LocalDate.parse("2021-04-16T13:38:36Z", dateFormatter),
-            LocalDate.now),
-          OpenPR("hello-world-stale",
-            LocalDate.parse("2021-04-16T13:38:36Z", dateFormatter),
-            LocalDate.now.minusDays(31L)),
-        ))))
+        .thenReturn(
+          Future.successful(
+            Some(
+              Seq(
+                OpenPR("hello-world-fresh", LocalDate.parse("2021-04-16T13:38:36Z", dateFormatter), LocalDate.now),
+                OpenPR(
+                  "hello-world-stale",
+                  LocalDate.parse("2021-04-16T13:38:36Z", dateFormatter),
+                  LocalDate.now.minusDays(31L)
+                )
+              )
+            )
+          )
+        )
 
       val result = rater.rate("foo").futureValue
 
-      result.indicatorType shouldBe OpenPRIndicatorType
-      result.results(0).resultType shouldBe FreshPR
-      result.results(1).resultType shouldBe StalePR
+      result.indicatorType           shouldBe OpenPRIndicatorType
+      result.results.head.resultType shouldBe StalePR
     }
   }
 }

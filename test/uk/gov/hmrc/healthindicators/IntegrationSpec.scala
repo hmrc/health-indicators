@@ -109,7 +109,7 @@ class IntegrationSpec
 
       serviceEndpoint(
         GET,
-        "/repos/hmrc/auth/pulls",
+        "/repos/hmrc/auth/pulls?state=open",
         requestHeaders = Map("Authorization" -> s"token test-token"),
         willRespondWith = (200, Some("""[]""".stripMargin))
       )
@@ -215,7 +215,7 @@ class IntegrationSpec
   val buildStabilityResponse =
     """{"ratingType":"BuildStability","ratingScore":0,"breakdown":[{"points":0,"description":"No Jenkins Build Found for: auth"}]}"""
   val openPRResponse =
-    """{"ratingType":"OpenPR","ratingScore":0,"breakdown":[{"points":0,"description":"No Open PRs"}]}"""
+    """{"ratingType":"OpenPR","ratingScore":0,"breakdown":[{"points":0,"description":"No Stale PRs"}]}"""
   val alertConfigResponse =
     """{"ratingType":"AlertConfig","ratingScore":20,"breakdown":[{"points":20,"description":"Alert Config is Disabled"}]}"""
   val expectedResponse = """"repositoryName":"auth","repositoryType":"Prototype","repositoryScore":-100,"""

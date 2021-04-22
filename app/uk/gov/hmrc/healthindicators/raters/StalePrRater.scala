@@ -41,15 +41,20 @@ class StalePrRater @Inject() (
   def getResultType(maybeOpenPRs: Option[Seq[OpenPR]]): Seq[Result] =
     maybeOpenPRs match {
       case None          => Seq(Result(PRsNotFound, "PR information could not be found", None))
-      case Some(Seq())   => Seq(Result(NoOpenPRs, s"No Open PRs", None))
-      case Some(openPRs) => openPRs.map(isStale)
+      case Some(openPRs) => findStalePRs(openPRs)
     }
 
-  def isStale(openPR: OpenPR): Result = {
-    val prStalenessDays = 30
+  def findStalePRs(openPRs: Seq[OpenPR]): Seq[Result] =
+    openPRs.flatMap(isStale) match {
+      case Seq()                => Seq(Result(NoStalePRs, s"No Stale PRs", None))
+      case results: Seq[Result] => results
+    }
 
+  def isStale(openPR: OpenPR): Option[Result] = {
+    val prStalenessDays = 30
     if (ChronoUnit.DAYS.between(openPR.updatedAt, LocalDate.now()) > prStalenessDays)
-      Result(StalePR, s"${openPR.title}: PR older than $prStalenessDays days", None)
-    else Result(FreshPR, s"${openPR.title}: Minty fresh PR", None)
+      Some(Result(StalePR, s"${openPR.title}: PR older than $prStalenessDays days", None))
+    else
+      None
   }
 }

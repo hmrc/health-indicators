@@ -97,7 +97,7 @@ class GithubConnectorSpec
 
       serviceEndpoint(
         GET,
-        "/repos/hmrc/repo2/pulls",
+        "/repos/hmrc/repo2/pulls?state=open",
         requestHeaders = Map("Authorization" -> s"token test-token"),
         willRespondWith = (200, testJSON)
       )
@@ -135,7 +135,7 @@ class GithubConnectorSpec
     "respond with Seq.empty when no pulls found" in {
       serviceEndpoint(
         GET,
-        "/repos/hmrc/repo2/pulls",
+        "/repos/hmrc/repo2/pulls?state=open",
         requestHeaders = Map("Authorization" -> s"token test-token"),
         willRespondWith = (200, Some("""[]""".stripMargin))
       )

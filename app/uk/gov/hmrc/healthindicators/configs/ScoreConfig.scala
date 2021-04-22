@@ -27,8 +27,7 @@ class ScoreConfig {
       case o: OpenPRResultType =>
         o match {
           case PRsNotFound => 0
-          case NoOpenPRs   => 0
-          case FreshPR     => 0
+          case NoStalePRs  => 0
           case StalePR     => -20
         }
       case r: ReadMeResultType =>

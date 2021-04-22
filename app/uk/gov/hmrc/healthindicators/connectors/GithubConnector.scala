@@ -47,7 +47,7 @@ class GithubConnector @Inject() (
 
   def getOpenPRs(repo: String): Future[Option[Seq[OpenPR]]] = {
     val url =
-      s"${githubConfig.restUrl}/repos/hmrc/$repo/pulls"
+      s"${githubConfig.restUrl}/repos/hmrc/$repo/pulls?state=open"
     implicit val hc: HeaderCarrier = HeaderCarrier()
     implicit val oR: Reads[OpenPR] = OpenPR.reads
     val logger                     = Logger(this.getClass)

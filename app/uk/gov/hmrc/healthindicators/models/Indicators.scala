@@ -31,16 +31,12 @@ case object PRsNotFound extends OpenPRResultType {
   override val toString: String = "prs-not-found"
 }
 
-case object NoOpenPRs extends OpenPRResultType {
-  override val toString: String = "no-open-prs"
+case object NoStalePRs extends OpenPRResultType {
+  override val toString: String = "no-stale-prs"
 }
 
 case object StalePR extends OpenPRResultType {
   override val toString: String = "stale-pr"
-}
-
-case object FreshPR extends OpenPRResultType {
-  override val toString: String = "fresh-pr"
 }
 
 sealed trait ReadMeResultType extends ResultType
@@ -101,9 +97,8 @@ object ResultType {
 
   private val resultTypes = Set(
     PRsNotFound,
-    NoOpenPRs,
+    NoStalePRs,
     StalePR,
-    FreshPR,
     ValidReadme,
     DefaultReadme,
     NoReadme,
