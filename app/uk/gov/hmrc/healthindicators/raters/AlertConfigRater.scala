@@ -41,7 +41,7 @@ extends Rater {
     maybeConfig match {
       case None => createResults(AlertConfigNotFound, "No Alert Config Found")
       case Some(AlertConfig(true)) => createResults(AlertConfigEnabled, "Alert Config is Enabled")
-      case Some(AlertConfig(false)) => createResults(AlertConfigDisabled, " Alert Config is Disabled")
+      case Some(AlertConfig(false)) => createResults(AlertConfigDisabled, "Alert Config is Disabled")
     }
 
   private def createResults(result: AlertConfigResultType, description: String): Seq[Result] =
