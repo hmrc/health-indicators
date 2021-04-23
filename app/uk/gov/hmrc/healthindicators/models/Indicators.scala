@@ -66,6 +66,18 @@ case object JenkinsBuildOutdated extends JenkinsResultType {
   override def toString: String = "jenkins-build-outdated"
 }
 
+sealed trait AlertConfigResultType extends ResultType
+
+case object AlertConfigEnabled extends AlertConfigResultType {
+  override def toString: String = "alert-config-enabled"
+}
+case object AlertConfigDisabled extends AlertConfigResultType {
+  override def toString: String = "alert-config-disabled"
+}
+case object AlertConfigNotFound extends AlertConfigResultType {
+  override def toString: String = "alert-config-not-found"
+}
+
 object ResultType {
 
   private val resultTypes = Set(
@@ -78,7 +90,10 @@ object ResultType {
     JenkinsBuildStable,
     JenkinsBuildUnstable,
     JenkinsBuildNotFound,
-    JenkinsBuildOutdated
+    JenkinsBuildOutdated,
+    AlertConfigEnabled,
+    AlertConfigDisabled,
+    AlertConfigNotFound
   )
 
   def apply(value: String): Option[ResultType] = resultTypes.find(_.toString == value)
@@ -122,10 +137,14 @@ case object BuildStabilityIndicatorType extends IndicatorType {
   override def toString: String = "build-stability-indicator"
 }
 
+case object AlertConfigIndicatorType extends IndicatorType {
+  override def toString: String = "alert-config-indicator"
+}
+
 object IndicatorType {
 
   private val indicatorTypes =
-    Set(ReadMeIndicatorType, LeakDetectionIndicatorType, BobbyRuleIndicatorType, BuildStabilityIndicatorType)
+    Set(ReadMeIndicatorType, LeakDetectionIndicatorType, BobbyRuleIndicatorType, BuildStabilityIndicatorType, AlertConfigIndicatorType)
 
   def apply(value: String): Option[IndicatorType] = indicatorTypes.find(_.toString == value)
 
