@@ -17,12 +17,12 @@
 package uk.gov.hmrc.healthindicators.services
 
 import uk.gov.hmrc.healthindicators.configs.ScoreConfig
-import uk.gov.hmrc.healthindicators.connectors.RepositoryType
-import uk.gov.hmrc.healthindicators.models.RatingType.{BobbyRule, BuildStability, LeakDetection, ReadMe}
+import uk.gov.hmrc.healthindicators.connectors.{RepositoryType}
+import uk.gov.hmrc.healthindicators.models.RatingType.{BobbyRule, BuildStability, LeakDetection, ReadMe, AlertConfig}
 import uk.gov.hmrc.healthindicators.models._
 import uk.gov.hmrc.healthindicators.persistence.HealthIndicatorsRepository
-import javax.inject.Inject
 
+import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 class RepositoryRatingService @Inject() (repository: HealthIndicatorsRepository, scoreConfig: ScoreConfig)(implicit
@@ -69,5 +69,6 @@ class RepositoryRatingService @Inject() (repository: HealthIndicatorsRepository,
       case LeakDetectionIndicatorType  => LeakDetection
       case BobbyRuleIndicatorType      => BobbyRule
       case BuildStabilityIndicatorType => BuildStability
+      case AlertConfigIndicatorType    => AlertConfig
     }
 }

@@ -25,4 +25,5 @@ class AppConfig @Inject() (servicesConfig: ServicesConfig) {
   lazy val teamsAndRepositoriesUrl: String = servicesConfig.baseUrl("teams-and-repositories")
   lazy val leakDetectionUrl: String        = servicesConfig.baseUrl("leak-detection")
   lazy val serviceDependencies: String     = servicesConfig.baseUrl("service-dependencies")
+  lazy val serviceConfigs: String          = servicesConfig.baseUrl("service-configs")
 }

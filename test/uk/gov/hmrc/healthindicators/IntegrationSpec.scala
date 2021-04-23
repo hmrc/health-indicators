@@ -64,6 +64,8 @@ class IntegrationSpec
           "jenkins.token"                                     -> "test-token",
           "microservice.services.teams-and-repositories.port" -> endpointPort,
           "microservice.services.teams-and-repositories.host" -> host,
+          "microservice.services.service-configs.port"        -> endpointPort,
+          "microservice.services.service-configs.host"        -> host,
           "metrics.jvm"                                       -> false
         )
       )
@@ -85,6 +87,8 @@ class IntegrationSpec
       serviceEndpoint(GET, "/api/reports/repositories/auth", willRespondWith = (200, Some(leakDetectionJson)))
 
       serviceEndpoint(GET, "/api/jenkins-url/auth", willRespondWith = (200, Some(teamsAndReposJenkinsJson)))
+
+      serviceEndpoint(GET, "/alert-configs/auth", willRespondWith = (200, Some(serviceConfigsJson)))
 
       val jenkinsCred = s"Basic ${BaseEncoding.base64().encode("test-username:test-token".getBytes("UTF-8"))}"
       serviceEndpoint(
@@ -110,6 +114,7 @@ class IntegrationSpec
         response.body     should include(leakDetectionResponse)
         response.body     should include(readMeResponse)
         response.body     should include(buildStabilityResponse)
+        response.body     should include(alertConfigResponse)
       }
     }
   }
@@ -184,6 +189,15 @@ class IntegrationSpec
        |}
        |""".stripMargin
 
+
+  val serviceConfigsJson =
+    """
+      |{
+      |"serviceName": "auth",
+      |"production": false
+      |}
+      |""".stripMargin
+
   val bobbyRuleResponse =
     """{"ratingType":"BobbyRule","ratingScore":-20,"breakdown":[{"points":-20,"description":"simple-reactivemongo - TEST DEPRECATION"}]}"""
   val leakDetectionResponse =
@@ -192,5 +206,6 @@ class IntegrationSpec
     """{"ratingType":"ReadMe","ratingScore":-50,"breakdown":[{"points":-50,"description":"No Readme defined"}]}"""
   val buildStabilityResponse =
     """{"ratingType":"BuildStability","ratingScore":0,"breakdown":[{"points":0,"description":"No Jenkins Build Found for: auth"}]}"""
-  val expectedResponse = """"repositoryName":"auth","repositoryType":"Prototype","repositoryScore":-120,"""
+  val alertConfigResponse = """{"ratingType":"AlertConfig","ratingScore":20,"breakdown":[{"points":20,"description":"Alert Config is Disabled"}]}"""
+  val expectedResponse = """"repositoryName":"auth","repositoryType":"Prototype","repositoryScore":-100,"""
 }

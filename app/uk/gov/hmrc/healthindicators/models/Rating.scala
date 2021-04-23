@@ -29,12 +29,14 @@ object RatingType {
     case LeakDetection  => JsString("LeakDetection")
     case BobbyRule      => JsString("BobbyRule")
     case BuildStability => JsString("BuildStability")
+    case AlertConfig    => JsString("AlertConfig")
   }
 
   case object ReadMe extends RatingType
   case object LeakDetection extends RatingType
   case object BobbyRule extends RatingType
   case object BuildStability extends RatingType
+  case object AlertConfig extends RatingType
 }
 
 case class Score(points: Int, description: String, href: Option[String])
