@@ -19,8 +19,8 @@ package uk.gov.hmrc.healthindicators.utils
 import akka.actor.ActorSystem
 import play.api.Logger
 import play.api.inject.ApplicationLifecycle
-import uk.gov.hmrc.mongo.lock.MongoLockService
 import uk.gov.hmrc.healthindicators.configs.SchedulerConfig
+import uk.gov.hmrc.mongo.lock.LockService
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.control.NonFatal
@@ -45,7 +45,7 @@ trait SchedulerUtils {
       logger.info(s"Enabling $label scheduler, running every $frequency (after initial delay $initialDelay)")
 
       val cancellable =
-        actorSystem.scheduler.schedule(initialDelay, frequency) {
+        actorSystem.scheduler.scheduleWithFixedDelay(initialDelay, frequency) { () =>
           logger.info(s"Running $label scheduler")
           f.recover {
             case e => logger.error(s"$label interrupted because: ${e.getMessage}", e)
@@ -61,7 +61,7 @@ trait SchedulerUtils {
   def scheduleWithLock(
     label: String,
     schedulerConfig: SchedulerConfig,
-    lock: MongoLockService
+    lock: LockService
   )(f: => Future[Unit])(implicit
     actorSystem: ActorSystem,
     applicationLifecycle: ApplicationLifecycle,
@@ -70,7 +70,7 @@ trait SchedulerUtils {
     schedule(label, schedulerConfig) {
 
       lock
-        .attemptLockWithRelease(f)
+        .withLock(f)
         .map {
           case Some(_) => logger.info(s"$label finished - releasing lock")
           case None    => logger.info(s"$label cannot run - lock ${lock.lockId} is taken... skipping update")

@@ -16,10 +16,7 @@
 
 package uk.gov.hmrc.healthindicators.services
 
-import java.time.Instant
 import cats.implicits._
-
-import javax.inject.Inject
 import play.api.Logger
 import uk.gov.hmrc.healthindicators.connectors.{TeamsAndRepos, TeamsAndRepositoriesConnector}
 import uk.gov.hmrc.healthindicators.models.RepositoryHealthIndicator
@@ -27,6 +24,8 @@ import uk.gov.hmrc.healthindicators.persistence.HealthIndicatorsRepository
 import uk.gov.hmrc.healthindicators.raters.Rater
 import uk.gov.hmrc.http.HeaderCarrier
 
+import java.time.Instant
+import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 class HealthIndicatorService @Inject() (

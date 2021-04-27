@@ -16,54 +16,69 @@
 
 package uk.gov.hmrc.healthindicators.models
 
-import java.time.Instant
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
 import uk.gov.hmrc.healthindicators.connectors.RepositoryType
 import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats
 
+import java.time.Instant
+
 sealed trait ResultType
+
+sealed trait OpenPRResultType extends ResultType
+
+case object PRsNotFound extends OpenPRResultType {
+  override val toString: String = "prs-not-found"
+}
+
+case object NoStalePRs extends OpenPRResultType {
+  override val toString: String = "no-stale-prs"
+}
+
+case object StalePR extends OpenPRResultType {
+  override val toString: String = "stale-pr"
+}
 
 sealed trait ReadMeResultType extends ResultType
 
 case object ValidReadme extends ReadMeResultType {
-  override def toString: String = "valid-readme"
+  override val toString: String = "valid-readme"
 }
 case object DefaultReadme extends ReadMeResultType {
-  override def toString: String = "default-readme"
+  override val toString: String = "default-readme"
 }
 case object NoReadme extends ReadMeResultType {
-  override def toString: String = "no-readme"
+  override val toString: String = "no-readme"
 }
 
 sealed trait LeakDetectionResultType extends ResultType
 
 case object LeakDetectionViolation extends LeakDetectionResultType {
-  override def toString: String = "leak-detection-violation"
+  override val toString: String = "leak-detection-violation"
 }
 
 sealed trait BobbyRuleResultType extends ResultType
 
 case object BobbyRulePending extends BobbyRuleResultType {
-  override def toString: String = "bobby-rule-pending"
+  override val toString: String = "bobby-rule-pending"
 }
 case object BobbyRuleActive extends BobbyRuleResultType {
-  override def toString: String = "bobby-rule-active"
+  override val toString: String = "bobby-rule-active"
 }
 
 sealed trait JenkinsResultType extends ResultType
 
 case object JenkinsBuildStable extends JenkinsResultType {
-  override def toString: String = "jenkins-build-stable"
+  override val toString: String = "jenkins-build-stable"
 }
 case object JenkinsBuildUnstable extends JenkinsResultType {
-  override def toString: String = "jenkins-build-unstable"
+  override val toString: String = "jenkins-build-unstable"
 }
 case object JenkinsBuildNotFound extends JenkinsResultType {
-  override def toString: String = "jenkins-build-not-found"
+  override val toString: String = "jenkins-build-not-found"
 }
 case object JenkinsBuildOutdated extends JenkinsResultType {
-  override def toString: String = "jenkins-build-outdated"
+  override val toString: String = "jenkins-build-outdated"
 }
 
 sealed trait AlertConfigResultType extends ResultType
@@ -81,6 +96,9 @@ case object AlertConfigNotFound extends AlertConfigResultType {
 object ResultType {
 
   private val resultTypes = Set(
+    PRsNotFound,
+    NoStalePRs,
+    StalePR,
     ValidReadme,
     DefaultReadme,
     NoReadme,
@@ -121,6 +139,10 @@ object Result {
 
 sealed trait IndicatorType
 
+case object OpenPRIndicatorType extends IndicatorType {
+  override def toString: String = "open-pr-indicator"
+}
+
 case object ReadMeIndicatorType extends IndicatorType {
   override def toString: String = "read-me-indicator"
 }
@@ -144,7 +166,14 @@ case object AlertConfigIndicatorType extends IndicatorType {
 object IndicatorType {
 
   private val indicatorTypes =
-    Set(ReadMeIndicatorType, LeakDetectionIndicatorType, BobbyRuleIndicatorType, BuildStabilityIndicatorType, AlertConfigIndicatorType)
+    Set(
+      ReadMeIndicatorType,
+      LeakDetectionIndicatorType,
+      BobbyRuleIndicatorType,
+      BuildStabilityIndicatorType,
+      AlertConfigIndicatorType,
+      OpenPRIndicatorType
+    )
 
   def apply(value: String): Option[IndicatorType] = indicatorTypes.find(_.toString == value)
 
@@ -178,7 +207,7 @@ case class RepositoryHealthIndicator(
 
 object RepositoryHealthIndicator {
   val mongoFormats: OFormat[RepositoryHealthIndicator] = {
-    implicit val instantFormat: Format[Instant]               = MongoJavatimeFormats.instantFormats
+    implicit val instantFormat: Format[Instant]               = MongoJavatimeFormats.instantFormat
     implicit val indicatorFormat: Format[Indicator]           = Indicator.format
     implicit val repositoryTypeFormat: Format[RepositoryType] = RepositoryType.format
     ((__ \ "repositoryName").format[String]

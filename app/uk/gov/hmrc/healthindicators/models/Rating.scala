@@ -18,7 +18,7 @@ package uk.gov.hmrc.healthindicators.models
 
 import play.api.libs.functional.syntax.{toFunctionalBuilderOps, unlift}
 import play.api.libs.json.Format.GenericFormat
-import play.api.libs.json.{Format, JsString, Writes, __}
+import play.api.libs.json.{JsString, Writes, __}
 import uk.gov.hmrc.healthindicators.connectors.RepositoryType
 
 sealed trait RatingType
@@ -29,6 +29,7 @@ object RatingType {
     case LeakDetection  => JsString("LeakDetection")
     case BobbyRule      => JsString("BobbyRule")
     case BuildStability => JsString("BuildStability")
+    case OpenPR         => JsString("OpenPR")
     case AlertConfig    => JsString("AlertConfig")
   }
 
@@ -37,6 +38,7 @@ object RatingType {
   case object BobbyRule extends RatingType
   case object BuildStability extends RatingType
   case object AlertConfig extends RatingType
+  case object OpenPR extends RatingType
 }
 
 case class Score(points: Int, description: String, href: Option[String])
@@ -70,7 +72,7 @@ case class RepositoryRating(
 object RepositoryRating {
   val writes: Writes[RepositoryRating] = {
     implicit val rW: Writes[Rating]          = Rating.writes
-    implicit val rtF: Format[RepositoryType] = RepositoryType.format
+    implicit val rtF: Writes[RepositoryType] = RepositoryType.format
     ((__ \ "repositoryName").write[String]
       ~ (__ \ "repositoryType").write[RepositoryType]
       ~ (__ \ "repositoryScore").write[Int]

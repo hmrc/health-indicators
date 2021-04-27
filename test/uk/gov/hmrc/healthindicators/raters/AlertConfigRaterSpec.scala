@@ -21,7 +21,7 @@ import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import uk.gov.hmrc.healthindicators.connectors.{AlertConfig, ServiceConfigsConnector}
-import uk.gov.hmrc.healthindicators.models.{AlertConfigDisabled, AlertConfigEnabled, AlertConfigIndicatorType, AlertConfigNotFound, Indicator, Result}
+import uk.gov.hmrc.healthindicators.models.{AlertConfigDisabled, AlertConfigEnabled, AlertConfigIndicatorType, AlertConfigNotFound}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -29,9 +29,9 @@ import scala.concurrent.Future
 class AlertConfigRaterSpec extends AnyWordSpec with Matchers with MockitoSugar with ScalaFutures {
 
   private val mockServiceConfigsConnector: ServiceConfigsConnector = mock[ServiceConfigsConnector]
-  private val rater: AlertConfigRater = new AlertConfigRater(mockServiceConfigsConnector)
+  private val rater: AlertConfigRater                              = new AlertConfigRater(mockServiceConfigsConnector)
 
-  private val alertConfigTrue: AlertConfig = AlertConfig(true)
+  private val alertConfigTrue: AlertConfig  = AlertConfig(true)
   private val alertConfigFalse: AlertConfig = AlertConfig(false)
 
   "rate" should {
@@ -66,8 +66,6 @@ class AlertConfigRaterSpec extends AnyWordSpec with Matchers with MockitoSugar w
       result.results.head.resultType mustBe AlertConfigDisabled
 
     }
-
-
 
   }
 }

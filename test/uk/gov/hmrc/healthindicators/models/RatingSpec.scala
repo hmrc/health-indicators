@@ -20,7 +20,7 @@ import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import play.api.libs.json.{Writes, _}
 import uk.gov.hmrc.healthindicators.connectors.RepositoryType.Service
-import uk.gov.hmrc.healthindicators.models.RatingType.{BobbyRule, BuildStability, LeakDetection, ReadMe}
+import uk.gov.hmrc.healthindicators.models.RatingType.{BobbyRule, BuildStability, LeakDetection, OpenPR, ReadMe}
 
 class RatingSpec extends AnyWordSpec with Matchers {
 
@@ -29,19 +29,23 @@ class RatingSpec extends AnyWordSpec with Matchers {
   "RatingType" should {
 
     "write ReadMe" in {
-      Json.toJson(ReadMe) mustBe JsString("ReadMe")
+      Json.toJson(ReadMe: RatingType) mustBe JsString("ReadMe")
     }
 
     "write LeakDetection" in {
-      Json.toJson(LeakDetection) mustBe JsString("LeakDetection")
+      Json.toJson(LeakDetection: RatingType) mustBe JsString("LeakDetection")
     }
 
     "write BobbyRule" in {
-      Json.toJson(BobbyRule) mustBe JsString("BobbyRule")
+      Json.toJson(BobbyRule: RatingType) mustBe JsString("BobbyRule")
     }
 
     "write BuildStability" in {
-      Json.toJson(BuildStability) mustBe JsString("BuildStability")
+      Json.toJson(BuildStability: RatingType) mustBe JsString("BuildStability")
+    }
+
+    "write OpenPRs" in {
+      Json.toJson(OpenPR: RatingType) mustBe JsString("OpenPR")
     }
   }
 

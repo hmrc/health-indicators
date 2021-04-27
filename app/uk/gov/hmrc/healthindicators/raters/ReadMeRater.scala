@@ -16,11 +16,11 @@
 
 package uk.gov.hmrc.healthindicators.raters
 
-import javax.inject.{Inject, Singleton}
 import play.api.Logger
 import uk.gov.hmrc.healthindicators.connectors.GithubConnector
 import uk.gov.hmrc.healthindicators.models._
 
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton

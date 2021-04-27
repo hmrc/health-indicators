@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.healthindicators.models
 
-import play.api.mvc.{QueryStringBindable}
+import play.api.mvc.QueryStringBindable
 
 sealed trait SortType { def asString: String }
 object SortType {

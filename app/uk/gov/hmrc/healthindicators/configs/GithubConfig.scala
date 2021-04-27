@@ -16,12 +16,13 @@
 
 package uk.gov.hmrc.healthindicators.configs
 
-import javax.inject.{Inject, Singleton}
 import play.api.Configuration
+
+import javax.inject.{Inject, Singleton}
 
 @Singleton
 class GithubConfig @Inject() (configuration: Configuration) {
-
-  val rawUrl: String = configuration.get[String]("github.open.api.rawurl")
-  val token: String  = configuration.get[String]("github.open.api.token")
+  val restUrl: String = configuration.get[String]("github.rest.api.url")
+  val rawUrl: String  = configuration.get[String]("github.open.api.rawurl")
+  val token: String   = configuration.get[String]("github.open.api.token")
 }

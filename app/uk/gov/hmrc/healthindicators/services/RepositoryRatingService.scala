@@ -17,8 +17,8 @@
 package uk.gov.hmrc.healthindicators.services
 
 import uk.gov.hmrc.healthindicators.configs.ScoreConfig
-import uk.gov.hmrc.healthindicators.connectors.{RepositoryType}
-import uk.gov.hmrc.healthindicators.models.RatingType.{BobbyRule, BuildStability, LeakDetection, ReadMe, AlertConfig}
+import uk.gov.hmrc.healthindicators.connectors.RepositoryType
+import uk.gov.hmrc.healthindicators.models.RatingType._
 import uk.gov.hmrc.healthindicators.models._
 import uk.gov.hmrc.healthindicators.persistence.HealthIndicatorsRepository
 
@@ -69,6 +69,7 @@ class RepositoryRatingService @Inject() (repository: HealthIndicatorsRepository,
       case LeakDetectionIndicatorType  => LeakDetection
       case BobbyRuleIndicatorType      => BobbyRule
       case BuildStabilityIndicatorType => BuildStability
+      case OpenPRIndicatorType         => OpenPR
       case AlertConfigIndicatorType    => AlertConfig
     }
 }

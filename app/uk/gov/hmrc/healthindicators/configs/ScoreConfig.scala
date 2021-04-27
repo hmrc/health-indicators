@@ -16,13 +16,20 @@
 
 package uk.gov.hmrc.healthindicators.configs
 
-import javax.inject.Singleton
 import uk.gov.hmrc.healthindicators.models._
+
+import javax.inject.Singleton
 
 @Singleton
 class ScoreConfig {
   def scores(resultType: ResultType): Int =
     resultType match {
+      case o: OpenPRResultType =>
+        o match {
+          case PRsNotFound => 0
+          case NoStalePRs  => 0
+          case StalePR     => -20
+        }
       case r: ReadMeResultType =>
         r match {
           case NoReadme      => -50

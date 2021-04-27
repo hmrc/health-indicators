@@ -16,13 +16,12 @@
 
 package uk.gov.hmrc.healthindicators.raters
 
-import java.time.LocalDate
-
-import javax.inject.{Inject, Singleton}
 import play.api.Logger
 import uk.gov.hmrc.healthindicators.connectors.{BobbyRuleViolation, ServiceDependenciesConnector}
 import uk.gov.hmrc.healthindicators.models._
 
+import java.time.LocalDate
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
