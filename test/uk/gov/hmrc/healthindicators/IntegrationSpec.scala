@@ -26,13 +26,13 @@ import org.scalatestplus.play.guice.GuiceOneServerPerSuite
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.ws.WSClient
 import play.api.Application
-import uk.gov.hmrc.healthindicators.models.RepositoryHealthIndicator
-import uk.gov.hmrc.healthindicators.persistence.HealthIndicatorsRepository
+import uk.gov.hmrc.healthindicators.models.RepositoryMetrics
+import uk.gov.hmrc.healthindicators.persistence.MetricsPersistence
 import uk.gov.hmrc.mongo.test.DefaultPlayMongoRepositorySupport
 
 class IntegrationSpec
     extends AnyWordSpec
-    with DefaultPlayMongoRepositorySupport[RepositoryHealthIndicator]
+    with DefaultPlayMongoRepositorySupport[RepositoryMetrics]
     with GuiceOneServerPerSuite
     with WireMockEndpoints
     with Matchers
@@ -42,7 +42,7 @@ class IntegrationSpec
   implicit override val patienceConfig: PatienceConfig =
     PatienceConfig(timeout = scaled(Span(10, Seconds)), interval = scaled(Span(1000, Millis)))
 
-  protected val repository: HealthIndicatorsRepository = app.injector.instanceOf[HealthIndicatorsRepository]
+  protected val repository: MetricsPersistence = app.injector.instanceOf[MetricsPersistence]
   private[this] lazy val ws                            = app.injector.instanceOf[WSClient]
 
   override def fakeApplication: Application =
@@ -51,9 +51,9 @@ class IntegrationSpec
       .configure(
         Map(
           "mongodb.uri"                                       -> mongoUri,
-          "reporatings.refresh.enabled"                       -> "true",
-          "reporatings.refresh.interval"                      -> "5.minutes",
-          "reporatings.refresh.initialDelay"                  -> "5.seconds",
+          "metrics.refresh.enabled"                           -> "true",
+          "metrics.refresh.interval"                          -> "5.minutes",
+          "metrics.refresh.initialDelay"                      -> "5.seconds",
           "microservice.services.service-dependencies.port"   -> endpointPort,
           "microservice.services.service-dependencies.host"   -> host,
           "microservice.services.leak-detection.port"         -> endpointPort,
@@ -79,7 +79,7 @@ class IntegrationSpec
       response.status shouldBe 200
     }
 
-    "return correct json when scoreForRepo receives a get request with valid repo name" in {
+    "return correct json when HealthIndicatorController.indicator receives a get request with valid repo name" in {
 
       serviceEndpoint(GET, "/api/repositories", willRespondWith = (200, Some(teamsAndReposJson)))
 
@@ -207,16 +207,16 @@ class IntegrationSpec
       |""".stripMargin
 
   val bobbyRuleResponse =
-    """{"ratingType":"BobbyRule","ratingScore":-20,"breakdown":[{"points":-20,"description":"simple-reactivemongo - TEST DEPRECATION"}]}"""
+    """{"metricType":"bobby-rule","score":-20,"breakdown":[{"points":-20,"description":"simple-reactivemongo - TEST DEPRECATION"}]}"""
   val leakDetectionResponse =
-    """{"ratingType":"LeakDetection","ratingScore":-50,"breakdown":[{"points":-50,"description":"test123","ratings":"https://test-url"}]}"""
+    """{"metricType":"leak-detection","score":-50,"breakdown":[{"points":-50,"description":"test123","link":"https://test-url"}]}"""
   val readMeResponse =
-    """{"ratingType":"ReadMe","ratingScore":-50,"breakdown":[{"points":-50,"description":"No Readme defined"}]}"""
+    """{"metricType":"read-me","score":-50,"breakdown":[{"points":-50,"description":"No Readme defined"}]}"""
   val buildStabilityResponse =
-    """{"ratingType":"BuildStability","ratingScore":0,"breakdown":[{"points":0,"description":"No Jenkins Build Found for: auth"}]}"""
+    """{"metricType":"build-stability","score":0,"breakdown":[{"points":0,"description":"No Jenkins Build Found for: auth"}]}"""
   val openPRResponse =
-    """{"ratingType":"OpenPR","ratingScore":0,"breakdown":[{"points":0,"description":"No Stale PRs"}]}"""
+    """{"metricType":"open-pr","score":0,"breakdown":[{"points":0,"description":"No Stale PRs"}]}"""
   val alertConfigResponse =
-    """{"ratingType":"AlertConfig","ratingScore":20,"breakdown":[{"points":20,"description":"Alert Config is Disabled"}]}"""
-  val expectedResponse = """"repositoryName":"auth","repositoryType":"Prototype","repositoryScore":-100,"""
+    """{"metricType":"alert-config","score":20,"breakdown":[{"points":20,"description":"Alert Config is Disabled"}]}"""
+  val expectedResponse = """"repoName":"auth","repoType":"Prototype","overallScore":-100,"""
 }

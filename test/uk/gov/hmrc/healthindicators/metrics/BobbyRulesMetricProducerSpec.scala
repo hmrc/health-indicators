@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.healthindicators.raters
+package uk.gov.hmrc.healthindicators.metrics
 
 /*
  * Copyright 2020 HM Revenue & Customs
@@ -45,10 +45,10 @@ import uk.gov.hmrc.http.HeaderCarrier
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class BobbyRulesRaterSpec extends AnyWordSpec with Matchers with MockitoSugar with ScalaFutures {
+class BobbyRulesMetricProducerSpec extends AnyWordSpec with Matchers with MockitoSugar with ScalaFutures {
 
   private val mockBobbyRulesConnector = mock[ServiceDependenciesConnector]
-  private val rater                   = new BobbyRulesRater(mockBobbyRulesConnector)
+  private val rater                   = new BobbyRulesMetricProducer(mockBobbyRulesConnector)
 
   private val dependencyWithActiveViolation: Dependency =
     Dependency(Seq(BobbyRuleViolation("reason", LocalDate.parse("1994-01-08"), "range")), "name")
@@ -65,9 +65,9 @@ class BobbyRulesRaterSpec extends AnyWordSpec with Matchers with MockitoSugar wi
     "Return Indicator with no results when repo is not found" in {
       when(mockBobbyRulesConnector.dependencies("foo")) thenReturn Future.successful(None)
 
-      val result = rater.rate("foo")
+      val result = rater.produce("foo")
 
-      result.futureValue mustBe Indicator(BobbyRuleIndicatorType, Seq.empty)
+      result.futureValue mustBe Metric(BobbyRuleMetricType, Seq.empty)
     }
 
     "Return Indicator with no results when a report with no bobby rules is found" in {
@@ -75,9 +75,9 @@ class BobbyRulesRaterSpec extends AnyWordSpec with Matchers with MockitoSugar wi
         Some(Dependencies("repoName", Seq(), Seq(), Seq()))
       )
 
-      val result = rater.rate("foo")
+      val result = rater.produce("foo")
 
-      result.futureValue mustBe Indicator(BobbyRuleIndicatorType, Seq.empty)
+      result.futureValue mustBe Metric(BobbyRuleMetricType, Seq.empty)
     }
 
     "Return Indicator with active violation result when bobby violation is found" in {
@@ -92,9 +92,9 @@ class BobbyRulesRaterSpec extends AnyWordSpec with Matchers with MockitoSugar wi
         )
       )
 
-      val result = rater.rate("foo")
+      val result = rater.produce("foo")
 
-      result.futureValue mustBe Indicator(BobbyRuleIndicatorType, Seq(Result(BobbyRuleActive, "name - reason", None)))
+      result.futureValue mustBe Metric(BobbyRuleMetricType, Seq(Result(BobbyRuleActive, "name - reason", None)))
     }
 
     "Return Indicator with pending violation result when pending bobby violation is found" in {
@@ -109,9 +109,9 @@ class BobbyRulesRaterSpec extends AnyWordSpec with Matchers with MockitoSugar wi
         )
       )
 
-      val result = rater.rate("foo")
+      val result = rater.produce("foo")
 
-      result.futureValue mustBe Indicator(BobbyRuleIndicatorType, Seq(Result(BobbyRulePending, "name - reason", None)))
+      result.futureValue mustBe Metric(BobbyRuleMetricType, Seq(Result(BobbyRulePending, "name - reason", None)))
 
     }
 
@@ -127,10 +127,10 @@ class BobbyRulesRaterSpec extends AnyWordSpec with Matchers with MockitoSugar wi
         )
       )
 
-      val result = rater.rate("foo")
+      val result = rater.produce("foo")
 
-      result.futureValue mustBe Indicator(
-        BobbyRuleIndicatorType,
+      result.futureValue mustBe Metric(
+        BobbyRuleMetricType,
         Seq(
           Result(BobbyRulePending, "name - reason", None),
           Result(BobbyRuleActive, "name - reason", None),

@@ -14,26 +14,26 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.healthindicators.raters
+package uk.gov.hmrc.healthindicators.metrics
 
 import uk.gov.hmrc.healthindicators.connectors.{AlertConfig, ServiceConfigsConnector}
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 import play.api.Logger
-import uk.gov.hmrc.healthindicators.models.{AlertConfigDisabled, AlertConfigEnabled, AlertConfigIndicatorType, AlertConfigNotFound, AlertConfigResultType, Indicator, Result}
+import uk.gov.hmrc.healthindicators.models.{AlertConfigDisabled, AlertConfigEnabled, AlertConfigMetricType, AlertConfigNotFound, AlertConfigResultType, Metric, Result}
 
 
 @Singleton
-class AlertConfigRater @Inject()(serviceConfigConnector: ServiceConfigsConnector)(implicit val ec: ExecutionContext)
-extends Rater {
+class AlertConfigMetricProducer @Inject()(serviceConfigConnector: ServiceConfigsConnector)(implicit val ec: ExecutionContext)
+extends MetricProducer {
 
   private val logger = Logger(this.getClass)
 
-  override def rate(repo: String): Future[Indicator] = {
-    logger.info(s"Rating Alert Config for: $repo")
+  override def produce(repo: String): Future[Metric] = {
+    logger.debug(s"Metric Alert Config for: $repo")
     serviceConfigConnector.findAlertConfigs(repo).map { response =>
-      Indicator(AlertConfigIndicatorType, getResults(response))
+      Metric(AlertConfigMetricType, getResults(response))
     }
   }
 

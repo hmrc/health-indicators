@@ -18,24 +18,24 @@ package uk.gov.hmrc.healthindicators
 
 import com.google.inject.{AbstractModule, Provides}
 import play.api.Logger
-import uk.gov.hmrc.healthindicators.raters._
+import uk.gov.hmrc.healthindicators.metrics._
 
 class HealthIndicatorsModule() extends AbstractModule {
 
   private val logger = Logger(this.getClass)
 
   override def configure(): Unit =
-    bind(classOf[schedulers.RepoRatingsScheduler]).asEagerSingleton()
+    bind(classOf[schedulers.MetricScheduler]).asEagerSingleton()
 
   @Provides
   def raters(
-    bobbyRulesRater: BobbyRulesRater,
-    leakDetectionRater: LeakDetectionRater,
-    readMeRater: ReadMeRater,
-    buildStabilityRater: BuildStabilityRater,
-    stalePrRater: StalePrRater,
-    alertConfigRater: AlertConfigRater
-  ): List[Rater] = {
+              bobbyRulesRater: BobbyRulesMetricProducer,
+              leakDetectionRater: LeakDetectionMetricProducer,
+              readMeRater: ReadMeMetricProducer,
+              buildStabilityRater: BuildStabilityMetricProducer,
+              stalePrRater: StalePrMetricProducer,
+              alertConfigRater: AlertConfigMetricProducer
+  ): List[MetricProducer] = {
     val raters =
       List(bobbyRulesRater, leakDetectionRater, readMeRater, buildStabilityRater, alertConfigRater, stalePrRater)
     logger.info(s"Loaded Raters: ${raters.map(_.getClass.getSimpleName).mkString("[\n", "\n", "\n]")}")

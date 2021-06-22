@@ -20,7 +20,7 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import uk.gov.hmrc.healthindicators.models.{BobbyRuleActive, BobbyRulePending, DefaultReadme, JenkinsBuildNotFound, JenkinsBuildOutdated, JenkinsBuildStable, JenkinsBuildUnstable, LeakDetectionViolation, NoReadme, ValidReadme}
 
-class ScoreConfigSpec extends AnyWordSpec with Matchers {
+class BreakdownConfigSpec extends AnyWordSpec with Matchers {
   "ScoreConfig" should {
     val scoreConfig = new ScoreConfig
     "Give correct scores for ReadMeResultTypes" in {

@@ -45,16 +45,17 @@ class TeamsAndRepositoriesConnector @Inject() (
   }
 }
 
-sealed trait RepositoryType
+sealed trait RepoType
 
-object RepositoryType {
-  case object Service extends RepositoryType
-  case object Prototype extends RepositoryType
-  case object Library extends RepositoryType
-  case object Other extends RepositoryType
+object RepoType {
+  case object Service extends RepoType
+  case object Prototype extends RepoType
+  case object Library extends RepoType
+  case object Other extends RepoType
 
-  val format: Format[RepositoryType] = new Format[RepositoryType] {
-    override def reads(json: JsValue): JsResult[RepositoryType] =
+
+  val format: Format[RepoType] = new Format[RepoType] {
+    override def reads(json: JsValue): JsResult[RepoType] =
       json.validate[String].flatMap {
         case "Service"   => JsSuccess(Service)
         case "Prototype" => JsSuccess(Prototype)
@@ -63,7 +64,7 @@ object RepositoryType {
         case s           => JsError(s"Invalid RepositoryType: $s")
       }
 
-    override def writes(o: RepositoryType): JsValue =
+    override def writes(o: RepoType): JsValue =
       o match {
         case Service   => JsString("Service")
         case Prototype => JsString("Prototype")
@@ -74,8 +75,8 @@ object RepositoryType {
   }
 
   implicit def queryStringBindable(implicit stringBinder: QueryStringBindable[String]) =
-    new QueryStringBindable[RepositoryType] {
-      override def bind(key: String, params: Map[String, Seq[String]]): Option[Either[String, RepositoryType]] = {
+    new QueryStringBindable[RepoType] {
+      override def bind(key: String, params: Map[String, Seq[String]]): Option[Either[String, RepoType]] = {
         val repositoryTypeString = params.get(key)
         repositoryTypeString.map({
           case Seq("Service")   => Right(Service)
@@ -86,21 +87,21 @@ object RepositoryType {
         })
       }
 
-      override def unbind(key: String, repositoryType: RepositoryType): String =
+      override def unbind(key: String, repositoryType: RepoType): String =
         stringBinder.unbind("repositoryType", repositoryType.toString)
     }
 }
 
 case class TeamsAndRepos(
   name: String,
-  repositoryType: RepositoryType
+  repositoryType: RepoType
 )
 
 object TeamsAndRepos {
   val reads: Reads[TeamsAndRepos] = {
-    implicit val rtF: Format[RepositoryType] = RepositoryType.format
+    implicit val rtF: Format[RepoType] = RepoType.format
     ((__ \ "name").read[String]
-      ~ (__ \ "repoType").format[RepositoryType])(TeamsAndRepos.apply _)
+      ~ (__ \ "repoType").format[RepoType])(TeamsAndRepos.apply _)
   }
 }
 

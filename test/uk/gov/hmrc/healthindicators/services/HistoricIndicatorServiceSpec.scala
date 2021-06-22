@@ -14,15 +14,13 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.healthindicators.persistence
+package uk.gov.hmrc.healthindicators.services
 
-import uk.gov.hmrc.mongo.lock.{LockService, MongoLockRepository}
 
-import javax.inject.{Inject, Singleton}
-import scala.concurrent.duration._
+class HistoricIndicatorServiceSpec {
 
-@Singleton
-class MongoLock @Inject() (mongoLockRepository: MongoLockRepository)() {
+  // Score Indicators -> Build HistoricIndicator -> Insert
 
-  val metricsMongoLock: LockService = LockService(mongoLockRepository, "metrics-lock", 1.hour)
+
+
 }

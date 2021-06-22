@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.healthindicators.raters
+package uk.gov.hmrc.healthindicators.metrics
 
 import play.api.Logger
 import uk.gov.hmrc.healthindicators.connectors.{BobbyRuleViolation, ServiceDependenciesConnector}
@@ -25,15 +25,15 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class BobbyRulesRater @Inject() (
+class BobbyRulesMetricProducer @Inject()(
   serviceDependenciesConnector: ServiceDependenciesConnector
 )(implicit val ec: ExecutionContext)
-    extends Rater {
+    extends MetricProducer {
 
   private val logger = Logger(this.getClass)
 
-  override def rate(repo: String): Future[Indicator] = {
-    logger.info(s"Rating BobbyRules for: $repo")
+  override def produce(repo: String): Future[Metric] = {
+    logger.debug(s"Metric BobbyRules for: $repo")
 
     serviceDependenciesConnector
       .dependencies(repo)
@@ -47,7 +47,7 @@ class BobbyRulesRater @Inject() (
         } yield Result(result, s"${dependency.name} - ${violation.reason}", None)
       }
       .map { results =>
-        Indicator(BobbyRuleIndicatorType, results)
+        Metric(BobbyRuleMetricType, results)
       }
   }
 

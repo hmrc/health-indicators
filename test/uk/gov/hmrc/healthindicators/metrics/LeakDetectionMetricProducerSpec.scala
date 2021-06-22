@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.healthindicators.raters
+package uk.gov.hmrc.healthindicators.metrics
 
 import org.mockito.MockitoSugar
 import org.scalatest.concurrent.ScalaFutures
@@ -27,10 +27,10 @@ import uk.gov.hmrc.http.HeaderCarrier
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class LeakDetectionRaterSpec extends AnyWordSpec with Matchers with MockitoSugar with ScalaFutures {
+class LeakDetectionMetricProducerSpec extends AnyWordSpec with Matchers with MockitoSugar with ScalaFutures {
 
   private val mockLeakDetectionConnector: LeakDetectionConnector = mock[LeakDetectionConnector]
-  private val rater: LeakDetectionRater                          = new LeakDetectionRater(mockLeakDetectionConnector)
+  private val rater: LeakDetectionMetricProducer                          = new LeakDetectionMetricProducer(mockLeakDetectionConnector)
 
   private val reportLine: ReportLine =
     ReportLine("file-path", "scope", 1, "url-to-source", Some("rule-id"), "description", "line-text")
@@ -42,9 +42,9 @@ class LeakDetectionRaterSpec extends AnyWordSpec with Matchers with MockitoSugar
     "Return Indicator with no results when leak detection connector returns None" in {
       when(mockLeakDetectionConnector.findLatestMasterReport("foo")).thenReturn(Future.successful(None))
 
-      val result = rater.rate("foo")
+      val result = rater.produce("foo")
 
-      result.futureValue mustBe Indicator(LeakDetectionIndicatorType, Seq.empty)
+      result.futureValue mustBe Metric(LeakDetectionMetricType, Seq.empty)
 
     }
 
@@ -52,19 +52,19 @@ class LeakDetectionRaterSpec extends AnyWordSpec with Matchers with MockitoSugar
       when(mockLeakDetectionConnector.findLatestMasterReport("foo"))
         .thenReturn(Future.successful(Some(Report("idx", Seq.empty))))
 
-      val result = rater.rate("foo")
+      val result = rater.produce("foo")
 
-      result.futureValue mustBe Indicator(LeakDetectionIndicatorType, Seq.empty)
+      result.futureValue mustBe Metric(LeakDetectionMetricType, Seq.empty)
     }
 
     "Return Indicator with a result when a Report with 1 violations is found" in {
       when(mockLeakDetectionConnector.findLatestMasterReport("foo"))
         .thenReturn(Future.successful(Some(Report("idx", Seq(reportLine)))))
 
-      val result = rater.rate("foo")
+      val result = rater.produce("foo")
 
-      result.futureValue mustBe Indicator(
-        LeakDetectionIndicatorType,
+      result.futureValue mustBe Metric(
+        LeakDetectionMetricType,
         Seq(Result(LeakDetectionViolation, "description", Some("url-to-source")))
       )
     }
@@ -73,10 +73,10 @@ class LeakDetectionRaterSpec extends AnyWordSpec with Matchers with MockitoSugar
       when(mockLeakDetectionConnector.findLatestMasterReport("foo"))
         .thenReturn(Future.successful(Some(Report("idx", Seq(reportLine, reportLine)))))
 
-      val result = rater.rate("foo")
+      val result = rater.produce("foo")
 
-      result.futureValue mustBe Indicator(
-        LeakDetectionIndicatorType,
+      result.futureValue mustBe Metric(
+        LeakDetectionMetricType,
         Seq(
           Result(LeakDetectionViolation, "description", Some("url-to-source")),
           Result(LeakDetectionViolation, "description", Some("url-to-source"))

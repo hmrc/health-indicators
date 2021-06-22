@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.healthindicators.raters
+package uk.gov.hmrc.healthindicators.metrics
 
 import uk.gov.hmrc.healthindicators.connectors.{GithubConnector, OpenPR}
 import uk.gov.hmrc.healthindicators.models._
@@ -24,18 +24,18 @@ import java.time.temporal.ChronoUnit
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class StalePrRater @Inject() (
+class StalePrMetricProducer @Inject()(
   githubConnector: GithubConnector
 )(implicit
   val ec: ExecutionContext
-) extends Rater {
+) extends MetricProducer {
 
-  override def rate(repo: String): Future[Indicator] =
+  override def produce(repo: String): Future[Metric] =
     githubConnector
       .getOpenPRs(repo)
       .map(getResultType)
       .map { result =>
-        Indicator(OpenPRIndicatorType, result)
+        Metric(OpenPRMetricType, result)
       }
 
   def getResultType(maybeOpenPRs: Option[Seq[OpenPR]]): Seq[Result] =

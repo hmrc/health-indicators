@@ -14,34 +14,31 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.healthindicators.raters
+package uk.gov.hmrc.healthindicators.metrics
 
 import org.mockito.MockitoSugar
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import uk.gov.hmrc.healthindicators.connectors.{AlertConfig, ServiceConfigsConnector}
-import uk.gov.hmrc.healthindicators.models.{AlertConfigDisabled, AlertConfigEnabled, AlertConfigIndicatorType, AlertConfigNotFound}
+import uk.gov.hmrc.healthindicators.models.{AlertConfigDisabled, AlertConfigEnabled, AlertConfigMetricType, AlertConfigNotFound}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class AlertConfigRaterSpec extends AnyWordSpec with Matchers with MockitoSugar with ScalaFutures {
+class AlertConfigMetricProducerSpec extends AnyWordSpec with Matchers with MockitoSugar with ScalaFutures {
 
   private val mockServiceConfigsConnector: ServiceConfigsConnector = mock[ServiceConfigsConnector]
-  private val rater: AlertConfigRater                              = new AlertConfigRater(mockServiceConfigsConnector)
-
-  private val alertConfigTrue: AlertConfig  = AlertConfig(true)
-  private val alertConfigFalse: AlertConfig = AlertConfig(false)
+  private val rater: AlertConfigMetricProducer                              = new AlertConfigMetricProducer(mockServiceConfigsConnector)
 
   "rate" should {
 
     "Return an Indicator with AlertConfigNotFound when service configs connector returns None" in {
       when(mockServiceConfigsConnector.findAlertConfigs("foo")).thenReturn(Future.successful(None))
 
-      val result = rater.rate("foo").futureValue
+      val result = rater.produce("foo").futureValue
 
-      result.indicatorType mustBe AlertConfigIndicatorType
+      result.metricType mustBe AlertConfigMetricType
       result.results.head.resultType mustBe AlertConfigNotFound
     }
 
@@ -49,9 +46,9 @@ class AlertConfigRaterSpec extends AnyWordSpec with Matchers with MockitoSugar w
 
       when(mockServiceConfigsConnector.findAlertConfigs("foo")).thenReturn(Future.successful(Some(AlertConfig(true))))
 
-      val result = rater.rate("foo").futureValue
+      val result = rater.produce("foo").futureValue
 
-      result.indicatorType mustBe AlertConfigIndicatorType
+      result.metricType mustBe AlertConfigMetricType
       result.results.head.resultType mustBe AlertConfigEnabled
 
     }
@@ -60,9 +57,9 @@ class AlertConfigRaterSpec extends AnyWordSpec with Matchers with MockitoSugar w
 
       when(mockServiceConfigsConnector.findAlertConfigs("foo")).thenReturn(Future.successful(Some(AlertConfig(false))))
 
-      val result = rater.rate("foo").futureValue
+      val result = rater.produce("foo").futureValue
 
-      result.indicatorType mustBe AlertConfigIndicatorType
+      result.metricType mustBe AlertConfigMetricType
       result.results.head.resultType mustBe AlertConfigDisabled
 
     }

@@ -18,34 +18,34 @@ package uk.gov.hmrc.healthindicators.controllers
 
 import play.api.libs.json.{Json, Writes}
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
-import uk.gov.hmrc.healthindicators.connectors.RepositoryType
-import uk.gov.hmrc.healthindicators.models.{RepositoryRating, SortType}
-import uk.gov.hmrc.healthindicators.services.RepositoryRatingService
+import uk.gov.hmrc.healthindicators.connectors.RepoType
+import uk.gov.hmrc.healthindicators.models.{Indicator, SortType}
+import uk.gov.hmrc.healthindicators.services.RepoIndicatorService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
 
 @Singleton
-class RepoScoreController @Inject() (
-  repoScorerService: RepositoryRatingService,
-  cc: ControllerComponents
+class HealthIndicatorController @Inject()(
+                                           repoIndicatorService: RepoIndicatorService,
+                                           cc: ControllerComponents
 )(implicit ec: ExecutionContext)
     extends BackendController(cc) {
 
-  def scoreForRepo(repo: String): Action[AnyContent] =
+  def indicator(repo: String): Action[AnyContent] =
     Action.async {
       for {
-        score <- repoScorerService.rateRepository(repo)
-        result = score.map(s => Ok(Json.toJson(s)(RepositoryRating.writes))).getOrElse(NotFound)
+        score <- repoIndicatorService.indicatorForRepo(repo)
+        result = score.map(s => Ok(Json.toJson(s)(Indicator.writes))).getOrElse(NotFound)
       } yield result
     }
 
-  def scoreAllRepos(repoType: Option[RepositoryType], sort: SortType): Action[AnyContent] = {
-    implicit val writes: Writes[RepositoryRating] = RepositoryRating.writes
+  def allIndicators(repoType: Option[RepoType], sort: SortType): Action[AnyContent] = {
+    implicit val writes: Writes[Indicator] = Indicator.writes
     Action.async {
       for {
-        allRepos <- repoScorerService.rateAllRepositories(repoType, sort)
+        allRepos <- repoIndicatorService.indicatorsForAllRepos(repoType, sort)
         result = Ok(Json.toJson(allRepos))
       } yield result
     }

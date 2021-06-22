@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.healthindicators.raters
+package uk.gov.hmrc.healthindicators.metrics
 
 import play.api.Logger
 import uk.gov.hmrc.healthindicators.connectors.GithubConnector
@@ -24,17 +24,17 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class ReadMeRater @Inject() (
+class ReadMeMetricProducer @Inject()(
   githubConnector: GithubConnector
 )(implicit val ec: ExecutionContext)
-    extends Rater {
+    extends MetricProducer {
 
   private val logger: Logger = Logger(this.getClass)
 
-  override def rate(repo: String): Future[Indicator] = {
-    logger.info(s"Rating ReadMe for: $repo")
+  override def produce(repo: String): Future[Metric] = {
+    logger.debug(s"Metric ReadMe for: $repo")
     githubConnector.findReadMe(repo).map { response =>
-      Indicator(ReadMeIndicatorType, getResults(response))
+      Metric(ReadMeMetricType, getResults(response))
     }
   }
 

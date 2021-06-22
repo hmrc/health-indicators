@@ -32,4 +32,4 @@ lazy val microservice = Project(appName, file("."))
     )
   )
 
-routesImport += "uk.gov.hmrc.healthindicators.connectors.RepositoryType"
+routesImport += "uk.gov.hmrc.healthindicators.connectors.RepoType"

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.healthindicators.raters
+package uk.gov.hmrc.healthindicators.metrics
 
 import java.time.{Duration, Instant}
 
@@ -23,13 +23,13 @@ import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import uk.gov.hmrc.healthindicators.connectors.{JenkinsBuildReport, JenkinsBuildStatus, JenkinsConnector, JenkinsUrl, TeamsAndRepositoriesConnector}
-import uk.gov.hmrc.healthindicators.models.{BuildStabilityIndicatorType, JenkinsBuildNotFound, JenkinsBuildOutdated, JenkinsBuildStable, JenkinsBuildUnstable, Result}
+import uk.gov.hmrc.healthindicators.models.{BuildStabilityMetricType, JenkinsBuildNotFound, JenkinsBuildOutdated, JenkinsBuildStable, JenkinsBuildUnstable, Result}
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class BuildStabilityRaterSpec
+class BuildStabilityMetricProducerSpec
     extends AnyWordSpec
     with Matchers
     with MockitoSugar
@@ -38,8 +38,8 @@ class BuildStabilityRaterSpec
 
   private val mockTeamsAndRepositoriesConnector: TeamsAndRepositoriesConnector = mock[TeamsAndRepositoriesConnector]
   private val mockJenkinsConnector: JenkinsConnector                           = mock[JenkinsConnector]
-  private val rater: BuildStabilityRater =
-    new BuildStabilityRater(mockJenkinsConnector, mockTeamsAndRepositoriesConnector)
+  private val rater: BuildStabilityMetricProducer =
+    new BuildStabilityMetricProducer(mockJenkinsConnector, mockTeamsAndRepositoriesConnector)
 
   implicit val hc: HeaderCarrier = HeaderCarrier()
 
@@ -50,9 +50,9 @@ class BuildStabilityRaterSpec
         .thenReturn(Future.successful(None))
       when(mockJenkinsConnector.getBuildJob("foo")).thenReturn(Future.successful(Some(JenkinsBuildReport(None))))
 
-      val result = rater.rate("foo").futureValue
+      val result = rater.produce("foo").futureValue
 
-      result.indicatorType mustBe BuildStabilityIndicatorType
+      result.metricType mustBe BuildStabilityMetricType
       result.results.head.resultType mustBe JenkinsBuildNotFound
     }
 
@@ -63,9 +63,9 @@ class BuildStabilityRaterSpec
         .thenReturn(Future.successful(Some(url)))
       when(mockJenkinsConnector.getBuildJob(url.jenkinsURL)).thenReturn(Future.successful(None))
 
-      val result = rater.rate("foo").futureValue
+      val result = rater.produce("foo").futureValue
 
-      result.indicatorType mustBe BuildStabilityIndicatorType
+      result.metricType mustBe BuildStabilityMetricType
       result.results.head.resultType mustBe JenkinsBuildNotFound
     }
 
@@ -77,9 +77,9 @@ class BuildStabilityRaterSpec
         .thenReturn(Future.successful(Some(url)))
       when(mockJenkinsConnector.getBuildJob(url.jenkinsURL)).thenReturn(Future.successful(Some(buildReport)))
 
-      val result = rater.rate("foo").futureValue
+      val result = rater.produce("foo").futureValue
 
-      result.indicatorType mustBe BuildStabilityIndicatorType
+      result.metricType mustBe BuildStabilityMetricType
       result.results.head.resultType mustBe JenkinsBuildStable
     }
   }
@@ -89,7 +89,7 @@ class BuildStabilityRaterSpec
       val jenkinsBuildStable =
         JenkinsBuildReport(Some(JenkinsBuildStatus("SUCCESS", Instant.now())))
 
-      BuildStabilityRater
+      BuildStabilityMetricProducer
         .getResultType(jenkinsBuildStable) mustBe Result(JenkinsBuildStable, "Build Stable: Everything is good", None)
 
     }
@@ -98,7 +98,7 @@ class BuildStabilityRaterSpec
       val jenkinsBuildOutdated =
         JenkinsBuildReport(Some(JenkinsBuildStatus("SUCCESS", Instant.now().minus(Duration.ofDays(301)))))
 
-      BuildStabilityRater.getResultType(jenkinsBuildOutdated) mustBe Result(
+      BuildStabilityMetricProducer.getResultType(jenkinsBuildOutdated) mustBe Result(
         JenkinsBuildOutdated,
         "Build Outdated: Not been built in the last 300 days",
         None
@@ -110,7 +110,7 @@ class BuildStabilityRaterSpec
       val jenkinsBuildStable =
         JenkinsBuildReport(Some(JenkinsBuildStatus("FAILURE", Instant.now().minus(Duration.ofDays(1)))))
 
-      BuildStabilityRater.getResultType(jenkinsBuildStable) mustBe Result(
+      BuildStabilityMetricProducer.getResultType(jenkinsBuildStable) mustBe Result(
         JenkinsBuildStable,
         "Build Stable: Build recently failed",
         None
@@ -122,7 +122,7 @@ class BuildStabilityRaterSpec
       val jenkinsBuildUnstable =
         JenkinsBuildReport(Some(JenkinsBuildStatus("FAILURE", Instant.now().minus(Duration.ofDays(3)))))
 
-      BuildStabilityRater.getResultType(jenkinsBuildUnstable) mustBe Result(
+      BuildStabilityMetricProducer.getResultType(jenkinsBuildUnstable) mustBe Result(
         JenkinsBuildUnstable,
         "Build Unstable: has been broken for more than 2 days",
         None
@@ -134,7 +134,7 @@ class BuildStabilityRaterSpec
       val jenkinsBuildNotFound =
         JenkinsBuildReport(Some(JenkinsBuildStatus("UNKNOWN STATUS", Instant.now().minus(Duration.ofDays(3)))))
 
-      BuildStabilityRater
+      BuildStabilityMetricProducer
         .getResultType(jenkinsBuildNotFound) mustBe Result(JenkinsBuildNotFound, "Unknown Status: UNKNOWN STATUS", None)
 
     }
@@ -143,7 +143,7 @@ class BuildStabilityRaterSpec
       val jenkinsBuildNotFound =
         JenkinsBuildReport(None)
 
-      BuildStabilityRater.getResultType(jenkinsBuildNotFound) mustBe Result(
+      BuildStabilityMetricProducer.getResultType(jenkinsBuildNotFound) mustBe Result(
         JenkinsBuildNotFound,
         "Build Not Found: Never been built",
         None
