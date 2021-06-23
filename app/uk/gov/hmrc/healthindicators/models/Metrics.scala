@@ -207,8 +207,8 @@ case class RepositoryMetrics(
 
 object RepositoryMetrics {
   val mongoFormats: OFormat[RepositoryMetrics] = {
-    implicit val instantFormat: Format[Instant]               = MongoJavatimeFormats.instantFormat
-    implicit val indicatorFormat: Format[Metric]           = Metric.format
+    implicit val instantFormat: Format[Instant]         = MongoJavatimeFormats.instantFormat
+    implicit val indicatorFormat: Format[Metric]        = Metric.format
     implicit val repositoryTypeFormat: Format[RepoType] = RepoType.format
     ((__ \ "repoName").format[String]
       ~ (__ \ "timestamp").format[Instant]

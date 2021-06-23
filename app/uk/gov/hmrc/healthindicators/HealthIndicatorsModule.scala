@@ -28,17 +28,17 @@ class HealthIndicatorsModule() extends AbstractModule {
     bind(classOf[schedulers.MetricScheduler]).asEagerSingleton()
 
   @Provides
-  def raters(
-              bobbyRulesRater: BobbyRulesMetricProducer,
-              leakDetectionRater: LeakDetectionMetricProducer,
-              readMeRater: ReadMeMetricProducer,
-              buildStabilityRater: BuildStabilityMetricProducer,
-              stalePrRater: StalePrMetricProducer,
-              alertConfigRater: AlertConfigMetricProducer
+  def producers(
+              bobbyRulesMetricProducer: BobbyRulesMetricProducer,
+              leakDetectionMetricProducer: LeakDetectionMetricProducer,
+              readMeMetricProducer: ReadMeMetricProducer,
+              buildStabilityMetricProducer: BuildStabilityMetricProducer,
+              stalePrMetricProducer: StalePrMetricProducer,
+              alertConfigMetricProducer: AlertConfigMetricProducer
   ): List[MetricProducer] = {
-    val raters =
-      List(bobbyRulesRater, leakDetectionRater, readMeRater, buildStabilityRater, alertConfigRater, stalePrRater)
-    logger.info(s"Loaded Raters: ${raters.map(_.getClass.getSimpleName).mkString("[\n", "\n", "\n]")}")
-    raters
+    val producers =
+      List(bobbyRulesMetricProducer, leakDetectionMetricProducer, readMeMetricProducer, buildStabilityMetricProducer, alertConfigMetricProducer, stalePrMetricProducer)
+    logger.info(s"Loaded Metric Producers: ${producers.map(_.getClass.getSimpleName).mkString("[\n", "\n", "\n]")}")
+    producers
   }
 }
