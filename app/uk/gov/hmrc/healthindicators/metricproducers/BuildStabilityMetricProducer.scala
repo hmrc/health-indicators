@@ -14,30 +14,30 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.healthindicators.raters
+package uk.gov.hmrc.healthindicators.metricproducers
 
 import play.api.Logger
 import uk.gov.hmrc.healthindicators.connectors.{JenkinsBuildReport, JenkinsBuildStatus, JenkinsConnector, TeamsAndRepositoriesConnector}
+import uk.gov.hmrc.healthindicators.metricproducers.BuildStabilityMetricProducer.getResultType
 import uk.gov.hmrc.healthindicators.models._
-import uk.gov.hmrc.healthindicators.raters.BuildStabilityRater.getResultType
 import uk.gov.hmrc.http.HeaderCarrier
 
 import java.time.{Duration, Instant}
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class BuildStabilityRater @Inject() (
+class BuildStabilityMetricProducer @Inject() (
   jenkinsConnector: JenkinsConnector,
   teamsAndRepositoriesConnector: TeamsAndRepositoriesConnector
 )(implicit val ec: ExecutionContext)
-    extends Rater {
+    extends MetricProducer {
 
   private val logger = Logger(this.getClass)
 
-  override def rate(repo: String): Future[Indicator] = {
+  override def produce(repo: String): Future[Metric] = {
 
     implicit val hc = HeaderCarrier()
-    logger.info(s"Rating BuildStability for: $repo")
+    logger.debug(s"Metric BuildStability for: $repo")
 
     for {
       maybeUrl <- teamsAndRepositoriesConnector.getJenkinsUrl(repo)
@@ -46,11 +46,11 @@ class BuildStabilityRater @Inject() (
       result = buildReport
                  .map(i => getResultType(i))
                  .getOrElse(Result(JenkinsBuildNotFound, s"No Jenkins Build Found for: $repo", None))
-    } yield Indicator(BuildStabilityIndicatorType, Seq(result))
+    } yield Metric(BuildStabilityMetricType, Seq(result))
   }
 }
 
-object BuildStabilityRater {
+object BuildStabilityMetricProducer {
   def getResultType(jenkinsBuildReport: JenkinsBuildReport): Result =
     jenkinsBuildReport.lastCompletedBuild match {
       case Some(JenkinsBuildStatus("FAILURE", timeStamp)) if Duration.between(timeStamp, Instant.now()).toDays > 2 =>

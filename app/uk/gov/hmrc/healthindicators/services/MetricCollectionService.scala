@@ -19,38 +19,38 @@ package uk.gov.hmrc.healthindicators.services
 import cats.implicits._
 import play.api.Logger
 import uk.gov.hmrc.healthindicators.connectors.{TeamsAndRepos, TeamsAndRepositoriesConnector}
-import uk.gov.hmrc.healthindicators.models.RepositoryHealthIndicator
-import uk.gov.hmrc.healthindicators.persistence.HealthIndicatorsRepository
-import uk.gov.hmrc.healthindicators.raters.Rater
+import uk.gov.hmrc.healthindicators.models.{Metric, RepositoryMetrics}
+import uk.gov.hmrc.healthindicators.persistence.RepositoryMetricsRepository
+import uk.gov.hmrc.healthindicators.metricproducers.MetricProducer
 import uk.gov.hmrc.http.HeaderCarrier
 
 import java.time.Instant
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class HealthIndicatorService @Inject() (
+class MetricCollectionService @Inject() (
   teamsAndRepositoriesConnector: TeamsAndRepositoriesConnector,
-  raters: List[Rater],
-  repository: HealthIndicatorsRepository
+  metricProducers: List[MetricProducer],
+  repository: RepositoryMetricsRepository
 )(implicit val ec: ExecutionContext) {
 
   private val logger = Logger(this.getClass)
 
-  def insertHealthIndicators()(implicit hc: HeaderCarrier): Future[Unit] =
+  def collectAll()(implicit hc: HeaderCarrier): Future[Unit] =
     for {
       repos <- teamsAndRepositoriesConnector.allRepositories
       _ <- repos.foldLeftM(())((_, r) =>
              for {
-               indicators <- createRepositoryIndicators(r)
+               indicators <- createMetricsForRepo(r)
                _          <- repository.insert(indicators)
              } yield ()
            )
     } yield ()
 
-  private def createRepositoryIndicators(repo: TeamsAndRepos): Future[RepositoryHealthIndicator] = {
-    logger.info(s"Rating Repository: $repo")
+  private def createMetricsForRepo(repo: TeamsAndRepos): Future[RepositoryMetrics] = {
+    logger.info(s"Creating Metrics For: $repo")
     for {
-      indicators <- raters.traverse(_.rate(repo.name))
-    } yield RepositoryHealthIndicator(repo.name, Instant.now(), repo.repositoryType, indicators)
+      metrics <- metricProducers.traverse(_.produce(repo.name))
+    } yield RepositoryMetrics(repo.name, Instant.now(), repo.repositoryType, metrics)
   }
 }

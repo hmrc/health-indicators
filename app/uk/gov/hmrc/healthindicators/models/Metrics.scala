@@ -18,7 +18,7 @@ package uk.gov.hmrc.healthindicators.models
 
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
-import uk.gov.hmrc.healthindicators.connectors.RepositoryType
+import uk.gov.hmrc.healthindicators.connectors.RepoType
 import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats
 
 import java.time.Instant
@@ -84,13 +84,13 @@ case object JenkinsBuildOutdated extends JenkinsResultType {
 sealed trait AlertConfigResultType extends ResultType
 
 case object AlertConfigEnabled extends AlertConfigResultType {
-  override def toString: String = "alert-config-enabled"
+  override val toString: String = "alert-config-enabled"
 }
 case object AlertConfigDisabled extends AlertConfigResultType {
-  override def toString: String = "alert-config-disabled"
+  override val toString: String = "alert-config-disabled"
 }
 case object AlertConfigNotFound extends AlertConfigResultType {
-  override def toString: String = "alert-config-not-found"
+  override val toString: String = "alert-config-not-found"
 }
 
 object ResultType {
@@ -137,83 +137,83 @@ object Result {
   }
 }
 
-sealed trait IndicatorType
+sealed trait MetricType
 
-case object OpenPRIndicatorType extends IndicatorType {
-  override def toString: String = "open-pr-indicator"
+case object OpenPRMetricType extends MetricType {
+  override val toString: String = "open-pr"
 }
 
-case object ReadMeIndicatorType extends IndicatorType {
-  override def toString: String = "read-me-indicator"
+case object ReadMeMetricType extends MetricType {
+  override val toString: String = "read-me"
 }
 
-case object LeakDetectionIndicatorType extends IndicatorType {
-  override def toString: String = "leak-detection-indicator"
+case object LeakDetectionMetricType extends MetricType {
+  override val toString: String = "leak-detection"
 }
 
-case object BobbyRuleIndicatorType extends IndicatorType {
-  override def toString: String = "bobby-rule-indicator"
+case object BobbyRuleMetricType extends MetricType {
+  override val toString: String = "bobby-rule"
 }
 
-case object BuildStabilityIndicatorType extends IndicatorType {
-  override def toString: String = "build-stability-indicator"
+case object BuildStabilityMetricType extends MetricType {
+  override val toString: String = "build-stability"
 }
 
-case object AlertConfigIndicatorType extends IndicatorType {
-  override def toString: String = "alert-config-indicator"
+case object AlertConfigMetricType extends MetricType {
+  override val toString: String = "alert-config"
 }
 
-object IndicatorType {
+object MetricType {
 
-  private val indicatorTypes =
+  private val metricTypes =
     Set(
-      ReadMeIndicatorType,
-      LeakDetectionIndicatorType,
-      BobbyRuleIndicatorType,
-      BuildStabilityIndicatorType,
-      AlertConfigIndicatorType,
-      OpenPRIndicatorType
+      ReadMeMetricType,
+      LeakDetectionMetricType,
+      BobbyRuleMetricType,
+      BuildStabilityMetricType,
+      AlertConfigMetricType,
+      OpenPRMetricType
     )
 
-  def apply(value: String): Option[IndicatorType] = indicatorTypes.find(_.toString == value)
+  def apply(value: String): Option[MetricType] = metricTypes.find(_.toString == value)
 
-  val format: Format[IndicatorType] = new Format[IndicatorType] {
-    override def reads(json: JsValue): JsResult[IndicatorType] =
+  val format: Format[MetricType] = new Format[MetricType] {
+    override def reads(json: JsValue): JsResult[MetricType] =
       json.validate[String].flatMap { str =>
-        IndicatorType(str).fold[JsResult[IndicatorType]](JsError(s"Invalid Indicator: $str"))(JsSuccess(_))
+        MetricType(str).fold[JsResult[MetricType]](JsError(s"Invalid Metric: $str"))(JsSuccess(_))
       }
 
-    override def writes(o: IndicatorType): JsValue = JsString(o.toString)
+    override def writes(o: MetricType): JsValue = JsString(o.toString)
   }
 }
 
-case class Indicator(indicatorType: IndicatorType, results: Seq[Result])
+case class Metric(metricType: MetricType, results: Seq[Result])
 
-object Indicator {
-  val format: OFormat[Indicator] = {
-    implicit val indicatorTypeFormat: Format[IndicatorType] = IndicatorType.format
-    implicit val resultFormat: Format[Result]               = Result.format
-    ((__ \ "indicatorType").format[IndicatorType]
-      ~ (__ \ "results").format[Seq[Result]])(Indicator.apply, unlift(Indicator.unapply))
+object Metric {
+  val format: OFormat[Metric] = {
+    implicit val metricTypeFormat: Format[MetricType] = MetricType.format
+    implicit val resultFormat: Format[Result]         = Result.format
+    ((__ \ "metricType").format[MetricType]
+      ~ (__ \ "results").format[Seq[Result]])(Metric.apply, unlift(Metric.unapply))
   }
 }
 
-case class RepositoryHealthIndicator(
-  repositoryName: String,
+case class RepositoryMetrics(
+  repoName: String,
   timestamp: Instant,
-  repositoryType: RepositoryType,
-  indicators: Seq[Indicator]
+  repoType: RepoType,
+  metrics: Seq[Metric]
 )
 
-object RepositoryHealthIndicator {
-  val mongoFormats: OFormat[RepositoryHealthIndicator] = {
-    implicit val instantFormat: Format[Instant]               = MongoJavatimeFormats.instantFormat
-    implicit val indicatorFormat: Format[Indicator]           = Indicator.format
-    implicit val repositoryTypeFormat: Format[RepositoryType] = RepositoryType.format
-    ((__ \ "repositoryName").format[String]
+object RepositoryMetrics {
+  val mongoFormats: OFormat[RepositoryMetrics] = {
+    implicit val instantFormat: Format[Instant]   = MongoJavatimeFormats.instantFormat
+    implicit val metricFormat: Format[Metric]     = Metric.format
+    implicit val repoTypeFormat: Format[RepoType] = RepoType.format
+    ((__ \ "repoName").format[String]
       ~ (__ \ "timestamp").format[Instant]
-      ~ (__ \ "repositoryType").format[RepositoryType]
-      ~ (__ \ "indicators")
-        .format[Seq[Indicator]])(RepositoryHealthIndicator.apply, unlift(RepositoryHealthIndicator.unapply))
+      ~ (__ \ "repoType").format[RepoType]
+      ~ (__ \ "metrics")
+        .format[Seq[Metric]])(RepositoryMetrics.apply, unlift(RepositoryMetrics.unapply))
   }
 }

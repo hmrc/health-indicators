@@ -47,10 +47,10 @@ object SchedulerConfig {
 @Singleton
 class SchedulerConfigs @Inject() (configuration: Configuration) {
 
-  val repoRatingsScheduler: SchedulerConfig = SchedulerConfig(
+  val metricScheduler: SchedulerConfig = SchedulerConfig(
     configuration,
-    enabledKey = "reporatings.refresh.enabled",
-    frequencyKey = "reporatings.refresh.interval",
-    initialDelayKey = "reporatings.refresh.initialDelay"
+    enabledKey = "metrics.refresh.enabled",
+    frequencyKey = "metrics.refresh.interval",
+    initialDelayKey = "metrics.refresh.initialDelay"
   )
 }

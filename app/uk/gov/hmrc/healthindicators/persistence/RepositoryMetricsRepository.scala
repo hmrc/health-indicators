@@ -23,61 +23,61 @@ import org.mongodb.scala.model.Filters.equal
 import org.mongodb.scala.model.Indexes._
 import org.mongodb.scala.model.{IndexModel, IndexOptions}
 import uk.gov.hmrc.healthindicators.configs.SchedulerConfigs
-import uk.gov.hmrc.healthindicators.connectors.RepositoryType
-import uk.gov.hmrc.healthindicators.models.RepositoryHealthIndicator
+import uk.gov.hmrc.healthindicators.connectors.RepoType
+import uk.gov.hmrc.healthindicators.models.RepositoryMetrics
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class HealthIndicatorsRepository @Inject() (
+class RepositoryMetricsRepository @Inject() (
   mongoComponent: MongoComponent,
   config: SchedulerConfigs
 )(implicit ec: ExecutionContext)
-    extends PlayMongoRepository[RepositoryHealthIndicator](
-      collectionName = "serviceHealthIndicators",
+    extends PlayMongoRepository[RepositoryMetrics](
+      collectionName = "repositoryMetrics",
       mongoComponent = mongoComponent,
-      domainFormat = RepositoryHealthIndicator.mongoFormats,
+      domainFormat = RepositoryMetrics.mongoFormats,
       indexes = Seq(
-        IndexModel(hashed("repositoryName"), IndexOptions().background(true)),
+        IndexModel(hashed("repoName"), IndexOptions().background(true)),
         IndexModel(descending("timestamp"), IndexOptions().background(true)),
-        IndexModel(hashed("repositoryType"), IndexOptions().background(true))
+        IndexModel(hashed("repoType"), IndexOptions().background(true))
       )
     ) {
 
-  def latestRepositoryHealthIndicators(repo: String): Future[Option[RepositoryHealthIndicator]] =
+  def latestRepositoryMetrics(repo: String): Future[Option[RepositoryMetrics]] =
     collection
-      .find(equal("repositoryName", repo))
+      .find(equal("repoName", repo))
       .sort(descending("timestamp"))
       .headOption()
 
-  private def createPipeline(repoType: Option[RepositoryType]): List[conversions.Bson] = {
+  private def createPipeline(repoType: Option[RepoType]): List[conversions.Bson] = {
     val getLatest = List(
       sort(descending("timestamp")),
-      group("$repositoryName", first("obj", "$$ROOT")),
+      group("$repoName", first("obj", "$$ROOT")),
       replaceRoot("$obj")
     )
 
     repoType match {
-      case Some(rt) => `match`(equal("repositoryType", rt.toString)) +: getLatest
+      case Some(rt) => `match`(equal("repoType", rt.toString)) +: getLatest
       case None     => getLatest
     }
   }
 
-  def latestAllRepositoryHealthIndicators(repoType: Option[RepositoryType]): Future[Seq[RepositoryHealthIndicator]] =
+  def allLatestRepositoryMetrics(repoType: Option[RepoType]): Future[Seq[RepositoryMetrics]] =
     collection
       .aggregate(createPipeline(repoType))
       .toFuture()
 
-  def insert(indicator: RepositoryHealthIndicator): Future[Unit] =
+  def insert(metrics: RepositoryMetrics): Future[Unit] =
     collection
       .insertOne(
-        indicator
+        metrics
       )
       .toFuture()
       .map(_ => ())
 
-  def findAll(): Future[Seq[RepositoryHealthIndicator]] =
+  def findAll(): Future[Seq[RepositoryMetrics]] =
     collection.find().toFuture().map(_.toList)
 }

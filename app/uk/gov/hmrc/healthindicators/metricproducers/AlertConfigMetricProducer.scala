@@ -14,33 +14,33 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.healthindicators.raters
+package uk.gov.hmrc.healthindicators.metricproducers
 
+import play.api.Logger
 import uk.gov.hmrc.healthindicators.connectors.{AlertConfig, ServiceConfigsConnector}
+import uk.gov.hmrc.healthindicators.models._
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
-import play.api.Logger
-import uk.gov.hmrc.healthindicators.models.{AlertConfigDisabled, AlertConfigEnabled, AlertConfigIndicatorType, AlertConfigNotFound, AlertConfigResultType, Indicator, Result}
-
 
 @Singleton
-class AlertConfigRater @Inject()(serviceConfigConnector: ServiceConfigsConnector)(implicit val ec: ExecutionContext)
-extends Rater {
+class AlertConfigMetricProducer @Inject() (serviceConfigConnector: ServiceConfigsConnector)(implicit
+  val ec: ExecutionContext
+) extends MetricProducer {
 
   private val logger = Logger(this.getClass)
 
-  override def rate(repo: String): Future[Indicator] = {
-    logger.info(s"Rating Alert Config for: $repo")
+  override def produce(repo: String): Future[Metric] = {
+    logger.debug(s"Metric Alert Config for: $repo")
     serviceConfigConnector.findAlertConfigs(repo).map { response =>
-      Indicator(AlertConfigIndicatorType, getResults(response))
+      Metric(AlertConfigMetricType, getResults(response))
     }
   }
 
   private def getResults(maybeConfig: Option[AlertConfig]): Seq[Result] =
     maybeConfig match {
-      case None => createResults(AlertConfigNotFound, "No Alert Config Found")
-      case Some(AlertConfig(true)) => createResults(AlertConfigEnabled, "Alert Config is Enabled")
+      case None                     => createResults(AlertConfigNotFound, "No Alert Config Found")
+      case Some(AlertConfig(true))  => createResults(AlertConfigEnabled, "Alert Config is Enabled")
       case Some(AlertConfig(false)) => createResults(AlertConfigDisabled, "Alert Config is Disabled")
     }
 

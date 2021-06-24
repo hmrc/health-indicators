@@ -14,21 +14,22 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.healthindicators.raters
+package uk.gov.hmrc.healthindicators.metrics
 
 import org.mockito.{ArgumentMatchersSugar, MockitoSugar}
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import uk.gov.hmrc.healthindicators.connectors.{GithubConnector, OpenPR}
-import uk.gov.hmrc.healthindicators.models.{NoStalePRs, OpenPRIndicatorType, PRsNotFound, StalePR}
+import uk.gov.hmrc.healthindicators.models.{NoStalePRs, OpenPRMetricType, PRsNotFound, StalePR}
+import uk.gov.hmrc.healthindicators.metricproducers.StalePrMetricProducer
 
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class StalePrRaterSpec
+class StalePrMetricProducerSpec
     extends AnyWordSpec
     with Matchers
     with MockitoSugar
@@ -36,17 +37,17 @@ class StalePrRaterSpec
     with ArgumentMatchersSugar {
 
   private val mockGithubConnector: GithubConnector = mock[GithubConnector]
-  private val rater: StalePrRater                  = new StalePrRater(mockGithubConnector)
+  private val producer: StalePrMetricProducer = new StalePrMetricProducer(mockGithubConnector)
 
-  "StalePRRater.rate" should {
+  "StalePRRater.produce" should {
     val dateFormatter: DateTimeFormatter = DateTimeFormatter.ISO_DATE_TIME
     "return PRsNotFound when GithubConnector.getOpenPRs returns None" in {
       when(mockGithubConnector.getOpenPRs(eqTo("foo")))
         .thenReturn(Future.successful(None))
 
-      val result = rater.rate("foo").futureValue
+      val result = producer.produce("foo").futureValue
 
-      result.indicatorType           shouldBe OpenPRIndicatorType
+      result.metricType           shouldBe OpenPRMetricType
       result.results.head.resultType shouldBe PRsNotFound
     }
 
@@ -54,9 +55,9 @@ class StalePrRaterSpec
       when(mockGithubConnector.getOpenPRs(eqTo("foo")))
         .thenReturn(Future.successful(Some(Seq.empty)))
 
-      val result = rater.rate("foo").futureValue
+      val result = producer.produce("foo").futureValue
 
-      result.indicatorType           shouldBe OpenPRIndicatorType
+      result.metricType           shouldBe OpenPRMetricType
       result.results.head.resultType shouldBe NoStalePRs
     }
 
@@ -68,9 +69,9 @@ class StalePrRaterSpec
           )
         )
 
-      val result = rater.rate("foo").futureValue
+      val result = producer.produce("foo").futureValue
 
-      result.indicatorType           shouldBe OpenPRIndicatorType
+      result.metricType           shouldBe OpenPRMetricType
       result.results.head.resultType shouldBe NoStalePRs
     }
 
@@ -90,9 +91,9 @@ class StalePrRaterSpec
           )
         )
 
-      val result = rater.rate("foo").futureValue
+      val result = producer.produce("foo").futureValue
 
-      result.indicatorType           shouldBe OpenPRIndicatorType
+      result.metricType           shouldBe OpenPRMetricType
       result.results.head.resultType shouldBe StalePR
     }
 
@@ -113,9 +114,9 @@ class StalePrRaterSpec
           )
         )
 
-      val result = rater.rate("foo").futureValue
+      val result = producer.produce("foo").futureValue
 
-      result.indicatorType           shouldBe OpenPRIndicatorType
+      result.metricType           shouldBe OpenPRMetricType
       result.results.head.resultType shouldBe StalePR
     }
   }

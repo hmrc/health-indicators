@@ -18,27 +18,34 @@ package uk.gov.hmrc.healthindicators
 
 import com.google.inject.{AbstractModule, Provides}
 import play.api.Logger
-import uk.gov.hmrc.healthindicators.raters._
+import uk.gov.hmrc.healthindicators.metricproducers.{AlertConfigMetricProducer, BobbyRulesMetricProducer, BuildStabilityMetricProducer, LeakDetectionMetricProducer, MetricProducer, ReadMeMetricProducer, StalePrMetricProducer}
 
 class HealthIndicatorsModule() extends AbstractModule {
 
   private val logger = Logger(this.getClass)
 
   override def configure(): Unit =
-    bind(classOf[schedulers.RepoRatingsScheduler]).asEagerSingleton()
+    bind(classOf[schedulers.MetricScheduler]).asEagerSingleton()
 
   @Provides
-  def raters(
-    bobbyRulesRater: BobbyRulesRater,
-    leakDetectionRater: LeakDetectionRater,
-    readMeRater: ReadMeRater,
-    buildStabilityRater: BuildStabilityRater,
-    stalePrRater: StalePrRater,
-    alertConfigRater: AlertConfigRater
-  ): List[Rater] = {
-    val raters =
-      List(bobbyRulesRater, leakDetectionRater, readMeRater, buildStabilityRater, alertConfigRater, stalePrRater)
-    logger.info(s"Loaded Raters: ${raters.map(_.getClass.getSimpleName).mkString("[\n", "\n", "\n]")}")
-    raters
+  def producers(
+    bobbyRulesMetricProducer: BobbyRulesMetricProducer,
+    leakDetectionMetricProducer: LeakDetectionMetricProducer,
+    readMeMetricProducer: ReadMeMetricProducer,
+    buildStabilityMetricProducer: BuildStabilityMetricProducer,
+    stalePrMetricProducer: StalePrMetricProducer,
+    alertConfigMetricProducer: AlertConfigMetricProducer
+  ): List[MetricProducer] = {
+    val producers =
+      List(
+        bobbyRulesMetricProducer,
+        leakDetectionMetricProducer,
+        readMeMetricProducer,
+        buildStabilityMetricProducer,
+        alertConfigMetricProducer,
+        stalePrMetricProducer
+      )
+    logger.info(s"Loaded Metric Producers: ${producers.map(_.getClass.getSimpleName).mkString("[\n", "\n", "\n]")}")
+    producers
   }
 }

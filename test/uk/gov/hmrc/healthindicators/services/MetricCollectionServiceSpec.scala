@@ -22,18 +22,18 @@ import org.scalatest.concurrent.Eventually
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.time.{Millis, Seconds, Span}
 import org.scalatest.wordspec.AnyWordSpec
-import uk.gov.hmrc.healthindicators.connectors.RepositoryType.Service
+import uk.gov.hmrc.healthindicators.connectors.RepoType.Service
 import uk.gov.hmrc.healthindicators.connectors.{TeamsAndRepos, TeamsAndRepositoriesConnector}
-import uk.gov.hmrc.healthindicators.models.{Indicator, ReadMeIndicatorType, Result, ValidReadme}
-import uk.gov.hmrc.healthindicators.persistence.HealthIndicatorsRepository
-import uk.gov.hmrc.healthindicators.raters.Rater
+import uk.gov.hmrc.healthindicators.models.{Metric, ReadMeMetricType, Result, ValidReadme}
+import uk.gov.hmrc.healthindicators.persistence.RepositoryMetricsRepository
+import uk.gov.hmrc.healthindicators.metricproducers.MetricProducer
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.DurationInt
 import scala.concurrent.{Await, Future}
 
-class HealthIndicatorServiceSpec extends AnyWordSpec with Matchers with MockitoSugar with Eventually {
+class MetricCollectionServiceSpec extends AnyWordSpec with Matchers with MockitoSugar with Eventually {
   implicit val defaultPatienceConfig: PatienceConfig =
     PatienceConfig(
       timeout = scaled(Span(100, Seconds)),
@@ -41,40 +41,40 @@ class HealthIndicatorServiceSpec extends AnyWordSpec with Matchers with MockitoS
     )
 
   val teamsAndRepositoriesConnector: TeamsAndRepositoriesConnector = mock[TeamsAndRepositoriesConnector]
-  val mockRater: Rater                                             = mock[Rater]
-  val raterList                                                    = List(mockRater)
-  val healthIndicatorsRepository: HealthIndicatorsRepository       = mock[HealthIndicatorsRepository]
+  val mockProducer: MetricProducer                                 = mock[MetricProducer]
+  val producerList                                                 = List(mockProducer)
+  val repositoryMetricsRepository: RepositoryMetricsRepository     = mock[RepositoryMetricsRepository]
 
-  val healthIndicatorService =
-    new HealthIndicatorService(teamsAndRepositoriesConnector, raterList, healthIndicatorsRepository)
+  val metricCollectionService =
+    new MetricCollectionService(teamsAndRepositoriesConnector, producerList, repositoryMetricsRepository)
 
-  "insertHealthIndicators" should {
-    "traverse all repos and create a repository indicator for each, inserting them into a mongo repo" in {
+  "metricCollectionService.collectAll" should {
+    "traverse all repos and create a RepositoryMetric for each, inserting them into a mongo collection" in {
       implicit val hc: HeaderCarrier = HeaderCarrier()
       when(teamsAndRepositoriesConnector.allRepositories) thenReturn
         Future.successful(
           List(TeamsAndRepos("repo1", Service), TeamsAndRepos("repo2", Service), TeamsAndRepos("repo3", Service))
         )
 
-      when(mockRater.rate(any)) thenReturn
-        Future.successful(Indicator(ReadMeIndicatorType, Seq(Result(ValidReadme, "bar", None))))
+      when(mockProducer.produce(any)) thenReturn
+        Future.successful(Metric(ReadMeMetricType, Seq(Result(ValidReadme, "bar", None))))
 
-      when(healthIndicatorsRepository.insert(any)) thenReturn Future.successful(Unit)
+      when(repositoryMetricsRepository.insert(any)) thenReturn Future.successful(Unit)
 
-      Await.result(healthIndicatorService.insertHealthIndicators(), 10.seconds) shouldBe ((): Unit)
+      Await.result(metricCollectionService.collectAll(), 10.seconds) shouldBe ((): Unit)
 
-      verify(healthIndicatorsRepository, times(3)).insert(any)
+      verify(repositoryMetricsRepository, times(3)).insert(any)
     }
 
-    "not insert any repository ratings when teamsAndRepositoriesConnector returns an empty list" in {
+    "not insert any RepositoryMetrics when teamsAndRepositoriesConnector returns an empty list" in {
       implicit val hc: HeaderCarrier = HeaderCarrier()
       when(teamsAndRepositoriesConnector.allRepositories) thenReturn
         Future.successful(List())
 
-      when(mockRater.rate(any)) thenReturn
-        Future.successful(Indicator(ReadMeIndicatorType, Seq(Result(ValidReadme, "bar", None))))
+      when(mockProducer.produce(any)) thenReturn
+        Future.successful(Metric(ReadMeMetricType, Seq(Result(ValidReadme, "bar", None))))
 
-      Await.result(healthIndicatorService.insertHealthIndicators(), 10.seconds) shouldBe ((): Unit)
+      Await.result(metricCollectionService.collectAll(), 10.seconds) shouldBe ((): Unit)
     }
 
   }

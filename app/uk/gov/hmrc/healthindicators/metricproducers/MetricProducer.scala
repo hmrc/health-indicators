@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.healthindicators.raters
+package uk.gov.hmrc.healthindicators.metricproducers
 
-import uk.gov.hmrc.healthindicators.models.Indicator
+import uk.gov.hmrc.healthindicators.models.Metric
 
 import scala.concurrent.Future
 
-trait Rater {
-  def rate(repo: String): Future[Indicator]
+trait MetricProducer {
+  def produce(repo: String): Future[Metric]
 }

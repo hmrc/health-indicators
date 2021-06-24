@@ -21,8 +21,8 @@ import uk.gov.hmrc.healthindicators.models._
 import javax.inject.Singleton
 
 @Singleton
-class ScoreConfig {
-  def scores(resultType: ResultType): Int =
+class PointsConfig {
+  def points(resultType: ResultType): Int =
     resultType match {
       case o: OpenPRResultType =>
         o match {
@@ -34,7 +34,7 @@ class ScoreConfig {
         r match {
           case NoReadme      => -50
           case DefaultReadme => -50
-          case ValidReadme   =>  50
+          case ValidReadme   => 50
         }
       case l: LeakDetectionResultType =>
         l match {
@@ -42,21 +42,21 @@ class ScoreConfig {
         }
       case b: BobbyRuleResultType =>
         b match {
-          case BobbyRulePending =>  -20
+          case BobbyRulePending => -20
           case BobbyRuleActive  => -100
         }
       case j: JenkinsResultType =>
         j match {
-          case JenkinsBuildStable   =>  50
+          case JenkinsBuildStable   => 50
           case JenkinsBuildUnstable => -50
-          case JenkinsBuildNotFound =>   0
+          case JenkinsBuildNotFound => 0
           case JenkinsBuildOutdated => -50
         }
       case a: AlertConfigResultType =>
         a match {
           case AlertConfigEnabled  => 50
           case AlertConfigDisabled => 20
-          case AlertConfigNotFound =>  0
+          case AlertConfigNotFound => 0
         }
     }
 }
