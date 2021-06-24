@@ -84,13 +84,13 @@ case object JenkinsBuildOutdated extends JenkinsResultType {
 sealed trait AlertConfigResultType extends ResultType
 
 case object AlertConfigEnabled extends AlertConfigResultType {
-  override def toString: String = "alert-config-enabled"
+  override val toString: String = "alert-config-enabled"
 }
 case object AlertConfigDisabled extends AlertConfigResultType {
-  override def toString: String = "alert-config-disabled"
+  override val toString: String = "alert-config-disabled"
 }
 case object AlertConfigNotFound extends AlertConfigResultType {
-  override def toString: String = "alert-config-not-found"
+  override val toString: String = "alert-config-not-found"
 }
 
 object ResultType {
@@ -140,27 +140,27 @@ object Result {
 sealed trait MetricType
 
 case object OpenPRMetricType extends MetricType {
-  override def toString: String = "open-pr"
+  override val toString: String = "open-pr"
 }
 
 case object ReadMeMetricType extends MetricType {
-  override def toString: String = "read-me"
+  override val toString: String = "read-me"
 }
 
 case object LeakDetectionMetricType extends MetricType {
-  override def toString: String = "leak-detection"
+  override val toString: String = "leak-detection"
 }
 
 case object BobbyRuleMetricType extends MetricType {
-  override def toString: String = "bobby-rule"
+  override val toString: String = "bobby-rule"
 }
 
 case object BuildStabilityMetricType extends MetricType {
-  override def toString: String = "build-stability"
+  override val toString: String = "build-stability"
 }
 
 case object AlertConfigMetricType extends MetricType {
-  override def toString: String = "alert-config"
+  override val toString: String = "alert-config"
 }
 
 object MetricType {
@@ -191,8 +191,8 @@ case class Metric(metricType: MetricType, results: Seq[Result])
 
 object Metric {
   val format: OFormat[Metric] = {
-    implicit val indicatorTypeFormat: Format[MetricType]    = MetricType.format
-    implicit val resultFormat: Format[Result]               = Result.format
+    implicit val metricTypeFormat: Format[MetricType] = MetricType.format
+    implicit val resultFormat: Format[Result]         = Result.format
     ((__ \ "metricType").format[MetricType]
       ~ (__ \ "results").format[Seq[Result]])(Metric.apply, unlift(Metric.unapply))
   }
@@ -207,9 +207,9 @@ case class RepositoryMetrics(
 
 object RepositoryMetrics {
   val mongoFormats: OFormat[RepositoryMetrics] = {
-    implicit val instantFormat: Format[Instant]         = MongoJavatimeFormats.instantFormat
-    implicit val indicatorFormat: Format[Metric]        = Metric.format
-    implicit val repositoryTypeFormat: Format[RepoType] = RepoType.format
+    implicit val instantFormat: Format[Instant]   = MongoJavatimeFormats.instantFormat
+    implicit val metricFormat: Format[Metric]     = Metric.format
+    implicit val repoTypeFormat: Format[RepoType] = RepoType.format
     ((__ \ "repoName").format[String]
       ~ (__ \ "timestamp").format[Instant]
       ~ (__ \ "repoType").format[RepoType]

@@ -21,49 +21,49 @@ import org.mockito.MockitoSugar
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpec
-import uk.gov.hmrc.healthindicators.configs.ScoreConfig
+import uk.gov.hmrc.healthindicators.configs.PointsConfig
 import uk.gov.hmrc.healthindicators.connectors.RepoType.Service
 import uk.gov.hmrc.healthindicators.models._
-import uk.gov.hmrc.healthindicators.persistence.MetricsPersistence
+import uk.gov.hmrc.healthindicators.persistence.RepositoryMetricsRepository
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 class RepoIndicatorServiceSpec extends AnyWordSpec with Matchers with MockitoSugar with ScalaFutures {
 
-  private val mockRepository: MetricsPersistence = mock[MetricsPersistence]
+  private val mockRepository: RepositoryMetricsRepository = mock[RepositoryMetricsRepository]
 
-  private val bobbyRulesRating: Metric =
+  private val bobbyRulesMetric: Metric =
     Metric(BobbyRuleMetricType, Seq(Result(BobbyRuleActive, "desc", None)))
-  private val readMeRatingOne: Metric = Metric(ReadMeMetricType, Seq(Result(NoReadme, "desc", None)))
-  private val readMeRatingTwo: Metric = Metric(ReadMeMetricType, Seq(Result(ValidReadme, "desc", None)))
-  private val leakDetectionRating: Metric =
+  private val readMeMetricOne: Metric = Metric(ReadMeMetricType, Seq(Result(NoReadme, "desc", None)))
+  private val readMeMetricTwo: Metric = Metric(ReadMeMetricType, Seq(Result(ValidReadme, "desc", None)))
+  private val leakDetectionMetric: Metric =
     Metric(LeakDetectionMetricType, Seq(Result(LeakDetectionViolation, "desc", None)))
-  private val healthIndicatorOne: RepositoryMetrics =
+  private val repositoryMetricOne: RepositoryMetrics =
     RepositoryMetrics(
       "foo",
       Instant.now(),
       Service,
-      Seq(bobbyRulesRating, readMeRatingOne, leakDetectionRating)
+      Seq(bobbyRulesMetric, readMeMetricOne, leakDetectionMetric)
     )
-  private val healthIndicatorTwo: RepositoryMetrics =
+  private val repositoryMetricTwo: RepositoryMetrics =
     RepositoryMetrics(
       "bar",
       Instant.now(),
       Service,
-      Seq(bobbyRulesRating, readMeRatingTwo, leakDetectionRating)
+      Seq(bobbyRulesMetric, readMeMetricTwo, leakDetectionMetric)
     )
 
-  private val scoreConfig       = new ScoreConfig
-  private val repoScorerService = new RepoIndicatorService(mockRepository, scoreConfig)
+  private val pointsConfig         = new PointsConfig
+  private val repoIndicatorService = new RepoIndicatorService(mockRepository, pointsConfig)
 
-  "repoScore" should {
+  "RepoIndicatorService" should {
 
-    "Return a Rating for a single Repository" in {
+    "Return a Indicator for a single Repository" in {
       when(mockRepository.latestRepositoryMetrics("foo"))
-        .thenReturn(Future.successful(Some(healthIndicatorOne)))
+        .thenReturn(Future.successful(Some(repositoryMetricOne)))
 
-      val result = repoScorerService.indicatorForRepo("foo")
+      val result = repoIndicatorService.indicatorForRepo("foo")
 
       result.futureValue mustBe Some(
         Indicator(
@@ -79,11 +79,11 @@ class RepoIndicatorServiceSpec extends AnyWordSpec with Matchers with MockitoSug
       )
     }
 
-    "Return a Rating for each Repository in ascending order" in {
+    "Return a Indicator for each Repository in ascending order" in {
       when(mockRepository.allLatestRepositoryMetrics(None))
-        .thenReturn(Future.successful(Seq(healthIndicatorOne, healthIndicatorTwo)))
+        .thenReturn(Future.successful(Seq(repositoryMetricOne, repositoryMetricTwo)))
 
-      val result = repoScorerService.indicatorsForAllRepos(repoType = None, SortType.Ascending)
+      val result = repoIndicatorService.indicatorsForAllRepos(repoType = None, SortType.Ascending)
 
       result.futureValue mustBe Seq(
         Indicator(
@@ -109,11 +109,11 @@ class RepoIndicatorServiceSpec extends AnyWordSpec with Matchers with MockitoSug
       )
     }
 
-    "Return a Rating for each Repository in descending order, when sort equals true" in {
+    "Return a Indicator for each Repository in descending order, when sort equals true" in {
       when(mockRepository.allLatestRepositoryMetrics(None))
-        .thenReturn(Future.successful(Seq(healthIndicatorTwo, healthIndicatorOne)))
+        .thenReturn(Future.successful(Seq(repositoryMetricTwo, repositoryMetricOne)))
 
-      val result = repoScorerService.indicatorsForAllRepos(repoType = None, SortType.Descending)
+      val result = repoIndicatorService.indicatorsForAllRepos(repoType = None, SortType.Descending)
 
       result.futureValue mustBe Seq(
         Indicator(

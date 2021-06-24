@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.healthindicators.metrics
+package uk.gov.hmrc.healthindicators.metricproducers
 
 import play.api.Logger
 import uk.gov.hmrc.healthindicators.connectors.{JenkinsBuildReport, JenkinsBuildStatus, JenkinsConnector, TeamsAndRepositoriesConnector}
 import uk.gov.hmrc.healthindicators.models._
-import uk.gov.hmrc.healthindicators.metrics.BuildStabilityMetricProducer.getResultType
 import uk.gov.hmrc.http.HeaderCarrier
 
 import java.time.{Duration, Instant}

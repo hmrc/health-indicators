@@ -22,6 +22,7 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import uk.gov.hmrc.healthindicators.connectors.{GithubConnector, OpenPR}
 import uk.gov.hmrc.healthindicators.models.{NoStalePRs, OpenPRMetricType, PRsNotFound, StalePR}
+import uk.gov.hmrc.healthindicators.metricproducers.StalePrMetricProducer
 
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -36,15 +37,15 @@ class StalePrMetricProducerSpec
     with ArgumentMatchersSugar {
 
   private val mockGithubConnector: GithubConnector = mock[GithubConnector]
-  private val rater: StalePrMetricProducer                  = new StalePrMetricProducer(mockGithubConnector)
+  private val producer: StalePrMetricProducer = new StalePrMetricProducer(mockGithubConnector)
 
-  "StalePRRater.rate" should {
+  "StalePRRater.produce" should {
     val dateFormatter: DateTimeFormatter = DateTimeFormatter.ISO_DATE_TIME
     "return PRsNotFound when GithubConnector.getOpenPRs returns None" in {
       when(mockGithubConnector.getOpenPRs(eqTo("foo")))
         .thenReturn(Future.successful(None))
 
-      val result = rater.produce("foo").futureValue
+      val result = producer.produce("foo").futureValue
 
       result.metricType           shouldBe OpenPRMetricType
       result.results.head.resultType shouldBe PRsNotFound
@@ -54,7 +55,7 @@ class StalePrMetricProducerSpec
       when(mockGithubConnector.getOpenPRs(eqTo("foo")))
         .thenReturn(Future.successful(Some(Seq.empty)))
 
-      val result = rater.produce("foo").futureValue
+      val result = producer.produce("foo").futureValue
 
       result.metricType           shouldBe OpenPRMetricType
       result.results.head.resultType shouldBe NoStalePRs
@@ -68,7 +69,7 @@ class StalePrMetricProducerSpec
           )
         )
 
-      val result = rater.produce("foo").futureValue
+      val result = producer.produce("foo").futureValue
 
       result.metricType           shouldBe OpenPRMetricType
       result.results.head.resultType shouldBe NoStalePRs
@@ -90,7 +91,7 @@ class StalePrMetricProducerSpec
           )
         )
 
-      val result = rater.produce("foo").futureValue
+      val result = producer.produce("foo").futureValue
 
       result.metricType           shouldBe OpenPRMetricType
       result.results.head.resultType shouldBe StalePR
@@ -113,7 +114,7 @@ class StalePrMetricProducerSpec
           )
         )
 
-      val result = rater.produce("foo").futureValue
+      val result = producer.produce("foo").futureValue
 
       result.metricType           shouldBe OpenPRMetricType
       result.results.head.resultType shouldBe StalePR

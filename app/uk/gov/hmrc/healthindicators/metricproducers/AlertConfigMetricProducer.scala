@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.healthindicators.metrics
+package uk.gov.hmrc.healthindicators.metricproducers
 
+import play.api.Logger
 import uk.gov.hmrc.healthindicators.connectors.{AlertConfig, ServiceConfigsConnector}
+import uk.gov.hmrc.healthindicators.models._
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
-import play.api.Logger
-import uk.gov.hmrc.healthindicators.models.{AlertConfigDisabled, AlertConfigEnabled, AlertConfigMetricType, AlertConfigNotFound, AlertConfigResultType, Metric, Result}
 
 
 @Singleton

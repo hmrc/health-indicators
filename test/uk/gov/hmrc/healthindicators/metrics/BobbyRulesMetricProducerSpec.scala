@@ -33,13 +33,13 @@ package uk.gov.hmrc.healthindicators.metrics
  */
 
 import java.time.LocalDate
-
 import org.mockito.MockitoSugar
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import uk.gov.hmrc.healthindicators.connectors.{BobbyRuleViolation, Dependencies, Dependency, ServiceDependenciesConnector}
 import uk.gov.hmrc.healthindicators.models._
+import uk.gov.hmrc.healthindicators.metricproducers.BobbyRulesMetricProducer
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -48,7 +48,7 @@ import scala.concurrent.Future
 class BobbyRulesMetricProducerSpec extends AnyWordSpec with Matchers with MockitoSugar with ScalaFutures {
 
   private val mockBobbyRulesConnector = mock[ServiceDependenciesConnector]
-  private val rater                   = new BobbyRulesMetricProducer(mockBobbyRulesConnector)
+  private val producer = new BobbyRulesMetricProducer(mockBobbyRulesConnector)
 
   private val dependencyWithActiveViolation: Dependency =
     Dependency(Seq(BobbyRuleViolation("reason", LocalDate.parse("1994-01-08"), "range")), "name")
@@ -60,27 +60,27 @@ class BobbyRulesMetricProducerSpec extends AnyWordSpec with Matchers with Mockit
 
   implicit val hc: HeaderCarrier = HeaderCarrier()
 
-  "rate" should {
+  "BobbyRulesMetricProducer.produce" should {
 
-    "Return Indicator with no results when repo is not found" in {
+    "Return a Metric with no results when repo is not found" in {
       when(mockBobbyRulesConnector.dependencies("foo")) thenReturn Future.successful(None)
 
-      val result = rater.produce("foo")
+      val result = producer.produce("foo")
 
       result.futureValue mustBe Metric(BobbyRuleMetricType, Seq.empty)
     }
 
-    "Return Indicator with no results when a report with no bobby rules is found" in {
+    "Return a Metric with no results when a report with no bobby rules is found" in {
       when(mockBobbyRulesConnector.dependencies("foo")) thenReturn Future.successful(
         Some(Dependencies("repoName", Seq(), Seq(), Seq()))
       )
 
-      val result = rater.produce("foo")
+      val result = producer.produce("foo")
 
       result.futureValue mustBe Metric(BobbyRuleMetricType, Seq.empty)
     }
 
-    "Return Indicator with active violation result when bobby violation is found" in {
+    "Return a Metric with active violation result when bobby violation is found" in {
       when(mockBobbyRulesConnector.dependencies("foo")) thenReturn Future.successful(
         Some(
           Dependencies(
@@ -92,12 +92,12 @@ class BobbyRulesMetricProducerSpec extends AnyWordSpec with Matchers with Mockit
         )
       )
 
-      val result = rater.produce("foo")
+      val result = producer.produce("foo")
 
       result.futureValue mustBe Metric(BobbyRuleMetricType, Seq(Result(BobbyRuleActive, "name - reason", None)))
     }
 
-    "Return Indicator with pending violation result when pending bobby violation is found" in {
+    "Return a Metric with pending violation result when pending bobby violation is found" in {
       when(mockBobbyRulesConnector.dependencies("foo")) thenReturn Future.successful(
         Some(
           Dependencies(
@@ -109,13 +109,13 @@ class BobbyRulesMetricProducerSpec extends AnyWordSpec with Matchers with Mockit
         )
       )
 
-      val result = rater.produce("foo")
+      val result = producer.produce("foo")
 
       result.futureValue mustBe Metric(BobbyRuleMetricType, Seq(Result(BobbyRulePending, "name - reason", None)))
 
     }
 
-    "Return Indicator with pending violation and 2 active results when bobby violations found" in {
+    "Return a Metric with pending violation and 2 active results when bobby violations found" in {
       when(mockBobbyRulesConnector.dependencies("foo")) thenReturn Future.successful(
         Some(
           Dependencies(
@@ -127,7 +127,7 @@ class BobbyRulesMetricProducerSpec extends AnyWordSpec with Matchers with Mockit
         )
       )
 
-      val result = rater.produce("foo")
+      val result = producer.produce("foo")
 
       result.futureValue mustBe Metric(
         BobbyRuleMetricType,

@@ -1,5 +1,5 @@
-GET             /repositories/:service               @uk.gov.hmrc.healthindicators.controllers.HealthIndicatorController.indicator(service)
-GET             /repositories                        @uk.gov.hmrc.healthindicators.controllers.HealthIndicatorController.allIndicators(repoType: Option[RepoType] ?= None, sort : SortType)
+GET             /indicators/:service               @uk.gov.hmrc.healthindicators.controllers.HealthIndicatorController.indicator(service)
+GET             /indicators                       @uk.gov.hmrc.healthindicators.controllers.HealthIndicatorController.allIndicators(repoType: Option[RepoType] ?= None, sort : SortType)
 
 
 POST            /admin/rerun                         @uk.gov.hmrc.healthindicators.controllers.AdminController.rerun

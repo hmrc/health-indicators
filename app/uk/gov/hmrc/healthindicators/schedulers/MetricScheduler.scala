@@ -21,7 +21,7 @@ import play.api.Logger
 import play.api.inject.ApplicationLifecycle
 import uk.gov.hmrc.healthindicators.configs.SchedulerConfigs
 import uk.gov.hmrc.healthindicators.persistence.MongoLock
-import uk.gov.hmrc.healthindicators.services.MetricProductionService
+import uk.gov.hmrc.healthindicators.services.MetricCollectionService
 import uk.gov.hmrc.healthindicators.utils.SchedulerUtils
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -30,7 +30,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 @Singleton
 class MetricScheduler @Inject()(
-                                 ratingService: MetricProductionService,
+                                 ratingService: MetricCollectionService,
                                  config: SchedulerConfigs,
                                  mongoLocks: MongoLock
 )(implicit actorSystem: ActorSystem, applicationLifecycle: ApplicationLifecycle)
@@ -40,7 +40,7 @@ class MetricScheduler @Inject()(
   private implicit val hc: HeaderCarrier = HeaderCarrier()
 
   scheduleWithLock("Metric Reloader", config.metricScheduler, mongoLocks.metricsMongoLock) {
-    ratingService.produceAll
+    ratingService.collectAll
       .recover {
         case e: Throwable => logger.error("Error inserting Metrics", e)
       }

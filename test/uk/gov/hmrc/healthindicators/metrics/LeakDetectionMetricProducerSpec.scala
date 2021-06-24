@@ -22,6 +22,7 @@ import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import uk.gov.hmrc.healthindicators.connectors.{LeakDetectionConnector, Report, ReportLine}
 import uk.gov.hmrc.healthindicators.models._
+import uk.gov.hmrc.healthindicators.metricproducers.LeakDetectionMetricProducer
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -30,38 +31,38 @@ import scala.concurrent.Future
 class LeakDetectionMetricProducerSpec extends AnyWordSpec with Matchers with MockitoSugar with ScalaFutures {
 
   private val mockLeakDetectionConnector: LeakDetectionConnector = mock[LeakDetectionConnector]
-  private val rater: LeakDetectionMetricProducer                          = new LeakDetectionMetricProducer(mockLeakDetectionConnector)
+  private val producer: LeakDetectionMetricProducer = new LeakDetectionMetricProducer(mockLeakDetectionConnector)
 
   private val reportLine: ReportLine =
     ReportLine("file-path", "scope", 1, "url-to-source", Some("rule-id"), "description", "line-text")
 
   implicit val hc: HeaderCarrier = HeaderCarrier()
 
-  "rate" should {
+  "LeakDetectionMetricProducer.produce" should {
 
-    "Return Indicator with no results when leak detection connector returns None" in {
+    "Return a Metric with no results when leak detection connector returns None" in {
       when(mockLeakDetectionConnector.findLatestMasterReport("foo")).thenReturn(Future.successful(None))
 
-      val result = rater.produce("foo")
+      val result = producer.produce("foo")
 
       result.futureValue mustBe Metric(LeakDetectionMetricType, Seq.empty)
 
     }
 
-    "Return Indicator with no results when a Report with no violation is found" in {
+    "Return a Metric with no results when a Report with no violation is found" in {
       when(mockLeakDetectionConnector.findLatestMasterReport("foo"))
         .thenReturn(Future.successful(Some(Report("idx", Seq.empty))))
 
-      val result = rater.produce("foo")
+      val result = producer.produce("foo")
 
       result.futureValue mustBe Metric(LeakDetectionMetricType, Seq.empty)
     }
 
-    "Return Indicator with a result when a Report with 1 violations is found" in {
+    "Return a Metric with a result when a Report with 1 violations is found" in {
       when(mockLeakDetectionConnector.findLatestMasterReport("foo"))
         .thenReturn(Future.successful(Some(Report("idx", Seq(reportLine)))))
 
-      val result = rater.produce("foo")
+      val result = producer.produce("foo")
 
       result.futureValue mustBe Metric(
         LeakDetectionMetricType,
@@ -69,11 +70,11 @@ class LeakDetectionMetricProducerSpec extends AnyWordSpec with Matchers with Moc
       )
     }
 
-    "Return Indicator  with 2 results when Report with 2 violations is found" in {
+    "Return a Metric with 2 results when Report with 2 violations is found" in {
       when(mockLeakDetectionConnector.findLatestMasterReport("foo"))
         .thenReturn(Future.successful(Some(Report("idx", Seq(reportLine, reportLine)))))
 
-      val result = rater.produce("foo")
+      val result = producer.produce("foo")
 
       result.futureValue mustBe Metric(
         LeakDetectionMetricType,

@@ -20,29 +20,29 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import uk.gov.hmrc.healthindicators.models.{BobbyRuleActive, BobbyRulePending, DefaultReadme, JenkinsBuildNotFound, JenkinsBuildOutdated, JenkinsBuildStable, JenkinsBuildUnstable, LeakDetectionViolation, NoReadme, ValidReadme}
 
-class BreakdownConfigSpec extends AnyWordSpec with Matchers {
-  "ScoreConfig" should {
-    val scoreConfig = new ScoreConfig
-    "Give correct scores for ReadMeResultTypes" in {
-      scoreConfig.scores(NoReadme)      shouldBe -50
-      scoreConfig.scores(DefaultReadme) shouldBe -50
-      scoreConfig.scores(ValidReadme)   shouldBe 50
+class PointsConfigSpec extends AnyWordSpec with Matchers {
+  "PointsConfig" should {
+    val scoreConfig = new PointsConfig
+    "Give correct points for ReadMeResultTypes" in {
+      scoreConfig.points(NoReadme)      shouldBe -50
+      scoreConfig.points(DefaultReadme) shouldBe -50
+      scoreConfig.points(ValidReadme)   shouldBe 50
     }
 
-    "give correct scores for LeakDetectionResultTypes" in {
-      scoreConfig.scores(LeakDetectionViolation) shouldBe -50
+    "give correct points for LeakDetectionResultTypes" in {
+      scoreConfig.points(LeakDetectionViolation) shouldBe -50
     }
 
     "give correct scores for BobbyRulesResultTypes" in {
-      scoreConfig.scores(BobbyRulePending) shouldBe -20
-      scoreConfig.scores(BobbyRuleActive)  shouldBe -100
+      scoreConfig.points(BobbyRulePending) shouldBe -20
+      scoreConfig.points(BobbyRuleActive)  shouldBe -100
     }
 
-    "give correct scores for BuildStabilityResultTypes" in {
-      scoreConfig.scores(JenkinsBuildStable)   shouldBe 50
-      scoreConfig.scores(JenkinsBuildUnstable) shouldBe -50
-      scoreConfig.scores(JenkinsBuildNotFound) shouldBe 0
-      scoreConfig.scores(JenkinsBuildOutdated) shouldBe -50
+    "give correct points for BuildStabilityResultTypes" in {
+      scoreConfig.points(JenkinsBuildStable)   shouldBe 50
+      scoreConfig.points(JenkinsBuildUnstable) shouldBe -50
+      scoreConfig.points(JenkinsBuildNotFound) shouldBe 0
+      scoreConfig.points(JenkinsBuildOutdated) shouldBe -50
     }
   }
 }

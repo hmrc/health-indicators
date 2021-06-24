@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.healthindicators.metrics
+package uk.gov.hmrc.healthindicators.metricproducers
 
 import uk.gov.hmrc.healthindicators.connectors.{GithubConnector, OpenPR}
 import uk.gov.hmrc.healthindicators.models._

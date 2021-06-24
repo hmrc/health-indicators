@@ -31,7 +31,7 @@ import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class MetricsPersistence @Inject()(
+class RepositoryMetricsRepository @Inject()(
   mongoComponent: MongoComponent,
   config: SchedulerConfigs
 )(implicit ec: ExecutionContext)

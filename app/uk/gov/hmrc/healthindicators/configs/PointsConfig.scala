@@ -21,8 +21,8 @@ import uk.gov.hmrc.healthindicators.models._
 import javax.inject.Singleton
 
 @Singleton
-class ScoreConfig {
-  def scores(resultType: ResultType): Int =
+class PointsConfig {
+  def points(resultType: ResultType): Int =
     resultType match {
       case o: OpenPRResultType =>
         o match {

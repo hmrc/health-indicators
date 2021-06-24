@@ -27,7 +27,7 @@ import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.ws.WSClient
 import play.api.Application
 import uk.gov.hmrc.healthindicators.models.RepositoryMetrics
-import uk.gov.hmrc.healthindicators.persistence.MetricsPersistence
+import uk.gov.hmrc.healthindicators.persistence.RepositoryMetricsRepository
 import uk.gov.hmrc.mongo.test.DefaultPlayMongoRepositorySupport
 
 class IntegrationSpec
@@ -42,7 +42,7 @@ class IntegrationSpec
   implicit override val patienceConfig: PatienceConfig =
     PatienceConfig(timeout = scaled(Span(10, Seconds)), interval = scaled(Span(1000, Millis)))
 
-  protected val repository: MetricsPersistence = app.injector.instanceOf[MetricsPersistence]
+  protected val repository: RepositoryMetricsRepository = app.injector.instanceOf[RepositoryMetricsRepository]
   private[this] lazy val ws                            = app.injector.instanceOf[WSClient]
 
   override def fakeApplication: Application =
@@ -115,7 +115,7 @@ class IntegrationSpec
       )
 
       eventually {
-        val response = ws.url(s"http://localhost:$port/health-indicators/repositories/auth").get.futureValue
+        val response = ws.url(s"http://localhost:$port/health-indicators/indicators/auth").get.futureValue
         response.status shouldBe 200
         response.body     should include(expectedResponse)
         response.body     should include(bobbyRuleResponse)

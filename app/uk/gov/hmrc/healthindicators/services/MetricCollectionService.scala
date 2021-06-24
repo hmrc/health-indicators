@@ -20,23 +20,23 @@ import cats.implicits._
 import play.api.Logger
 import uk.gov.hmrc.healthindicators.connectors.{TeamsAndRepos, TeamsAndRepositoriesConnector}
 import uk.gov.hmrc.healthindicators.models.RepositoryMetrics
-import uk.gov.hmrc.healthindicators.persistence.MetricsPersistence
-import uk.gov.hmrc.healthindicators.metrics.MetricProducer
+import uk.gov.hmrc.healthindicators.persistence.RepositoryMetricsRepository
+import uk.gov.hmrc.healthindicators.metricproducers.MetricProducer
 import uk.gov.hmrc.http.HeaderCarrier
 
 import java.time.Instant
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class MetricProductionService @Inject()(
+class MetricCollectionService @Inject()(
                                          teamsAndRepositoriesConnector: TeamsAndRepositoriesConnector,
-                                         raters: List[MetricProducer],
-                                         repository: MetricsPersistence
+                                         metricProducers: List[MetricProducer],
+                                         repository: RepositoryMetricsRepository
 )(implicit val ec: ExecutionContext) {
 
   private val logger = Logger(this.getClass)
 
-  def produceAll()(implicit hc: HeaderCarrier): Future[Unit] =
+  def collectAll()(implicit hc: HeaderCarrier): Future[Unit] =
     for {
       repos <- teamsAndRepositoriesConnector.allRepositories
       _ <- repos.foldLeftM(())((_, r) =>
@@ -50,7 +50,7 @@ class MetricProductionService @Inject()(
   private def createMetricsForRepo(repo: TeamsAndRepos): Future[RepositoryMetrics] = {
     logger.info(s"Creating Metrics For: $repo")
     for {
-      indicators <- raters.traverse(_.produce(repo.name))
+      indicators <- metricProducers.traverse(_.produce(repo.name))
     } yield RepositoryMetrics(repo.name, Instant.now(), repo.repositoryType, indicators)
   }
 }

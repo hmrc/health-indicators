@@ -30,7 +30,7 @@ import uk.gov.hmrc.mongo.test.DefaultPlayMongoRepositorySupport
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class MetricsPersistenceSpec
+class RepositoryMetricsRepositorySpec
     extends AnyWordSpec
     with Matchers
     with MockitoSugar
@@ -44,7 +44,7 @@ class MetricsPersistenceSpec
 
   private val schedulerConfigs = new SchedulerConfigs(config)
 
-  override protected val repository = new MetricsPersistence(mongoComponent, schedulerConfigs)
+  override protected val repository = new RepositoryMetricsRepository(mongoComponent, schedulerConfigs)
 
   "insert" should {
 

@@ -17,22 +17,22 @@
 package uk.gov.hmrc.healthindicators.controllers
 
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
-import uk.gov.hmrc.healthindicators.services.MetricProductionService
+import uk.gov.hmrc.healthindicators.services.MetricCollectionService
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class AdminController @Inject()(ratingService: MetricProductionService, cc: ControllerComponents)(implicit
-                                                                                                  ec: ExecutionContext
+class AdminController @Inject()(metricProductionService: MetricCollectionService, cc: ControllerComponents)(implicit
+                                                                                                            ec: ExecutionContext
 ) extends BackendController(cc) {
 
   implicit val hc: HeaderCarrier = HeaderCarrier()
 
   def rerun(): Action[AnyContent] =
     Action.async {
-      ratingService.produceAll().recover {
+      metricProductionService.collectAll().recover {
         case e: Throwable => e.printStackTrace()
       }
       Future.successful(Accepted)

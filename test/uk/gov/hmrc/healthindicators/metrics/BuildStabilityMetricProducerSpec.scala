@@ -17,13 +17,13 @@
 package uk.gov.hmrc.healthindicators.metrics
 
 import java.time.{Duration, Instant}
-
 import org.mockito.{ArgumentMatchersSugar, MockitoSugar}
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import uk.gov.hmrc.healthindicators.connectors.{JenkinsBuildReport, JenkinsBuildStatus, JenkinsConnector, JenkinsUrl, TeamsAndRepositoriesConnector}
 import uk.gov.hmrc.healthindicators.models.{BuildStabilityMetricType, JenkinsBuildNotFound, JenkinsBuildOutdated, JenkinsBuildStable, JenkinsBuildUnstable, Result}
+import uk.gov.hmrc.healthindicators.metricproducers.BuildStabilityMetricProducer
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -43,9 +43,9 @@ class BuildStabilityMetricProducerSpec
 
   implicit val hc: HeaderCarrier = HeaderCarrier()
 
-  "BuildStability rate" should {
+  "BuildStabilityMetricProducer.produce" should {
 
-    "return Indicator with JenkinsBuildNotFound result when no build is found" in {
+    "return a Metric with JenkinsBuildNotFound result when no build is found" in {
       when(mockTeamsAndRepositoriesConnector.getJenkinsUrl(eqTo("foo"))(any[HeaderCarrier]))
         .thenReturn(Future.successful(None))
       when(mockJenkinsConnector.getBuildJob("foo")).thenReturn(Future.successful(Some(JenkinsBuildReport(None))))
@@ -56,7 +56,7 @@ class BuildStabilityMetricProducerSpec
       result.results.head.resultType mustBe JenkinsBuildNotFound
     }
 
-    "return Indicator with JenkinsBuildNotFound result when no jenkins job matches URL" in {
+    "return a Metric with JenkinsBuildNotFound result when no jenkins job matches URL" in {
       val url = new JenkinsUrl("foo/123")
 
       when(mockTeamsAndRepositoriesConnector.getJenkinsUrl(eqTo("foo"))(any[HeaderCarrier]))
@@ -69,7 +69,7 @@ class BuildStabilityMetricProducerSpec
       result.results.head.resultType mustBe JenkinsBuildNotFound
     }
 
-    "return Indicator with JenkinsBuildStable result when build is found" in {
+    "return a Metric with JenkinsBuildStable result when build is found" in {
       val url         = new JenkinsUrl("foo/123")
       val buildReport = JenkinsBuildReport(Some(JenkinsBuildStatus("SUCCESS", Instant.now())))
 
@@ -84,7 +84,7 @@ class BuildStabilityMetricProducerSpec
     }
   }
 
-  "getResultType" should {
+  "BuildStabilityMetricProducer.getResultType" should {
     "be stable if last build was successful" in {
       val jenkinsBuildStable =
         JenkinsBuildReport(Some(JenkinsBuildStatus("SUCCESS", Instant.now())))

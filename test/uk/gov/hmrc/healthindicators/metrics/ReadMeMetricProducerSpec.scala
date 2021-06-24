@@ -22,6 +22,7 @@ import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import uk.gov.hmrc.healthindicators.connectors.GithubConnector
 import uk.gov.hmrc.healthindicators.models._
+import uk.gov.hmrc.healthindicators.metricproducers.ReadMeMetricProducer
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -30,35 +31,35 @@ import scala.concurrent.Future
 class ReadMeMetricProducerSpec extends AnyWordSpec with Matchers with MockitoSugar with ScalaFutures {
 
   private val mockGithubConnector: GithubConnector = mock[GithubConnector]
-  private val rater: ReadMeMetricProducer                   = new ReadMeMetricProducer(mockGithubConnector)
+  private val producer: ReadMeMetricProducer = new ReadMeMetricProducer(mockGithubConnector)
 
-  private val readMeDeafult = "This is a placeholder README.md for a new repository"
+  private val readMeDefault = "This is a placeholder README.md for a new repository"
   private val readMeValid   = "This is a valid README.md"
 
   implicit val hc: HeaderCarrier = HeaderCarrier()
 
-  "rate" should {
+  "ReadMeMetricProducer.produce" should {
 
-    "Return Indicator with NoReadme result when no readme found" in {
+    "Return a Metric with NoReadme result when no readme found" in {
       when(mockGithubConnector.findReadMe("foo")).thenReturn(Future.successful(None))
 
-      val result = rater.produce("foo")
+      val result = producer.produce("foo")
 
       result.futureValue mustBe Metric(ReadMeMetricType, Seq(Result(NoReadme, "No Readme defined", None)))
     }
 
-    "Return Indicator with DefaultReadme result when default readme found" in {
-      when(mockGithubConnector.findReadMe("foo")).thenReturn(Future.successful(Some(readMeDeafult)))
+    "Return a Metric with DefaultReadme result when default readme found" in {
+      when(mockGithubConnector.findReadMe("foo")).thenReturn(Future.successful(Some(readMeDefault)))
 
-      val result = rater.produce("foo")
+      val result = producer.produce("foo")
 
       result.futureValue mustBe Metric(ReadMeMetricType, Seq(Result(DefaultReadme, "Default readme", None)))
     }
 
-    "Return Indicator with ValidReadme result when readme has been defined" in {
+    "Return a Metric with ValidReadme result when readme has been defined" in {
       when(mockGithubConnector.findReadMe("foo")).thenReturn(Future.successful(Some(readMeValid)))
 
-      val result = rater.produce("foo")
+      val result = producer.produce("foo")
 
       result.futureValue mustBe Metric(ReadMeMetricType, Seq(Result(ValidReadme, "Valid readme", None)))
     }

@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.healthindicators.metrics
+package uk.gov.hmrc.healthindicators.metricproducers
 
 import play.api.Logger
 import uk.gov.hmrc.healthindicators.connectors.LeakDetectionConnector
-import uk.gov.hmrc.healthindicators.models.{Metric, LeakDetectionMetricType, LeakDetectionViolation, Result}
+import uk.gov.hmrc.healthindicators.models.{LeakDetectionMetricType, LeakDetectionViolation, Metric, Result}
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}

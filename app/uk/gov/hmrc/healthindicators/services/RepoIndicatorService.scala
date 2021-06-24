@@ -16,39 +16,39 @@
 
 package uk.gov.hmrc.healthindicators.services
 
-import uk.gov.hmrc.healthindicators.configs.ScoreConfig
+import uk.gov.hmrc.healthindicators.configs.PointsConfig
 import uk.gov.hmrc.healthindicators.connectors.RepoType
 import uk.gov.hmrc.healthindicators.models._
-import uk.gov.hmrc.healthindicators.persistence.MetricsPersistence
+import uk.gov.hmrc.healthindicators.persistence.RepositoryMetricsRepository
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class RepoIndicatorService @Inject()(repository: MetricsPersistence, scoreConfig: ScoreConfig)(implicit
-                                                                                               val ec: ExecutionContext
+class RepoIndicatorService @Inject()(repository: RepositoryMetricsRepository, scoreConfig: PointsConfig)(implicit
+                                                                                                         val ec: ExecutionContext
 ) {
 
   def indicatorForRepo(repo: String): Future[Option[Indicator]] =
-    repository.latestRepositoryMetrics(repo).map { maybeHealthIndicator =>
-      indicate(maybeHealthIndicator.toSeq).headOption
+    repository.latestRepositoryMetrics(repo).map { maybeRepositoryMetric =>
+      indicate(maybeRepositoryMetric.toSeq).headOption
     }
 
   def indicatorsForAllRepos(repoType: Option[RepoType], sort: SortType): Future[Seq[Indicator]] =
-    repository.allLatestRepositoryMetrics(repoType).map { healthIndicators =>
-      val repoRatings = indicate(healthIndicators).sortBy(_.overallScore)
-      sort match {
-        case SortType.Ascending  => repoRatings
-        case SortType.Descending => repoRatings.reverse
-      }
+    repository.allLatestRepositoryMetrics(repoType).map { repositoryMetrics =>
+    val sortingBy: Indicator => Int = sort match {
+      case SortType.Ascending => _.overallScore
+      case SortType.Descending => -_.overallScore
+    }
+      indicate(repositoryMetrics).sortBy(sortingBy)
     }
 
-  def indicate(healthIndicators: Seq[RepositoryMetrics]): Seq[Indicator] =
+  def indicate(repositoryMetrics: Seq[RepositoryMetrics]): Seq[Indicator] =
     for {
-      indicator <- healthIndicators
-      rating           = indicator.metrics.map(applyWeighting)
-      repositoryScore  = rating.map(_.score).sum
-      repositoryRating = Indicator(indicator.repoName, indicator.repoType, repositoryScore, rating)
-    } yield repositoryRating
+      repositoryMetrics <- repositoryMetrics
+      weightedMetric    = repositoryMetrics.metrics.map(applyWeighting)
+      overallScore      = weightedMetric.map(_.score).sum
+      indicator         = Indicator(repositoryMetrics.repoName, repositoryMetrics.repoType, overallScore, weightedMetric)
+    } yield indicator
 
   private def applyWeighting(metric: Metric): WeightedMetric = {
     val scores: Seq[Breakdown] = metric.results.map(createScore)
@@ -57,7 +57,7 @@ class RepoIndicatorService @Inject()(repository: MetricsPersistence, scoreConfig
   }
 
   private def createScore(result: Result): Breakdown = {
-    val points = scoreConfig.scores(result.resultType)
+    val points = scoreConfig.points(result.resultType)
     Breakdown(points, result.description, result.href)
   }
 
