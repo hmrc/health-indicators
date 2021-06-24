@@ -24,7 +24,7 @@ import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class AdminController @Inject() (metricProductionService: MetricCollectionService, cc: ControllerComponents)(implicit
+class AdminController @Inject() (metricCollectionService: MetricCollectionService, cc: ControllerComponents)(implicit
   ec: ExecutionContext
 ) extends BackendController(cc) {
 
@@ -32,7 +32,7 @@ class AdminController @Inject() (metricProductionService: MetricCollectionServic
 
   def rerun(): Action[AnyContent] =
     Action.async {
-      metricProductionService.collectAll().recover {
+      metricCollectionService.collectAll().recover {
         case e: Throwable => e.printStackTrace()
       }
       Future.successful(Accepted)

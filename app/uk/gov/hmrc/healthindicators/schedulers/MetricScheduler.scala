@@ -30,7 +30,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 @Singleton
 class MetricScheduler @Inject() (
-  ratingService: MetricCollectionService,
+  metricCollectionService: MetricCollectionService,
   config: SchedulerConfigs,
   mongoLocks: MongoLock
 )(implicit actorSystem: ActorSystem, applicationLifecycle: ApplicationLifecycle)
@@ -40,7 +40,7 @@ class MetricScheduler @Inject() (
   private implicit val hc: HeaderCarrier = HeaderCarrier()
 
   scheduleWithLock("Metric Reloader", config.metricScheduler, mongoLocks.metricsMongoLock) {
-    ratingService.collectAll
+    metricCollectionService.collectAll
       .recover {
         case e: Throwable => logger.error("Error inserting Metrics", e)
       }
