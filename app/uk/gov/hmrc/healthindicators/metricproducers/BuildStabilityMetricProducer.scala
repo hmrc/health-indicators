@@ -18,6 +18,7 @@ package uk.gov.hmrc.healthindicators.metricproducers
 
 import play.api.Logger
 import uk.gov.hmrc.healthindicators.connectors.{JenkinsBuildReport, JenkinsBuildStatus, JenkinsConnector, TeamsAndRepositoriesConnector}
+import uk.gov.hmrc.healthindicators.metricproducers.BuildStabilityMetricProducer.getResultType
 import uk.gov.hmrc.healthindicators.models._
 import uk.gov.hmrc.http.HeaderCarrier
 
