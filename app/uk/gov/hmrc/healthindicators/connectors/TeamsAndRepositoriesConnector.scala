@@ -53,7 +53,6 @@ object RepoType {
   case object Library extends RepoType
   case object Other extends RepoType
 
-
   val format: Format[RepoType] = new Format[RepoType] {
     override def reads(json: JsValue): JsResult[RepoType] =
       json.validate[String].flatMap {

@@ -23,10 +23,10 @@ import uk.gov.hmrc.healthindicators.models._
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
-
 @Singleton
-class AlertConfigMetricProducer @Inject()(serviceConfigConnector: ServiceConfigsConnector)(implicit val ec: ExecutionContext)
-extends MetricProducer {
+class AlertConfigMetricProducer @Inject() (serviceConfigConnector: ServiceConfigsConnector)(implicit
+  val ec: ExecutionContext
+) extends MetricProducer {
 
   private val logger = Logger(this.getClass)
 
@@ -39,8 +39,8 @@ extends MetricProducer {
 
   private def getResults(maybeConfig: Option[AlertConfig]): Seq[Result] =
     maybeConfig match {
-      case None => createResults(AlertConfigNotFound, "No Alert Config Found")
-      case Some(AlertConfig(true)) => createResults(AlertConfigEnabled, "Alert Config is Enabled")
+      case None                     => createResults(AlertConfigNotFound, "No Alert Config Found")
+      case Some(AlertConfig(true))  => createResults(AlertConfigEnabled, "Alert Config is Enabled")
       case Some(AlertConfig(false)) => createResults(AlertConfigDisabled, "Alert Config is Disabled")
     }
 

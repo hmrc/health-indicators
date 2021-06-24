@@ -28,10 +28,10 @@ import java.time.Instant
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class MetricCollectionService @Inject()(
-                                         teamsAndRepositoriesConnector: TeamsAndRepositoriesConnector,
-                                         metricProducers: List[MetricProducer],
-                                         repository: RepositoryMetricsRepository
+class MetricCollectionService @Inject() (
+  teamsAndRepositoriesConnector: TeamsAndRepositoriesConnector,
+  metricProducers: List[MetricProducer],
+  repository: RepositoryMetricsRepository
 )(implicit val ec: ExecutionContext) {
 
   private val logger = Logger(this.getClass)

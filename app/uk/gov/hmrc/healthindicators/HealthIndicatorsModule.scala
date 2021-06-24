@@ -30,15 +30,22 @@ class HealthIndicatorsModule() extends AbstractModule {
 
   @Provides
   def producers(
-              bobbyRulesMetricProducer: BobbyRulesMetricProducer,
-              leakDetectionMetricProducer: LeakDetectionMetricProducer,
-              readMeMetricProducer: ReadMeMetricProducer,
-              buildStabilityMetricProducer: BuildStabilityMetricProducer,
-              stalePrMetricProducer: StalePrMetricProducer,
-              alertConfigMetricProducer: AlertConfigMetricProducer
+    bobbyRulesMetricProducer: BobbyRulesMetricProducer,
+    leakDetectionMetricProducer: LeakDetectionMetricProducer,
+    readMeMetricProducer: ReadMeMetricProducer,
+    buildStabilityMetricProducer: BuildStabilityMetricProducer,
+    stalePrMetricProducer: StalePrMetricProducer,
+    alertConfigMetricProducer: AlertConfigMetricProducer
   ): List[MetricProducer] = {
     val producers =
-      List(bobbyRulesMetricProducer, leakDetectionMetricProducer, readMeMetricProducer, buildStabilityMetricProducer, alertConfigMetricProducer, stalePrMetricProducer)
+      List(
+        bobbyRulesMetricProducer,
+        leakDetectionMetricProducer,
+        readMeMetricProducer,
+        buildStabilityMetricProducer,
+        alertConfigMetricProducer,
+        stalePrMetricProducer
+      )
     logger.info(s"Loaded Metric Producers: ${producers.map(_.getClass.getSimpleName).mkString("[\n", "\n", "\n]")}")
     producers
   }

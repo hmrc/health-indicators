@@ -27,9 +27,9 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
 
 @Singleton
-class HealthIndicatorController @Inject()(
-                                           repoIndicatorService: RepoIndicatorService,
-                                           cc: ControllerComponents
+class HealthIndicatorController @Inject() (
+  repoIndicatorService: RepoIndicatorService,
+  cc: ControllerComponents
 )(implicit ec: ExecutionContext)
     extends BackendController(cc) {
 

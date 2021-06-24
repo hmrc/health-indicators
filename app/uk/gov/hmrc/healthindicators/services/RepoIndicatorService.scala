@@ -24,8 +24,8 @@ import uk.gov.hmrc.healthindicators.persistence.RepositoryMetricsRepository
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class RepoIndicatorService @Inject()(repository: RepositoryMetricsRepository, scoreConfig: PointsConfig)(implicit
-                                                                                                         val ec: ExecutionContext
+class RepoIndicatorService @Inject() (repository: RepositoryMetricsRepository, scoreConfig: PointsConfig)(implicit
+  val ec: ExecutionContext
 ) {
 
   def indicatorForRepo(repo: String): Future[Option[Indicator]] =
@@ -35,24 +35,24 @@ class RepoIndicatorService @Inject()(repository: RepositoryMetricsRepository, sc
 
   def indicatorsForAllRepos(repoType: Option[RepoType], sort: SortType): Future[Seq[Indicator]] =
     repository.allLatestRepositoryMetrics(repoType).map { repositoryMetrics =>
-    val sortingBy: Indicator => Int = sort match {
-      case SortType.Ascending => _.overallScore
-      case SortType.Descending => -_.overallScore
-    }
+      val sortingBy: Indicator => Int = sort match {
+        case SortType.Ascending  => _.overallScore
+        case SortType.Descending => -_.overallScore
+      }
       indicate(repositoryMetrics).sortBy(sortingBy)
     }
 
   def indicate(repositoryMetrics: Seq[RepositoryMetrics]): Seq[Indicator] =
     for {
       repositoryMetrics <- repositoryMetrics
-      weightedMetric    = repositoryMetrics.metrics.map(applyWeighting)
-      overallScore      = weightedMetric.map(_.score).sum
-      indicator         = Indicator(repositoryMetrics.repoName, repositoryMetrics.repoType, overallScore, weightedMetric)
+      weightedMetric = repositoryMetrics.metrics.map(applyWeighting)
+      overallScore   = weightedMetric.map(_.score).sum
+      indicator      = Indicator(repositoryMetrics.repoName, repositoryMetrics.repoType, overallScore, weightedMetric)
     } yield indicator
 
   private def applyWeighting(metric: Metric): WeightedMetric = {
     val scores: Seq[Breakdown] = metric.results.map(createScore)
-    val overallScore = scores.map(_.points).sum
+    val overallScore           = scores.map(_.points).sum
     WeightedMetric(metric.metricType, overallScore, scores)
   }
 

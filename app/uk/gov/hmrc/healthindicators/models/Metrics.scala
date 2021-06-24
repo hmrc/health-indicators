@@ -199,10 +199,10 @@ object Metric {
 }
 
 case class RepositoryMetrics(
-                              repoName: String,
-                              timestamp: Instant,
-                              repoType: RepoType,
-                              metrics: Seq[Metric]
+  repoName: String,
+  timestamp: Instant,
+  repoType: RepoType,
+  metrics: Seq[Metric]
 )
 
 object RepositoryMetrics {

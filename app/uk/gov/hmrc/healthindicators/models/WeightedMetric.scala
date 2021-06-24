@@ -34,7 +34,7 @@ case class WeightedMetric(metricType: MetricType, score: Int, breakdown: Seq[Bre
 
 object WeightedMetric {
   val writes: Writes[WeightedMetric] = {
-    implicit val sW: Writes[Breakdown]       = Breakdown.writes
+    implicit val sW: Writes[Breakdown]   = Breakdown.writes
     implicit val rtW: Writes[MetricType] = MetricType.format
     ((__ \ "metricType").write[MetricType]
       ~ (__ \ "score").write[Int]
@@ -42,16 +42,16 @@ object WeightedMetric {
   }
 }
 case class Indicator(
-                      repoName: String,
-                      repoType: RepoType,
-                      overallScore: Int,
-                      weightedMetrics: Seq[WeightedMetric]
+  repoName: String,
+  repoType: RepoType,
+  overallScore: Int,
+  weightedMetrics: Seq[WeightedMetric]
 )
 
 object Indicator {
   val writes: Writes[Indicator] = {
-    implicit val rW: Writes[WeightedMetric]          = WeightedMetric.writes
-    implicit val rtF: Writes[RepoType] = RepoType.format
+    implicit val rW: Writes[WeightedMetric] = WeightedMetric.writes
+    implicit val rtF: Writes[RepoType]      = RepoType.format
     ((__ \ "repoName").write[String]
       ~ (__ \ "repoType").write[RepoType]
       ~ (__ \ "overallScore").write[Int]

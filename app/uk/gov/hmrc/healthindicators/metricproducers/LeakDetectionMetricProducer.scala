@@ -24,7 +24,7 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class LeakDetectionMetricProducer @Inject()(
+class LeakDetectionMetricProducer @Inject() (
   leakDetectionConnector: LeakDetectionConnector
 )(implicit val ec: ExecutionContext)
     extends MetricProducer {

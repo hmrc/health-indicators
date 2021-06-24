@@ -22,8 +22,9 @@ import play.api.libs.json._
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class ServiceConfigsConnector @Inject()(httpClient: HttpClient, ratersConfig: AppConfig
-                                             )(implicit val ec: ExecutionContext) {
+class ServiceConfigsConnector @Inject() (httpClient: HttpClient, ratersConfig: AppConfig)(implicit
+  val ec: ExecutionContext
+) {
 
   private implicit val hc: HeaderCarrier = HeaderCarrier()
 
@@ -37,10 +38,9 @@ class ServiceConfigsConnector @Inject()(httpClient: HttpClient, ratersConfig: Ap
 }
 
 case class AlertConfig(
-                      production: Boolean
-                      )
+  production: Boolean
+)
 
 object AlertConfig {
   implicit val reads: Reads[AlertConfig] = Json.reads[AlertConfig]
 }
-

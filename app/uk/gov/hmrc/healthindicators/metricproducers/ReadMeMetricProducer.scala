@@ -24,7 +24,7 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class ReadMeMetricProducer @Inject()(
+class ReadMeMetricProducer @Inject() (
   githubConnector: GithubConnector
 )(implicit val ec: ExecutionContext)
     extends MetricProducer {

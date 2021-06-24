@@ -25,7 +25,7 @@ import java.time.{Duration, Instant}
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class BuildStabilityMetricProducer @Inject()(
+class BuildStabilityMetricProducer @Inject() (
   jenkinsConnector: JenkinsConnector,
   teamsAndRepositoriesConnector: TeamsAndRepositoriesConnector
 )(implicit val ec: ExecutionContext)

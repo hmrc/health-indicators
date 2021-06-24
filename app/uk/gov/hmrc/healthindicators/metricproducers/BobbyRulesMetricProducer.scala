@@ -25,7 +25,7 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class BobbyRulesMetricProducer @Inject()(
+class BobbyRulesMetricProducer @Inject() (
   serviceDependenciesConnector: ServiceDependenciesConnector
 )(implicit val ec: ExecutionContext)
     extends MetricProducer {

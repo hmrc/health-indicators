@@ -29,10 +29,10 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext.Implicits.global
 
 @Singleton
-class MetricScheduler @Inject()(
-                                 ratingService: MetricCollectionService,
-                                 config: SchedulerConfigs,
-                                 mongoLocks: MongoLock
+class MetricScheduler @Inject() (
+  ratingService: MetricCollectionService,
+  config: SchedulerConfigs,
+  mongoLocks: MongoLock
 )(implicit actorSystem: ActorSystem, applicationLifecycle: ApplicationLifecycle)
     extends SchedulerUtils {
 
