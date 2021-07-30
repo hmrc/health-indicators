@@ -37,7 +37,7 @@ class GithubConnector @Inject() (
 
   def findReadMe(repo: String): Future[Option[String]] = {
     val url =
-      s"${githubConfig.rawUrl}/hmrc/$repo/master/README.md"
+      s"${githubConfig.rawUrl}/hmrc/$repo/HEAD/README.md"
     implicit val hc: HeaderCarrier = HeaderCarrier()
 
     httpClient

@@ -102,7 +102,7 @@ class IntegrationSpec
 
       serviceEndpoint(
         GET,
-        "/hmrc/auth/master/README.md",
+        "/hmrc/auth/HEAD/README.md",
         requestHeaders = Map("Authorization" -> s"token test-token"),
         willRespondWith = (404, None)
       )
