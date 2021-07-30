@@ -25,7 +25,6 @@ import org.scalatest.wordspec.AnyWordSpec
 import uk.gov.hmrc.healthindicators.connectors.RepoType.Service
 import uk.gov.hmrc.healthindicators.models.{BobbyRuleMetricType, Breakdown, DataPoint, HistoricIndicator, HistoricIndicatorAPI, Indicator, LeakDetectionMetricType, ReadMeMetricType, SortType, WeightedMetric}
 import uk.gov.hmrc.healthindicators.persistence.HistoricIndicatorsRepository
-import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import java.time.Instant
@@ -79,7 +78,6 @@ class HistoricIndicatorServiceSpec extends AnyWordSpec with Matchers with Mockit
   "HistoricIndicatorService.collectHistoricIndicators" should {
 
     "Traverse all Indicators and create HistoricIndicator for each, inserting them into a mongo collection" in {
-      implicit val hc: HeaderCarrier = HeaderCarrier()
       when(mockRepoIndicatorService.indicatorsForAllRepos(None, SortType.Ascending))
         .thenReturn(Future.successful(indicators))
 

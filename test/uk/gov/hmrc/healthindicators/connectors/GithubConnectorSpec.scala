@@ -56,7 +56,7 @@ class GithubConnectorSpec
 
       serviceEndpoint(
         GET,
-        "/hmrc/repo1/master/README.md",
+        "/hmrc/repo1/HEAD/README.md",
         requestHeaders = Map("Authorization" -> s"token test-token"),
         willRespondWith = (200, Some("Hello World"))
       )
@@ -73,7 +73,7 @@ class GithubConnectorSpec
 
       serviceEndpoint(
         GET,
-        "/hmrc/repo1/master/README.md",
+        "/hmrc/repo1/HEAD/README.md",
         requestHeaders = Map("Authorization" -> s"token test-token"),
         willRespondWith = (404, None)
       )

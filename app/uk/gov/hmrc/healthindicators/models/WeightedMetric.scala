@@ -18,7 +18,7 @@ package uk.gov.hmrc.healthindicators.models
 
 import play.api.libs.functional.syntax.{toFunctionalBuilderOps, unlift}
 import play.api.libs.json.Format.GenericFormat
-import play.api.libs.json.{JsString, Writes, __}
+import play.api.libs.json.{Writes, __}
 import uk.gov.hmrc.healthindicators.connectors.RepoType
 
 case class Breakdown(points: Int, description: String, href: Option[String])

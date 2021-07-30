@@ -19,9 +19,9 @@ package uk.gov.hmrc.healthindicators.services
 import cats.implicits._
 import play.api.Logger
 import uk.gov.hmrc.healthindicators.connectors.{TeamsAndRepos, TeamsAndRepositoriesConnector}
-import uk.gov.hmrc.healthindicators.models.{Metric, RepositoryMetrics}
-import uk.gov.hmrc.healthindicators.persistence.RepositoryMetricsRepository
 import uk.gov.hmrc.healthindicators.metricproducers.MetricProducer
+import uk.gov.hmrc.healthindicators.models.RepositoryMetrics
+import uk.gov.hmrc.healthindicators.persistence.RepositoryMetricsRepository
 import uk.gov.hmrc.http.HeaderCarrier
 
 import java.time.Instant
