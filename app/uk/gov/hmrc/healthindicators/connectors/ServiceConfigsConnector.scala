@@ -21,6 +21,7 @@ import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
 import play.api.libs.json._
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
+import uk.gov.hmrc.http.HttpReads.Implicits._
 
 class ServiceConfigsConnector @Inject() (httpClient: HttpClient, ratersConfig: AppConfig)(implicit
   val ec: ExecutionContext

@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.healthindicators.services
 
-import uk.gov.hmrc.healthindicators.models.{HistoricIndicator, HistoricIndicatorAPI, Indicator, SortType}
+import uk.gov.hmrc.healthindicators.models.{HistoricIndicator, HistoricIndicatorAPI, SortType}
 import uk.gov.hmrc.healthindicators.persistence.HistoricIndicatorsRepository
 
 import java.time.Instant
