@@ -67,17 +67,17 @@ class BobbyRulesMetricProducerSpec extends AnyWordSpec with Matchers with Mockit
 
       val result = producer.produce("foo")
 
-      result.futureValue mustBe Metric(BobbyRuleMetricType, Seq.empty)
+      result.futureValue mustBe Metric(BobbyRuleMetricType, Seq(Result(NoActiveOrPending, "No Active or Pending Bobby Rules", None)))
     }
 
-    "Return a Metric with no results when a report with no bobby rules is found" in {
+    "Return a Metric with no violations result when a report with no bobby rules is found" in {
       when(mockBobbyRulesConnector.dependencies("foo")) thenReturn Future.successful(
         Some(Dependencies("repoName", Seq(), Seq(), Seq()))
       )
 
       val result = producer.produce("foo")
 
-      result.futureValue mustBe Metric(BobbyRuleMetricType, Seq.empty)
+      result.futureValue mustBe Metric(BobbyRuleMetricType, Seq(Result(NoActiveOrPending, "No Active or Pending Bobby Rules", None)))
     }
 
     "Return a Metric with active violation result when bobby violation is found" in {
@@ -132,9 +132,9 @@ class BobbyRulesMetricProducerSpec extends AnyWordSpec with Matchers with Mockit
       result.futureValue mustBe Metric(
         BobbyRuleMetricType,
         Seq(
-          Result(BobbyRulePending, "name - reason", None),
-          Result(BobbyRuleActive, "name - reason", None),
-          Result(BobbyRuleActive, "name - reason", None)
+          Result(BobbyRuleActive, "name - reason\nname - reason", None),
+          Result(BobbyRulePending, "name - reason", None)
+
         )
       )
     }

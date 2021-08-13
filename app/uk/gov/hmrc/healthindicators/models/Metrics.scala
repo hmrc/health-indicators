@@ -65,6 +65,9 @@ case object BobbyRulePending extends BobbyRuleResultType {
 case object BobbyRuleActive extends BobbyRuleResultType {
   override val toString: String = "bobby-rule-active"
 }
+case object NoActiveOrPending extends BobbyRuleResultType {
+  override val toString: String = "no-active-or-pending"
+}
 
 sealed trait JenkinsResultType extends ResultType
 
@@ -105,6 +108,7 @@ object ResultType {
     LeakDetectionViolation,
     BobbyRulePending,
     BobbyRuleActive,
+    NoActiveOrPending,
     JenkinsBuildStable,
     JenkinsBuildUnstable,
     JenkinsBuildNotFound,

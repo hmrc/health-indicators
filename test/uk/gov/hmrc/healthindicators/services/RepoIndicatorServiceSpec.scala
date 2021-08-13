@@ -57,6 +57,11 @@ class RepoIndicatorServiceSpec extends AnyWordSpec with Matchers with MockitoSug
   private val pointsConfig         = new PointsConfig
   private val repoIndicatorService = new RepoIndicatorService(mockRepository, pointsConfig)
 
+  private val bobbyRuleActive         = pointsConfig.points(BobbyRuleActive)
+  private val noReadMe                = pointsConfig.points(NoReadme)
+  private val validReaMe              = pointsConfig.points(ValidReadme)
+  private val leakDetectionViolation  = pointsConfig.points(LeakDetectionViolation)
+
   "RepoIndicatorService" should {
 
     "Return a Indicator for a single Repository" in {
@@ -69,11 +74,11 @@ class RepoIndicatorServiceSpec extends AnyWordSpec with Matchers with MockitoSug
         Indicator(
           "foo",
           Service,
-          -200,
+          bobbyRuleActive + noReadMe + leakDetectionViolation,
           Seq(
-            WeightedMetric(BobbyRuleMetricType, -100, Seq(Breakdown(-100, "desc", None))),
-            WeightedMetric(ReadMeMetricType, -50, Seq(Breakdown(-50, "desc", None))),
-            WeightedMetric(LeakDetectionMetricType, -50, Seq(Breakdown(-50, "desc", None)))
+            WeightedMetric(BobbyRuleMetricType, bobbyRuleActive, Seq(Breakdown(bobbyRuleActive, "desc", None))),
+            WeightedMetric(ReadMeMetricType, noReadMe, Seq(Breakdown(noReadMe, "desc", None))),
+            WeightedMetric(LeakDetectionMetricType, leakDetectionViolation, Seq(Breakdown(leakDetectionViolation, "desc", None)))
           )
         )
       )
@@ -89,21 +94,21 @@ class RepoIndicatorServiceSpec extends AnyWordSpec with Matchers with MockitoSug
         Indicator(
           "foo",
           Service,
-          -200,
+          bobbyRuleActive + noReadMe + leakDetectionViolation,
           Seq(
-            WeightedMetric(BobbyRuleMetricType, -100, Seq(Breakdown(-100, "desc", None))),
-            WeightedMetric(ReadMeMetricType, -50, Seq(Breakdown(-50, "desc", None))),
-            WeightedMetric(LeakDetectionMetricType, -50, Seq(Breakdown(-50, "desc", None)))
+            WeightedMetric(BobbyRuleMetricType, bobbyRuleActive, Seq(Breakdown(bobbyRuleActive, "desc", None))),
+            WeightedMetric(ReadMeMetricType, noReadMe, Seq(Breakdown(noReadMe, "desc", None))),
+            WeightedMetric(LeakDetectionMetricType, leakDetectionViolation, Seq(Breakdown(leakDetectionViolation, "desc", None)))
           )
         ),
         Indicator(
           "bar",
           Service,
-          -100,
+          bobbyRuleActive + validReaMe + leakDetectionViolation,
           Seq(
-            WeightedMetric(BobbyRuleMetricType, -100, Seq(Breakdown(-100, "desc", None))),
-            WeightedMetric(ReadMeMetricType, 50, Seq(Breakdown(50, "desc", None))),
-            WeightedMetric(LeakDetectionMetricType, -50, Seq(Breakdown(-50, "desc", None)))
+            WeightedMetric(BobbyRuleMetricType, bobbyRuleActive, Seq(Breakdown(bobbyRuleActive, "desc", None))),
+            WeightedMetric(ReadMeMetricType, validReaMe, Seq(Breakdown(validReaMe, "desc", None))),
+            WeightedMetric(LeakDetectionMetricType, leakDetectionViolation, Seq(Breakdown(leakDetectionViolation, "desc", None)))
           )
         )
       )
@@ -119,21 +124,21 @@ class RepoIndicatorServiceSpec extends AnyWordSpec with Matchers with MockitoSug
         Indicator(
           "bar",
           Service,
-          -100,
+          bobbyRuleActive + validReaMe + leakDetectionViolation,
           Seq(
-            WeightedMetric(BobbyRuleMetricType, -100, Seq(Breakdown(-100, "desc", None))),
-            WeightedMetric(ReadMeMetricType, 50, Seq(Breakdown(50, "desc", None))),
-            WeightedMetric(LeakDetectionMetricType, -50, Seq(Breakdown(-50, "desc", None)))
+            WeightedMetric(BobbyRuleMetricType, bobbyRuleActive, Seq(Breakdown(bobbyRuleActive, "desc", None))),
+            WeightedMetric(ReadMeMetricType, validReaMe, Seq(Breakdown(validReaMe, "desc", None))),
+            WeightedMetric(LeakDetectionMetricType, leakDetectionViolation, Seq(Breakdown(leakDetectionViolation, "desc", None)))
           )
         ),
         Indicator(
           "foo",
           Service,
-          -200,
+          bobbyRuleActive + noReadMe + leakDetectionViolation,
           Seq(
-            WeightedMetric(BobbyRuleMetricType, -100, Seq(Breakdown(-100, "desc", None))),
-            WeightedMetric(ReadMeMetricType, -50, Seq(Breakdown(-50, "desc", None))),
-            WeightedMetric(LeakDetectionMetricType, -50, Seq(Breakdown(-50, "desc", None)))
+            WeightedMetric(BobbyRuleMetricType, bobbyRuleActive, Seq(Breakdown(bobbyRuleActive, "desc", None))),
+            WeightedMetric(ReadMeMetricType, noReadMe, Seq(Breakdown(noReadMe, "desc", None))),
+            WeightedMetric(LeakDetectionMetricType, leakDetectionViolation, Seq(Breakdown(leakDetectionViolation, "desc", None)))
           )
         )
       )

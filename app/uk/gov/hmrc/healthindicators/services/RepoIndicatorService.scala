@@ -24,8 +24,8 @@ import uk.gov.hmrc.healthindicators.persistence.RepositoryMetricsRepository
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class RepoIndicatorService @Inject() (repository: RepositoryMetricsRepository, scoreConfig: PointsConfig)(implicit
-  val ec: ExecutionContext
+class RepoIndicatorService @Inject()(repository: RepositoryMetricsRepository, pointsConfig: PointsConfig)(implicit
+                                                                                                          val ec: ExecutionContext
 ) {
 
   def indicatorForRepo(repo: String): Future[Option[Indicator]] =
@@ -57,7 +57,7 @@ class RepoIndicatorService @Inject() (repository: RepositoryMetricsRepository, s
   }
 
   private def createScore(result: Result): Breakdown = {
-    val points = scoreConfig.points(result.resultType)
+    val points = pointsConfig.points(result.resultType)
     Breakdown(points, result.description, result.href)
   }
 
