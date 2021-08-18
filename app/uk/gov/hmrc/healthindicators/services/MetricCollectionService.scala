@@ -42,7 +42,7 @@ class MetricCollectionService @Inject() (
       _ <- repos.foldLeftM(())((_, r) =>
              for {
                indicators <- createMetricsForRepo(r)
-               _          <- repository.insert(indicators)
+               _          <- repository.insert(indicators.repoName, indicators)
              } yield ()
            )
     } yield ()

@@ -16,13 +16,9 @@
 
 package uk.gov.hmrc.healthindicators.persistence
 
-import org.mongodb.scala.bson.conversions
-import org.mongodb.scala.model.Accumulators._
-import org.mongodb.scala.model.Aggregates._
 import org.mongodb.scala.model.Filters.equal
 import org.mongodb.scala.model.Indexes._
-import org.mongodb.scala.model.{IndexModel, IndexOptions}
-import uk.gov.hmrc.healthindicators.configs.SchedulerConfigs
+import org.mongodb.scala.model.{IndexModel, IndexOptions, ReplaceOptions}
 import uk.gov.hmrc.healthindicators.connectors.RepoType
 import uk.gov.hmrc.healthindicators.models.RepositoryMetrics
 import uk.gov.hmrc.mongo.MongoComponent
@@ -32,8 +28,7 @@ import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 class RepositoryMetricsRepository @Inject() (
-  mongoComponent: MongoComponent,
-  config: SchedulerConfigs
+  mongoComponent: MongoComponent
 )(implicit ec: ExecutionContext)
     extends PlayMongoRepository[RepositoryMetrics](
       collectionName = "repositoryMetrics",
@@ -46,37 +41,29 @@ class RepositoryMetricsRepository @Inject() (
       )
     ) {
 
-  def latestRepositoryMetrics(repo: String): Future[Option[RepositoryMetrics]] =
+  def getRepositoryMetrics(repo: String): Future[Option[RepositoryMetrics]] =
     collection
       .find(equal("repoName", repo))
-      .sort(descending("timestamp"))
       .headOption()
 
-  private def createPipeline(repoType: Option[RepoType]): List[conversions.Bson] = {
-    val getLatest = List(
-      sort(descending("timestamp")),
-      group("$repoName", first("obj", "$$ROOT")),
-      replaceRoot("$obj")
-    )
 
+  def getAllRepositoryMetrics(repoType: Option[RepoType]): Future[Seq[RepositoryMetrics]] =
     repoType match {
-      case Some(rt) => `match`(equal("repoType", rt.toString)) +: getLatest
-      case None     => getLatest
+      case Some(rt) => collection.find(equal("repoType", rt.asString)).toFuture()
+      case None     => findAll()
     }
-  }
 
-  def allLatestRepositoryMetrics(repoType: Option[RepoType]): Future[Seq[RepositoryMetrics]] =
-    collection
-      .aggregate(createPipeline(repoType))
-      .toFuture()
 
-  def insert(metrics: RepositoryMetrics): Future[Unit] =
+  def insert(repo: String, metrics: RepositoryMetrics): Future[Unit] =
     collection
-      .insertOne(
-        metrics
+      .replaceOne(
+        filter = equal("repoName", repo)
+        , replacement = metrics
+        , options     = ReplaceOptions().upsert(true)
       )
       .toFuture()
       .map(_ => ())
+
 
   def findAll(): Future[Seq[RepositoryMetrics]] =
     collection

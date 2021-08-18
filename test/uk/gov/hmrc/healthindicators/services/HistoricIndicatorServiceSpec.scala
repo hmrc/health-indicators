@@ -23,7 +23,7 @@ import org.scalatest.matchers.must.Matchers.convertToAnyMustWrapper
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import uk.gov.hmrc.healthindicators.connectors.RepoType.Service
-import uk.gov.hmrc.healthindicators.models.{BobbyRuleMetricType, Breakdown, DataPoint, HistoricIndicator, HistoricIndicatorAPI, Indicator, LeakDetectionMetricType, ReadMeMetricType, SortType, WeightedMetric}
+import uk.gov.hmrc.healthindicators.models.{BobbyRuleMetricType, Breakdown, DataPoint, GithubMetricType, HistoricIndicator, HistoricIndicatorAPI, Indicator, LeakDetectionMetricType, SortType, WeightedMetric}
 import uk.gov.hmrc.healthindicators.persistence.HistoricIndicatorsRepository
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -58,7 +58,7 @@ class HistoricIndicatorServiceSpec extends AnyWordSpec with Matchers with Mockit
         -200,
         Seq(
           WeightedMetric(BobbyRuleMetricType, -100, Seq(Breakdown(-100, "desc", None))),
-          WeightedMetric(ReadMeMetricType, -50, Seq(Breakdown(-50, "desc", None))),
+          WeightedMetric(GithubMetricType, -50, Seq(Breakdown(-50, "desc", None))),
           WeightedMetric(LeakDetectionMetricType, -50, Seq(Breakdown(-50, "desc", None)))
         )
       ),
@@ -68,7 +68,7 @@ class HistoricIndicatorServiceSpec extends AnyWordSpec with Matchers with Mockit
         -100,
         Seq(
           WeightedMetric(BobbyRuleMetricType, -100, Seq(Breakdown(-100, "desc", None))),
-          WeightedMetric(ReadMeMetricType, 50, Seq(Breakdown(50, "desc", None))),
+          WeightedMetric(GithubMetricType, 50, Seq(Breakdown(50, "desc", None))),
           WeightedMetric(LeakDetectionMetricType, -50, Seq(Breakdown(-50, "desc", None)))
         )
       )

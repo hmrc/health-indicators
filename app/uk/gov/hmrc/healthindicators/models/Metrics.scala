@@ -25,30 +25,19 @@ import java.time.Instant
 
 sealed trait ResultType
 
-sealed trait OpenPRResultType extends ResultType
+sealed trait GithubResultType extends ResultType
 
-case object PRsNotFound extends OpenPRResultType {
-  override val toString: String = "prs-not-found"
-}
-
-case object NoStalePRs extends OpenPRResultType {
-  override val toString: String = "no-stale-prs"
-}
-
-case object StalePR extends OpenPRResultType {
+case object StalePR extends GithubResultType {
   override val toString: String = "stale-pr"
 }
-
-sealed trait ReadMeResultType extends ResultType
-
-case object ValidReadme extends ReadMeResultType {
-  override val toString: String = "valid-readme"
-}
-case object DefaultReadme extends ReadMeResultType {
+case object DefaultReadme extends GithubResultType {
   override val toString: String = "default-readme"
 }
-case object NoReadme extends ReadMeResultType {
+case object NoReadme extends GithubResultType {
   override val toString: String = "no-readme"
+}
+case object CleanGithub extends GithubResultType {
+  override val toString: String = "clean-github"
 }
 
 sealed trait LeakDetectionResultType extends ResultType
@@ -64,6 +53,9 @@ case object BobbyRulePending extends BobbyRuleResultType {
 }
 case object BobbyRuleActive extends BobbyRuleResultType {
   override val toString: String = "bobby-rule-active"
+}
+case object NoActiveOrPending extends BobbyRuleResultType {
+  override val toString: String = "no-active-or-pending"
 }
 
 sealed trait JenkinsResultType extends ResultType
@@ -96,15 +88,13 @@ case object AlertConfigNotFound extends AlertConfigResultType {
 object ResultType {
 
   private val resultTypes = Set(
-    PRsNotFound,
-    NoStalePRs,
     StalePR,
-    ValidReadme,
     DefaultReadme,
     NoReadme,
     LeakDetectionViolation,
     BobbyRulePending,
     BobbyRuleActive,
+    NoActiveOrPending,
     JenkinsBuildStable,
     JenkinsBuildUnstable,
     JenkinsBuildNotFound,
@@ -139,12 +129,8 @@ object Result {
 
 sealed trait MetricType
 
-case object OpenPRMetricType extends MetricType {
-  override val toString: String = "open-pr"
-}
-
-case object ReadMeMetricType extends MetricType {
-  override val toString: String = "read-me"
+case object GithubMetricType extends MetricType {
+  override val toString: String = "github"
 }
 
 case object LeakDetectionMetricType extends MetricType {
@@ -167,12 +153,11 @@ object MetricType {
 
   private val metricTypes =
     Set(
-      ReadMeMetricType,
       LeakDetectionMetricType,
       BobbyRuleMetricType,
       BuildStabilityMetricType,
       AlertConfigMetricType,
-      OpenPRMetricType
+      GithubMetricType
     )
 
   def apply(value: String): Option[MetricType] = metricTypes.find(_.toString == value)

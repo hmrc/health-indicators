@@ -18,7 +18,7 @@ package uk.gov.hmrc.healthindicators
 
 import com.google.inject.{AbstractModule, Provides}
 import play.api.Logger
-import uk.gov.hmrc.healthindicators.metricproducers.{AlertConfigMetricProducer, BobbyRulesMetricProducer, BuildStabilityMetricProducer, LeakDetectionMetricProducer, MetricProducer, ReadMeMetricProducer, StalePrMetricProducer}
+import uk.gov.hmrc.healthindicators.metricproducers.{AlertConfigMetricProducer, BobbyRulesMetricProducer, BuildStabilityMetricProducer, GithubMetricProducer, LeakDetectionMetricProducer, MetricProducer}
 
 class HealthIndicatorsModule() extends AbstractModule {
 
@@ -29,21 +29,19 @@ class HealthIndicatorsModule() extends AbstractModule {
 
   @Provides
   def producers(
-    bobbyRulesMetricProducer: BobbyRulesMetricProducer,
-    leakDetectionMetricProducer: LeakDetectionMetricProducer,
-    readMeMetricProducer: ReadMeMetricProducer,
-    buildStabilityMetricProducer: BuildStabilityMetricProducer,
-    stalePrMetricProducer: StalePrMetricProducer,
-    alertConfigMetricProducer: AlertConfigMetricProducer
+                 bobbyRulesMetricProducer: BobbyRulesMetricProducer,
+                 leakDetectionMetricProducer: LeakDetectionMetricProducer,
+                 buildStabilityMetricProducer: BuildStabilityMetricProducer,
+                 githubMetricProducer: GithubMetricProducer,
+                 alertConfigMetricProducer: AlertConfigMetricProducer
   ): List[MetricProducer] = {
     val producers =
       List(
         bobbyRulesMetricProducer,
         leakDetectionMetricProducer,
-        readMeMetricProducer,
         buildStabilityMetricProducer,
         alertConfigMetricProducer,
-        stalePrMetricProducer
+        githubMetricProducer
       )
     logger.info(s"Loaded Metric Producers: ${producers.map(_.getClass.getSimpleName).mkString("[\n", "\n", "\n]")}")
     producers

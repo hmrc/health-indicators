@@ -28,7 +28,7 @@ class WeightedMetricSpec extends AnyWordSpec with Matchers {
   "MetricType" should {
 
     "write ReadMe" in {
-      Json.toJson(ReadMeMetricType: MetricType) mustBe JsString("read-me")
+      Json.toJson(GithubMetricType: MetricType) mustBe JsString("github")
     }
 
     "write LeakDetection" in {
@@ -43,9 +43,6 @@ class WeightedMetricSpec extends AnyWordSpec with Matchers {
       Json.toJson(BuildStabilityMetricType: MetricType) mustBe JsString("build-stability")
     }
 
-    "write OpenPRs" in {
-      Json.toJson(OpenPRMetricType: MetricType) mustBe JsString("open-pr")
-    }
   }
 
   "Breakdown" should {
@@ -61,9 +58,9 @@ class WeightedMetricSpec extends AnyWordSpec with Matchers {
     implicit val rW: Writes[WeightedMetric] = WeightedMetric.writes
     "write correct json" in {
       val score  = Breakdown(10, "Foo", Some("www.google.com"))
-      val rating = WeightedMetric(ReadMeMetricType, 10, Seq(score))
+      val rating = WeightedMetric(GithubMetricType, 10, Seq(score))
       Json.toJson(rating) mustBe Json.parse(
-      """{"metricType":"read-me",
+      """{"metricType":"github",
           |"score":10,
           |"breakdown":[{"points":10,
           |"description":"Foo",
@@ -76,14 +73,14 @@ class WeightedMetricSpec extends AnyWordSpec with Matchers {
     implicit val sW: Writes[Indicator] = Indicator.writes
     "write correct json" in {
       val score            = Breakdown(10, "Foo", Some("www.google.com"))
-      val rating           = WeightedMetric(ReadMeMetricType, 10, Seq(score))
+      val rating           = WeightedMetric(GithubMetricType, 10, Seq(score))
       val repositoryRating = Indicator("foo", Service, 10, Seq(rating))
       Json.toJson(repositoryRating) mustBe Json.parse(
       """{"repoName":"foo",
           |"repoType":"Service",
           |"overallScore":10,
           |"weightedMetrics":[{
-          |   "metricType":"read-me",
+          |   "metricType":"github",
           |   "score":10,
           |   "breakdown":[{
           |       "points":10,

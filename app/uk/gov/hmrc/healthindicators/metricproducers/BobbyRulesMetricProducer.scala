@@ -17,7 +17,7 @@
 package uk.gov.hmrc.healthindicators.metricproducers
 
 import play.api.Logger
-import uk.gov.hmrc.healthindicators.connectors.{BobbyRuleViolation, ServiceDependenciesConnector}
+import uk.gov.hmrc.healthindicators.connectors.{BobbyRuleViolation, Dependencies, Dependency, ServiceDependenciesConnector}
 import uk.gov.hmrc.healthindicators.models._
 
 import java.time.LocalDate
@@ -35,20 +35,26 @@ class BobbyRulesMetricProducer @Inject() (
   override def produce(repo: String): Future[Metric] = {
     logger.debug(s"Metric BobbyRules for: $repo")
 
-    serviceDependenciesConnector
-      .dependencies(repo)
-      .map { maybeDependencies =>
-        for {
-          dependencies <- maybeDependencies.toSeq
-          dependency <-
-            dependencies.libraryDependencies ++ dependencies.sbtPluginsDependencies ++ dependencies.otherDependencies
-          violation <- dependency.bobbyRuleViolations
-          result = getResultType(violation)
-        } yield Result(result, s"${dependency.name} - ${violation.reason}", None)
-      }
-      .map { results =>
-        Metric(BobbyRuleMetricType, results)
-      }
+    for {
+      maybeDependencies <- serviceDependenciesConnector.dependencies(repo)
+      allDependencies = maybeDependencies.map(dependencies => dependencies.libraryDependencies ++
+        dependencies.sbtPluginsDependencies ++ dependencies.otherDependencies).getOrElse(Seq.empty)
+      allViolations = allDependencies.flatMap(d => d.bobbyRuleViolations
+        .map(v => Result(getResultType(v), s"${d.name} - ${v.reason}", None)))
+
+      groupViolations = allViolations.partition(_.resultType == BobbyRuleActive)
+      activeViolations = groupViolations._1.foldLeft(Option.empty[Result])(mergeResult)
+      pendingViolations = groupViolations._2.foldLeft(Option.empty[Result])(mergeResult)
+      groupedViolations = activeViolations.toSeq ++ pendingViolations.toSeq
+
+      result = if(groupedViolations.isEmpty) Seq(Result(NoActiveOrPending, "No Active or Pending Bobby Rules", None))
+      else groupedViolations
+      } yield Metric(BobbyRuleMetricType, result)
+
+  }
+
+  private def mergeResult(output: Option[Result], cur: Result): Option[Result] = {
+    if (output.isEmpty) Some(cur) else output.map(r => r.copy(description = r.description + "\n" + cur.description))
   }
 
   private def getResultType(violation: BobbyRuleViolation): BobbyRuleResultType = {
