@@ -24,17 +24,12 @@ import javax.inject.Singleton
 class PointsConfig {
   def points(resultType: ResultType): Int =
     resultType match {
-      case o: OpenPRResultType =>
-        o match {
-          case PRsNotFound => 0
-          case NoStalePRs  => 0
-          case StalePR     => -20
-        }
-      case r: ReadMeResultType =>
-        r match {
+      case g: GithubResultType =>
+        g match {
+          case StalePR       => -20
           case NoReadme      => -10
           case DefaultReadme => -10
-          case ValidReadme   => 0
+          case CleanGithub   =>  10
         }
       case l: LeakDetectionResultType =>
         l match {

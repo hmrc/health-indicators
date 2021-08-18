@@ -29,12 +29,12 @@ class RepoIndicatorService @Inject()(repository: RepositoryMetricsRepository, po
 ) {
 
   def indicatorForRepo(repo: String): Future[Option[Indicator]] =
-    repository.latestRepositoryMetrics(repo).map { maybeRepositoryMetric =>
+    repository.getRepositoryMetrics(repo).map { maybeRepositoryMetric =>
       indicate(maybeRepositoryMetric.toSeq).headOption
     }
 
   def indicatorsForAllRepos(repoType: Option[RepoType], sort: SortType): Future[Seq[Indicator]] =
-    repository.allLatestRepositoryMetrics(repoType).map { repositoryMetrics =>
+    repository.getAllRepositoryMetrics(repoType).map { repositoryMetrics =>
       val sortingBy: Indicator => Int = sort match {
         case SortType.Ascending  => _.overallScore
         case SortType.Descending => -_.overallScore

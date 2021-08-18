@@ -45,32 +45,35 @@ class TeamsAndRepositoriesConnector @Inject() (
   }
 }
 
-sealed trait RepoType
-
+sealed trait RepoType {
+  val asString: String
+}
 object RepoType {
-  case object Service extends RepoType
-  case object Prototype extends RepoType
-  case object Library extends RepoType
-  case object Other extends RepoType
+  case object Service extends RepoType {
+    val asString = "Service"
+  }
+  case object Prototype extends RepoType {
+    val asString = "Prototype"
+  }
+  case object Library extends RepoType {
+    val asString = "Library"
+  }
+  case object Other extends RepoType {
+    val asString = "Other"
+  }
 
   val format: Format[RepoType] = new Format[RepoType] {
     override def reads(json: JsValue): JsResult[RepoType] =
       json.validate[String].flatMap {
-        case "Service"   => JsSuccess(Service)
-        case "Prototype" => JsSuccess(Prototype)
-        case "Library"   => JsSuccess(Library)
-        case "Other"     => JsSuccess(Other)
-        case s           => JsError(s"Invalid RepositoryType: $s")
+        case Service.asString   => JsSuccess(Service)
+        case Prototype.asString => JsSuccess(Prototype)
+        case Library.asString   => JsSuccess(Library)
+        case Other.asString     => JsSuccess(Other)
+        case s                  => JsError(s"Invalid RepositoryType: $s")
       }
 
     override def writes(o: RepoType): JsValue =
-      o match {
-        case Service   => JsString("Service")
-        case Prototype => JsString("Prototype")
-        case Library   => JsString("Library")
-        case Other     => JsString("Other")
-        case s         => JsString(s"$s")
-      }
+      JsString(o.asString)
   }
 
   implicit def queryStringBindable(implicit stringBinder: QueryStringBindable[String]) =
@@ -78,11 +81,11 @@ object RepoType {
       override def bind(key: String, params: Map[String, Seq[String]]): Option[Either[String, RepoType]] = {
         val repositoryTypeString = params.get(key)
         repositoryTypeString.map({
-          case Seq("Service")   => Right(Service)
-          case Seq("Prototype") => Right(Prototype)
-          case Seq("Library")   => Right(Library)
-          case Seq("Other")     => Right(Other)
-          case _                => Left("unable to bind RepositoryType from url")
+          case Seq(Service.asString)   => Right(Service)
+          case Seq(Prototype.asString) => Right(Prototype)
+          case Seq(Library.asString)   => Right(Library)
+          case Seq(Other.asString)     => Right(Other)
+          case _                       => Left("unable to bind RepositoryType from url")
         })
       }
 

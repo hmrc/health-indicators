@@ -26,10 +26,6 @@ class IndicatorsSpec extends AnyWordSpec with Matchers {
 
   "ResultType" should {
 
-    "parse ValidReadMe" in {
-      JsString("valid-readme").validate[ResultType] mustBe JsSuccess(ValidReadme)
-    }
-
     "parse DefaultReadme" in {
       JsString("default-readme").validate[ResultType] mustBe JsSuccess(DefaultReadme)
     }
@@ -56,10 +52,6 @@ class IndicatorsSpec extends AnyWordSpec with Matchers {
         JsString("bobby-rule").as[ResultType]
       }
       exception.getMessage must include("Invalid Result Type")
-    }
-
-    "write ValidReadme" in {
-      Json.toJson(ValidReadme: ResultType) mustBe JsString("valid-readme")
     }
 
     "write DefaultReadme" in {

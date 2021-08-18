@@ -35,8 +35,8 @@ class RepoIndicatorServiceSpec extends AnyWordSpec with Matchers with MockitoSug
 
   private val bobbyRulesMetric: Metric =
     Metric(BobbyRuleMetricType, Seq(Result(BobbyRuleActive, "desc", None)))
-  private val readMeMetricOne: Metric = Metric(ReadMeMetricType, Seq(Result(NoReadme, "desc", None)))
-  private val readMeMetricTwo: Metric = Metric(ReadMeMetricType, Seq(Result(ValidReadme, "desc", None)))
+  private val GithubMetricOne: Metric = Metric(GithubMetricType, Seq(Result(NoReadme, "desc", None)))
+  private val GithubMetricTwo: Metric = Metric(GithubMetricType, Seq(Result(CleanGithub, "desc", None)))
   private val leakDetectionMetric: Metric =
     Metric(LeakDetectionMetricType, Seq(Result(LeakDetectionViolation, "desc", None)))
   private val repositoryMetricOne: RepositoryMetrics =
@@ -44,14 +44,14 @@ class RepoIndicatorServiceSpec extends AnyWordSpec with Matchers with MockitoSug
       "foo",
       Instant.now(),
       Service,
-      Seq(bobbyRulesMetric, readMeMetricOne, leakDetectionMetric)
+      Seq(bobbyRulesMetric, GithubMetricOne, leakDetectionMetric)
     )
   private val repositoryMetricTwo: RepositoryMetrics =
     RepositoryMetrics(
       "bar",
       Instant.now(),
       Service,
-      Seq(bobbyRulesMetric, readMeMetricTwo, leakDetectionMetric)
+      Seq(bobbyRulesMetric, GithubMetricTwo, leakDetectionMetric)
     )
 
   private val pointsConfig         = new PointsConfig
@@ -59,13 +59,13 @@ class RepoIndicatorServiceSpec extends AnyWordSpec with Matchers with MockitoSug
 
   private val bobbyRuleActive         = pointsConfig.points(BobbyRuleActive)
   private val noReadMe                = pointsConfig.points(NoReadme)
-  private val validReaMe              = pointsConfig.points(ValidReadme)
+  private val cleanGithub             = pointsConfig.points(CleanGithub)
   private val leakDetectionViolation  = pointsConfig.points(LeakDetectionViolation)
 
   "RepoIndicatorService" should {
 
     "Return a Indicator for a single Repository" in {
-      when(mockRepository.latestRepositoryMetrics("foo"))
+      when(mockRepository.getRepositoryMetrics("foo"))
         .thenReturn(Future.successful(Some(repositoryMetricOne)))
 
       val result = repoIndicatorService.indicatorForRepo("foo")
@@ -77,7 +77,7 @@ class RepoIndicatorServiceSpec extends AnyWordSpec with Matchers with MockitoSug
           bobbyRuleActive + noReadMe + leakDetectionViolation,
           Seq(
             WeightedMetric(BobbyRuleMetricType, bobbyRuleActive, Seq(Breakdown(bobbyRuleActive, "desc", None))),
-            WeightedMetric(ReadMeMetricType, noReadMe, Seq(Breakdown(noReadMe, "desc", None))),
+            WeightedMetric(GithubMetricType, noReadMe, Seq(Breakdown(noReadMe, "desc", None))),
             WeightedMetric(LeakDetectionMetricType, leakDetectionViolation, Seq(Breakdown(leakDetectionViolation, "desc", None)))
           )
         )
@@ -85,7 +85,7 @@ class RepoIndicatorServiceSpec extends AnyWordSpec with Matchers with MockitoSug
     }
 
     "Return a Indicator for each Repository in ascending order" in {
-      when(mockRepository.allLatestRepositoryMetrics(None))
+      when(mockRepository.getAllRepositoryMetrics(None))
         .thenReturn(Future.successful(Seq(repositoryMetricOne, repositoryMetricTwo)))
 
       val result = repoIndicatorService.indicatorsForAllRepos(repoType = None, SortType.Ascending)
@@ -97,17 +97,17 @@ class RepoIndicatorServiceSpec extends AnyWordSpec with Matchers with MockitoSug
           bobbyRuleActive + noReadMe + leakDetectionViolation,
           Seq(
             WeightedMetric(BobbyRuleMetricType, bobbyRuleActive, Seq(Breakdown(bobbyRuleActive, "desc", None))),
-            WeightedMetric(ReadMeMetricType, noReadMe, Seq(Breakdown(noReadMe, "desc", None))),
+            WeightedMetric(GithubMetricType, noReadMe, Seq(Breakdown(noReadMe, "desc", None))),
             WeightedMetric(LeakDetectionMetricType, leakDetectionViolation, Seq(Breakdown(leakDetectionViolation, "desc", None)))
           )
         ),
         Indicator(
           "bar",
           Service,
-          bobbyRuleActive + validReaMe + leakDetectionViolation,
+          bobbyRuleActive + cleanGithub + leakDetectionViolation,
           Seq(
             WeightedMetric(BobbyRuleMetricType, bobbyRuleActive, Seq(Breakdown(bobbyRuleActive, "desc", None))),
-            WeightedMetric(ReadMeMetricType, validReaMe, Seq(Breakdown(validReaMe, "desc", None))),
+            WeightedMetric(GithubMetricType, cleanGithub, Seq(Breakdown(cleanGithub, "desc", None))),
             WeightedMetric(LeakDetectionMetricType, leakDetectionViolation, Seq(Breakdown(leakDetectionViolation, "desc", None)))
           )
         )
@@ -115,7 +115,7 @@ class RepoIndicatorServiceSpec extends AnyWordSpec with Matchers with MockitoSug
     }
 
     "Return a Indicator for each Repository in descending order, when sort equals true" in {
-      when(mockRepository.allLatestRepositoryMetrics(None))
+      when(mockRepository.getAllRepositoryMetrics(None))
         .thenReturn(Future.successful(Seq(repositoryMetricTwo, repositoryMetricOne)))
 
       val result = repoIndicatorService.indicatorsForAllRepos(repoType = None, SortType.Descending)
@@ -124,10 +124,10 @@ class RepoIndicatorServiceSpec extends AnyWordSpec with Matchers with MockitoSug
         Indicator(
           "bar",
           Service,
-          bobbyRuleActive + validReaMe + leakDetectionViolation,
+          bobbyRuleActive + cleanGithub + leakDetectionViolation,
           Seq(
             WeightedMetric(BobbyRuleMetricType, bobbyRuleActive, Seq(Breakdown(bobbyRuleActive, "desc", None))),
-            WeightedMetric(ReadMeMetricType, validReaMe, Seq(Breakdown(validReaMe, "desc", None))),
+            WeightedMetric(GithubMetricType, cleanGithub, Seq(Breakdown(cleanGithub, "desc", None))),
             WeightedMetric(LeakDetectionMetricType, leakDetectionViolation, Seq(Breakdown(leakDetectionViolation, "desc", None)))
           )
         ),
@@ -137,7 +137,7 @@ class RepoIndicatorServiceSpec extends AnyWordSpec with Matchers with MockitoSug
           bobbyRuleActive + noReadMe + leakDetectionViolation,
           Seq(
             WeightedMetric(BobbyRuleMetricType, bobbyRuleActive, Seq(Breakdown(bobbyRuleActive, "desc", None))),
-            WeightedMetric(ReadMeMetricType, noReadMe, Seq(Breakdown(noReadMe, "desc", None))),
+            WeightedMetric(GithubMetricType, noReadMe, Seq(Breakdown(noReadMe, "desc", None))),
             WeightedMetric(LeakDetectionMetricType, leakDetectionViolation, Seq(Breakdown(leakDetectionViolation, "desc", None)))
           )
         )

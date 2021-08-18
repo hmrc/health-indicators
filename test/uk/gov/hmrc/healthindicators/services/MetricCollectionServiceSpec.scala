@@ -24,7 +24,7 @@ import org.scalatest.time.{Millis, Seconds, Span}
 import org.scalatest.wordspec.AnyWordSpec
 import uk.gov.hmrc.healthindicators.connectors.RepoType.Service
 import uk.gov.hmrc.healthindicators.connectors.{TeamsAndRepos, TeamsAndRepositoriesConnector}
-import uk.gov.hmrc.healthindicators.models.{Metric, ReadMeMetricType, Result, ValidReadme}
+import uk.gov.hmrc.healthindicators.models.{CleanGithub, GithubMetricType, Metric, Result}
 import uk.gov.hmrc.healthindicators.persistence.RepositoryMetricsRepository
 import uk.gov.hmrc.healthindicators.metricproducers.MetricProducer
 import uk.gov.hmrc.http.HeaderCarrier
@@ -57,13 +57,13 @@ class MetricCollectionServiceSpec extends AnyWordSpec with Matchers with Mockito
         )
 
       when(mockProducer.produce(any)) thenReturn
-        Future.successful(Metric(ReadMeMetricType, Seq(Result(ValidReadme, "bar", None))))
+        Future.successful(Metric(GithubMetricType, Seq(Result(CleanGithub, "bar", None))))
 
-      when(repositoryMetricsRepository.insert(any)) thenReturn Future.successful(Unit)
+      when(repositoryMetricsRepository.insert(any, any)) thenReturn Future.successful(Unit)
 
       Await.result(metricCollectionService.collectAll(), 10.seconds) shouldBe ((): Unit)
 
-      verify(repositoryMetricsRepository, times(3)).insert(any)
+      verify(repositoryMetricsRepository, times(3)).insert(any, any)
     }
 
     "not insert any RepositoryMetrics when teamsAndRepositoriesConnector returns an empty list" in {
@@ -72,7 +72,7 @@ class MetricCollectionServiceSpec extends AnyWordSpec with Matchers with Mockito
         Future.successful(List())
 
       when(mockProducer.produce(any)) thenReturn
-        Future.successful(Metric(ReadMeMetricType, Seq(Result(ValidReadme, "bar", None))))
+        Future.successful(Metric(GithubMetricType, Seq(Result(CleanGithub, "bar", None))))
 
       Await.result(metricCollectionService.collectAll(), 10.seconds) shouldBe ((): Unit)
     }

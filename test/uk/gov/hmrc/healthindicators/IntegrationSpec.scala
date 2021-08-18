@@ -122,9 +122,8 @@ class IntegrationSpec
         response.body     should include(expectedResponse)
         response.body     should include(bobbyRuleResponse)
         response.body     should include(leakDetectionResponse)
-        response.body     should include(readMeResponse)
+        response.body     should include(githubResponse)
         response.body     should include(buildStabilityResponse)
-        response.body     should include(openPRResponse)
         response.body     should include(alertConfigResponse)
       }
     }
@@ -212,12 +211,10 @@ class IntegrationSpec
     """{"metricType":"bobby-rule","score":-20,"breakdown":[{"points":-20,"description":"simple-reactivemongo - TEST DEPRECATION"}]}"""
   val leakDetectionResponse =
     """{"metricType":"leak-detection","score":-15,"breakdown":[{"points":-15,"description":"test123","link":"https://test-url"}]}"""
-  val readMeResponse =
-    """{"metricType":"read-me","score":-10,"breakdown":[{"points":-10,"description":"No Readme defined"}]}"""
+  val githubResponse =
+    """{"metricType":"github","score":-10,"breakdown":[{"points":-10,"description":"No Readme defined"}]}"""
   val buildStabilityResponse =
     """{"metricType":"build-stability","score":0,"breakdown":[{"points":0,"description":"No Jenkins Build Found for: auth"}]}"""
-  val openPRResponse =
-    """{"metricType":"open-pr","score":0,"breakdown":[{"points":0,"description":"No Stale PRs"}]}"""
   val alertConfigResponse =
     """{"metricType":"alert-config","score":20,"breakdown":[{"points":20,"description":"Alert Config is Disabled"}]}"""
   val expectedResponse = """"repoName":"auth","repoType":"Prototype","overallScore":-25,"""
