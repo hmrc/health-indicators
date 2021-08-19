@@ -91,6 +91,7 @@ object ResultType {
     StalePR,
     DefaultReadme,
     NoReadme,
+    CleanGithub,
     LeakDetectionViolation,
     BobbyRulePending,
     BobbyRuleActive,
