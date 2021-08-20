@@ -45,6 +45,9 @@ sealed trait LeakDetectionResultType extends ResultType
 case object LeakDetectionViolation extends LeakDetectionResultType {
   override val toString: String = "leak-detection-violation"
 }
+case object LeakDetectionNotFound extends LeakDetectionResultType {
+  override val toString: String = "leak-detection-not-found"
+}
 
 sealed trait BobbyRuleResultType extends ResultType
 
@@ -93,6 +96,7 @@ object ResultType {
     NoReadme,
     CleanGithub,
     LeakDetectionViolation,
+    LeakDetectionNotFound,
     BobbyRulePending,
     BobbyRuleActive,
     NoActiveOrPending,

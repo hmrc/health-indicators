@@ -46,24 +46,21 @@ class RepositoryMetricsRepository @Inject() (
       .find(equal("repoName", repo))
       .headOption()
 
-
   def getAllRepositoryMetrics(repoType: Option[RepoType]): Future[Seq[RepositoryMetrics]] =
     repoType match {
       case Some(rt) => collection.find(equal("repoType", rt.asString)).toFuture()
       case None     => findAll()
     }
 
-
   def insert(repo: String, metrics: RepositoryMetrics): Future[Unit] =
     collection
       .replaceOne(
-        filter = equal("repoName", repo)
-        , replacement = metrics
-        , options     = ReplaceOptions().upsert(true)
+        filter = equal("repoName", repo),
+        replacement = metrics,
+        options = ReplaceOptions().upsert(true)
       )
       .toFuture()
       .map(_ => ())
-
 
   def findAll(): Future[Seq[RepositoryMetrics]] =
     collection

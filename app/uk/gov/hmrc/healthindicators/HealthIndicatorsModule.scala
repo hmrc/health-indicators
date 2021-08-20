@@ -29,11 +29,11 @@ class HealthIndicatorsModule() extends AbstractModule {
 
   @Provides
   def producers(
-                 bobbyRulesMetricProducer: BobbyRulesMetricProducer,
-                 leakDetectionMetricProducer: LeakDetectionMetricProducer,
-                 buildStabilityMetricProducer: BuildStabilityMetricProducer,
-                 githubMetricProducer: GithubMetricProducer,
-                 alertConfigMetricProducer: AlertConfigMetricProducer
+    bobbyRulesMetricProducer: BobbyRulesMetricProducer,
+    leakDetectionMetricProducer: LeakDetectionMetricProducer,
+    buildStabilityMetricProducer: BuildStabilityMetricProducer,
+    githubMetricProducer: GithubMetricProducer,
+    alertConfigMetricProducer: AlertConfigMetricProducer
   ): List[MetricProducer] = {
     val producers =
       List(

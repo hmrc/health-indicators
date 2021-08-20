@@ -32,18 +32,17 @@ object DataPoint {
   }
 }
 
-
 case class HistoricIndicatorAPI(repoName: String, dataPoints: Seq[DataPoint])
 
 object HistoricIndicatorAPI {
-  def fromHistoricIndicators(historicIndicator: Seq[HistoricIndicator]): Option[HistoricIndicatorAPI] = {
-    historicIndicator.foldLeft(Option.empty[HistoricIndicatorAPI])((api: Option[HistoricIndicatorAPI], h: HistoricIndicator) => {
-      api match {
-        case None => Some(HistoricIndicatorAPI(h.repoName, Seq(DataPoint(h.timestamp, h.overallScore))))
-        case Some(a) => Some(a.copy(dataPoints = a.dataPoints :+ DataPoint(h.timestamp, h.overallScore)))
-      }
-    })
-  }
+  def fromHistoricIndicators(historicIndicator: Seq[HistoricIndicator]): Option[HistoricIndicatorAPI] =
+    historicIndicator.foldLeft(Option.empty[HistoricIndicatorAPI]) {
+      (api: Option[HistoricIndicatorAPI], h: HistoricIndicator) =>
+        api match {
+          case None    => Some(HistoricIndicatorAPI(h.repoName, Seq(DataPoint(h.timestamp, h.overallScore))))
+          case Some(a) => Some(a.copy(dataPoints = a.dataPoints :+ DataPoint(h.timestamp, h.overallScore)))
+        }
+    }
 
   val format: OFormat[HistoricIndicatorAPI] = {
     implicit val dataFormat: Format[DataPoint] = DataPoint.format
@@ -53,10 +52,10 @@ object HistoricIndicatorAPI {
 }
 
 case class HistoricIndicator(
-                             repoName: String,
-                             timestamp: Instant,
-                             overallScore: Int
-                            )
+  repoName: String,
+  timestamp: Instant,
+  overallScore: Int
+)
 
 object HistoricIndicator {
   val format: OFormat[HistoricIndicator] = {

@@ -27,7 +27,7 @@ import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class HistoricIndicatorsRepository @Inject()(
+class HistoricIndicatorsRepository @Inject() (
   mongoComponent: MongoComponent,
   config: SchedulerConfigs
 )(implicit ec: ExecutionContext)
@@ -56,7 +56,6 @@ class HistoricIndicatorsRepository @Inject()(
       )
       .toFuture()
       .map(_ => ())
-
 
   def findAll: Future[Seq[HistoricIndicator]] =
     collection
