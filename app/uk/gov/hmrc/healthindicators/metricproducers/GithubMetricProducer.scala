@@ -26,10 +26,10 @@ import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 class GithubMetricProducer @Inject() (
-                                       githubConnector: GithubConnector
-                                     )(implicit
-                                       val ec: ExecutionContext
-                                     ) extends MetricProducer {
+  githubConnector: GithubConnector
+)(implicit
+  val ec: ExecutionContext
+) extends MetricProducer {
 
   private val logger: Logger = Logger(this.getClass)
 
@@ -42,8 +42,9 @@ class GithubMetricProducer @Inject() (
       readMe <- githubConnector.findReadMe(repo).map(getReadMeResultType)
       openPR <- githubConnector.getOpenPRs(repo).map(getPRResultType)
       groupStalePR = openPR.headOption.map(_.copy(description = s"Found ${openPR.length} Stale PR's"))
-      result = readMe ++ groupStalePR
-      clean = if(result.isEmpty) Seq(Result(CleanGithub, "Clean GitHub: Valid ReadMe and no Stale PRS", None)) else Seq.empty
+      result       = readMe ++ groupStalePR
+      clean =
+        if (result.isEmpty) Seq(Result(CleanGithub, "Clean GitHub: Valid ReadMe and no Stale PRS", None)) else Seq.empty
     } yield Metric(GithubMetricType, result ++ clean)
 
   }
@@ -60,18 +61,17 @@ class GithubMetricProducer @Inject() (
       case results: Seq[Result] => results
     }
 
-  def isStale(openPR: OpenPR): Option[Result] = {
-    if (ChronoUnit.DAYS.between(openPR.updatedAt, LocalDate.now()) > prStalenessDays) {
+  def isStale(openPR: OpenPR): Option[Result] =
+    if (ChronoUnit.DAYS.between(openPR.updatedAt, LocalDate.now()) > prStalenessDays)
       Some(Result(StalePR, s"${openPR.title}: PR older than $prStalenessDays days", None))
-    } else
+    else
       None
-  }
 
-    private def getReadMeResultType(readme: Option[String]): Seq[Result] =
-      readme match {
-        case Some(str) if str.contains("This is a placeholder README.md for a new repository") =>
-          Seq(Result(DefaultReadme, "Default readme", None))
-        case None    =>  Seq(Result(NoReadme, "No Readme defined", None))
-        case Some(_) => Seq.empty
-      }
+  private def getReadMeResultType(readme: Option[String]): Seq[Result] =
+    readme match {
+      case Some(str) if str.contains("This is a placeholder README.md for a new repository") =>
+        Seq(Result(DefaultReadme, "Default readme", None))
+      case None    => Seq(Result(NoReadme, "No Readme defined", None))
+      case Some(_) => Seq.empty
+    }
 }

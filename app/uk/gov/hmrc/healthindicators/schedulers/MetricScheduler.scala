@@ -42,17 +42,19 @@ class MetricScheduler @Inject() (
 
   scheduleWithLock("Metric Reloader", config.metricScheduler, mongoLocks.metricsMongoLock) {
     for {
-    metric  <- metricCollectionService.collectAll()
-      .recover {
-        case e: Throwable => logger.error("Error inserting Metrics", e)
-      }
+      metric <- metricCollectionService
+                  .collectAll()
+                  .recover {
+                    case e: Throwable => logger.error("Error inserting Metrics", e)
+                  }
 
-    historic <- historicIndicatorService.collectHistoricIndicators()
-      .recover {
-        case e: Throwable => logger.error("Error inserting Historic Indicators", e)
-      }
+      historic <- historicIndicatorService
+                    .collectHistoricIndicators()
+                    .recover {
+                      case e: Throwable => logger.error("Error inserting Historic Indicators", e)
+                    }
 
-    _ = logger.info("Finished inserting")
+      _ = logger.info("Finished inserting")
 
     } yield ()
   }

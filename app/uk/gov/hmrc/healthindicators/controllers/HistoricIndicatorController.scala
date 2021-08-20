@@ -26,17 +26,17 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
 
 @Singleton
-class HistoricIndicatorController @Inject()(
-                                             historicIndicatorService: HistoricIndicatorService,
-                                             cc: ControllerComponents
+class HistoricIndicatorController @Inject() (
+  historicIndicatorService: HistoricIndicatorService,
+  cc: ControllerComponents
 )(implicit ec: ExecutionContext)
     extends BackendController(cc) {
 
   def history(repoName: String): Action[AnyContent] =
     Action.async {
       for {
-      historicData <- historicIndicatorService.historicIndicatorForRepo(repoName)
-      result = historicData.map(s => Ok(Json.toJson(s)(HistoricIndicatorAPI.format))).getOrElse(NotFound)
+        historicData <- historicIndicatorService.historicIndicatorForRepo(repoName)
+        result = historicData.map(s => Ok(Json.toJson(s)(HistoricIndicatorAPI.format))).getOrElse(NotFound)
       } yield result
     }
 }

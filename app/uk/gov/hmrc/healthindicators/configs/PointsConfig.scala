@@ -26,20 +26,20 @@ class PointsConfig {
     resultType match {
       case g: GithubResultType =>
         g match {
-          case StalePR       =>  -5
+          case StalePR       => -5
           case NoReadme      => -10
           case DefaultReadme => -10
-          case CleanGithub   =>  10
+          case CleanGithub   => 10
         }
       case l: LeakDetectionResultType =>
         l match {
           case LeakDetectionViolation => -15
-          case LeakDetectionNotFound  =>  0
+          case LeakDetectionNotFound  => 0
         }
       case b: BobbyRuleResultType =>
         b match {
-          case BobbyRulePending => -20
-          case BobbyRuleActive  => -100
+          case BobbyRulePending  => -20
+          case BobbyRuleActive   => -100
           case NoActiveOrPending => 20
         }
       case j: JenkinsResultType =>

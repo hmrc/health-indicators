@@ -24,9 +24,9 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class HistoricIndicatorService @Inject()(
-                                           repoIndicatorService: RepoIndicatorService,
-                                           historicIndicatorsRepository: HistoricIndicatorsRepository
+class HistoricIndicatorService @Inject() (
+  repoIndicatorService: RepoIndicatorService,
+  historicIndicatorsRepository: HistoricIndicatorsRepository
 )(implicit ec: ExecutionContext) {
 
   def collectHistoricIndicators(): Future[Unit] =
@@ -36,17 +36,17 @@ class HistoricIndicatorService @Inject()(
       result <- historicIndicatorsRepository.insert(historicIndicators)
     } yield result
 
-  def historicIndicatorForRepo(repoName: String): Future[Option[HistoricIndicatorAPI]] = {
-     historicIndicatorsRepository.findAllForRepo(repoName)
+  def historicIndicatorForRepo(repoName: String): Future[Option[HistoricIndicatorAPI]] =
+    historicIndicatorsRepository
+      .findAllForRepo(repoName)
       .map(i => HistoricIndicatorAPI.fromHistoricIndicators(i))
-  }
 
-  def historicIndicatorsForAllRepos: Future[Seq[HistoricIndicatorAPI]] = {
+  def historicIndicatorsForAllRepos: Future[Seq[HistoricIndicatorAPI]] =
     historicIndicatorsRepository.findAll.map(all =>
-      all.groupBy(_.repoName)
+      all
+        .groupBy(_.repoName)
         .values
         .flatMap(HistoricIndicatorAPI.fromHistoricIndicators)
         .toSeq
     )
-  }
 }

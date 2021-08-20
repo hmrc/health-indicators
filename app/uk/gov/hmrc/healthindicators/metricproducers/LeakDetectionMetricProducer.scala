@@ -34,11 +34,13 @@ class LeakDetectionMetricProducer @Inject() (
   override def produce(repo: String): Future[Metric] = {
     logger.debug(s"Metric LeakDetection for: $repo")
     leakDetectionConnector.findLatestMasterReport(repo).map { maybeReport =>
-    val results = if (maybeReport.isEmpty) Seq(Result(LeakDetectionNotFound, "No Leaks Detected", None)) else
-      for {
-        report: Report <- maybeReport.toSeq
-        reportLine <- report.inspectionResults
-      } yield Result(LeakDetectionViolation, reportLine.description, Some(reportLine.urlToSource))
+      val results =
+        if (maybeReport.isEmpty) Seq(Result(LeakDetectionNotFound, "No Leaks Detected", None))
+        else
+          for {
+            report: Report <- maybeReport.toSeq
+            reportLine     <- report.inspectionResults
+          } yield Result(LeakDetectionViolation, reportLine.description, Some(reportLine.urlToSource))
       Metric(LeakDetectionMetricType, results)
     }
   }
