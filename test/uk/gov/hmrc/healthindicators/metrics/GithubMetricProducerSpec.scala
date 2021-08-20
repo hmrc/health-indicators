@@ -80,7 +80,7 @@ class GithubMetricProducerSpec extends AnyWordSpec with Matchers with MockitoSug
 
       val result = producer.produce("foo")
 
-      result.futureValue mustBe Metric(GithubMetricType, Seq(Result(StalePR, "hello-world: PR older than 30 days", None)))
+      result.futureValue mustBe Metric(GithubMetricType, Seq(Result(StalePR, "Found 1 Stale PR's", None)))
     }
 
     "Return a Metric with CleanGithub when there is valid read me and no stale PRs" in {
@@ -109,7 +109,7 @@ class GithubMetricProducerSpec extends AnyWordSpec with Matchers with MockitoSug
 
       val result = producer.produce("foo")
 
-      result.futureValue mustBe Metric(GithubMetricType, Seq(Result(NoReadme, "No Readme defined", None), Result(StalePR, "hello-world: PR older than 30 days", None)))
+      result.futureValue mustBe Metric(GithubMetricType, Seq(Result(NoReadme, "No Readme defined", None), Result(StalePR, s"Found 1 Stale PR's", None)))
 
     }
   }
@@ -133,10 +133,5 @@ class GithubMetricProducerSpec extends AnyWordSpec with Matchers with MockitoSug
       producer.isStale(pr) mustBe Some(Result(StalePR, s"${pr.title}: PR older than ${producer.prStalenessDays} days", None))
     }
   }
-
-
-
-
-
 
 }

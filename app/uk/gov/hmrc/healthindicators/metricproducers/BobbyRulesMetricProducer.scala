@@ -17,7 +17,7 @@
 package uk.gov.hmrc.healthindicators.metricproducers
 
 import play.api.Logger
-import uk.gov.hmrc.healthindicators.connectors.{BobbyRuleViolation, Dependencies, Dependency, ServiceDependenciesConnector}
+import uk.gov.hmrc.healthindicators.connectors.{BobbyRuleViolation, ServiceDependenciesConnector}
 import uk.gov.hmrc.healthindicators.models._
 
 import java.time.LocalDate
@@ -42,7 +42,7 @@ class BobbyRulesMetricProducer @Inject() (
       allViolations = allDependencies.flatMap(d => d.bobbyRuleViolations
         .map(v => Result(getResultType(v), s"${d.name} - ${v.reason}", None)))
 
-      groupViolations = allViolations.partition(_.resultType == BobbyRuleActive)
+      groupViolations: (Seq[Result], Seq[Result]) = allViolations.partition(_.resultType == BobbyRuleActive)
       activeViolations = groupViolations._1.foldLeft(Option.empty[Result])(mergeResult)
       pendingViolations = groupViolations._2.foldLeft(Option.empty[Result])(mergeResult)
       groupedViolations = activeViolations.toSeq ++ pendingViolations.toSeq

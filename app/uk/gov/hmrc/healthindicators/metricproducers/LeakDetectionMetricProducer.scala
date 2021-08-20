@@ -17,8 +17,8 @@
 package uk.gov.hmrc.healthindicators.metricproducers
 
 import play.api.Logger
-import uk.gov.hmrc.healthindicators.connectors.LeakDetectionConnector
-import uk.gov.hmrc.healthindicators.models.{LeakDetectionMetricType, LeakDetectionViolation, Metric, Result}
+import uk.gov.hmrc.healthindicators.connectors.{LeakDetectionConnector, Report}
+import uk.gov.hmrc.healthindicators.models.{LeakDetectionMetricType, LeakDetectionNotFound, LeakDetectionViolation, Metric, Result}
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
@@ -34,8 +34,9 @@ class LeakDetectionMetricProducer @Inject() (
   override def produce(repo: String): Future[Metric] = {
     logger.debug(s"Metric LeakDetection for: $repo")
     leakDetectionConnector.findLatestMasterReport(repo).map { maybeReport =>
-      val results = for {
-        report     <- maybeReport.toSeq
+    val results = if (maybeReport.isEmpty) Seq(Result(LeakDetectionNotFound, "No Leaks Detected", None)) else
+      for {
+        report: Report <- maybeReport.toSeq
         reportLine <- report.inspectionResults
       } yield Result(LeakDetectionViolation, reportLine.description, Some(reportLine.urlToSource))
       Metric(LeakDetectionMetricType, results)

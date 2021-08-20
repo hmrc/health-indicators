@@ -41,7 +41,8 @@ class GithubMetricProducer @Inject() (
     for {
       readMe <- githubConnector.findReadMe(repo).map(getReadMeResultType)
       openPR <- githubConnector.getOpenPRs(repo).map(getPRResultType)
-      result = readMe ++ openPR
+      groupStalePR = openPR.headOption.map(_.copy(description = s"Found ${openPR.length} Stale PR's"))
+      result = readMe ++ groupStalePR
       clean = if(result.isEmpty) Seq(Result(CleanGithub, "Clean GitHub: Valid ReadMe and no Stale PRS", None)) else Seq.empty
     } yield Metric(GithubMetricType, result ++ clean)
 
@@ -60,9 +61,9 @@ class GithubMetricProducer @Inject() (
     }
 
   def isStale(openPR: OpenPR): Option[Result] = {
-    if (ChronoUnit.DAYS.between(openPR.updatedAt, LocalDate.now()) > prStalenessDays)
+    if (ChronoUnit.DAYS.between(openPR.updatedAt, LocalDate.now()) > prStalenessDays) {
       Some(Result(StalePR, s"${openPR.title}: PR older than $prStalenessDays days", None))
-    else
+    } else
       None
   }
 

@@ -45,7 +45,7 @@ class LeakDetectionMetricProducerSpec extends AnyWordSpec with Matchers with Moc
 
       val result = producer.produce("foo")
 
-      result.futureValue mustBe Metric(LeakDetectionMetricType, Seq.empty)
+      result.futureValue mustBe Metric(LeakDetectionMetricType, Seq(Result(LeakDetectionNotFound, "No Leaks Detected", None)))
 
     }
 
