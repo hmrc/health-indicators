@@ -20,12 +20,12 @@ import uk.gov.hmrc.healthindicators.models.AveragePlatformScore
 import uk.gov.hmrc.healthindicators.persistence.AveragePlatformScoreRepository
 
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Future
 
 @Singleton
 class AveragePlatformScoreService @Inject() (
   averagePlatformScoreRepository: AveragePlatformScoreRepository
-)(implicit ec: ExecutionContext) {
+) {
 
   def latest(): Future[Option[AveragePlatformScore]] =
     averagePlatformScoreRepository.findLatest

@@ -23,7 +23,6 @@ import org.scalatest.wordspec.AnyWordSpec
 import uk.gov.hmrc.healthindicators.models.AveragePlatformScore
 import uk.gov.hmrc.healthindicators.persistence.AveragePlatformScoreRepository
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 import scala.concurrent.Future
