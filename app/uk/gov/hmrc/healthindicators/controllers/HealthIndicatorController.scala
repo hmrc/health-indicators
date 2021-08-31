@@ -49,5 +49,6 @@ class HealthIndicatorController @Inject() (
         result = Ok(Json.toJson(allRepos))
       } yield result
     }
+
   }
 }

@@ -35,8 +35,9 @@ class HistoricIndicatorController @Inject() (
   def history(repoName: String): Action[AnyContent] =
     Action.async {
       for {
-        historicData <- historicIndicatorService.historicIndicatorForRepo(repoName)
+        historicData: Option[HistoricIndicatorAPI] <- historicIndicatorService.historicIndicatorForRepo(repoName)
         result = historicData.map(s => Ok(Json.toJson(s)(HistoricIndicatorAPI.format))).getOrElse(NotFound)
       } yield result
     }
+
 }
