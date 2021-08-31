@@ -16,8 +16,8 @@
 
 package uk.gov.hmrc.healthindicators.services
 
-import uk.gov.hmrc.healthindicators.models.{HistoricIndicator, HistoricIndicatorAPI, SortType}
-import uk.gov.hmrc.healthindicators.persistence.HistoricIndicatorsRepository
+import uk.gov.hmrc.healthindicators.models.{AveragePlatformScore, HistoricIndicator, HistoricIndicatorAPI, SortType}
+import uk.gov.hmrc.healthindicators.persistence.{AveragePlatformScoreRepository, HistoricIndicatorsRepository}
 
 import java.time.Instant
 import javax.inject.{Inject, Singleton}
@@ -26,15 +26,21 @@ import scala.concurrent.{ExecutionContext, Future}
 @Singleton
 class HistoricIndicatorService @Inject() (
   repoIndicatorService: RepoIndicatorService,
-  historicIndicatorsRepository: HistoricIndicatorsRepository
+  historicIndicatorsRepository: HistoricIndicatorsRepository,
+  averagePlatformScoreRepository: AveragePlatformScoreRepository
 )(implicit ec: ExecutionContext) {
 
-  def collectHistoricIndicators(): Future[Unit] =
+  def collectHistoricIndicators(): Future[Unit] = {
+    val now = Instant.now()
     for {
       allRepos <- repoIndicatorService.indicatorsForAllRepos(None, SortType.Ascending)
-      historicIndicators = allRepos.map(x => HistoricIndicator(x.repoName, Instant.now(), x.overallScore))
-      result <- historicIndicatorsRepository.insert(historicIndicators)
+      historicIndicators = allRepos.map(x => HistoricIndicator(x.repoName, now, x.overallScore))
+      average            = historicIndicators.foldLeft(0)((total, i) => i.overallScore + total) / historicIndicators.length
+      platformAverage    = AveragePlatformScore(now, average)
+      _      <- historicIndicatorsRepository.insert(historicIndicators)
+      result <- averagePlatformScoreRepository.insert(platformAverage)
     } yield result
+  }
 
   def historicIndicatorForRepo(repoName: String): Future[Option[HistoricIndicatorAPI]] =
     historicIndicatorsRepository

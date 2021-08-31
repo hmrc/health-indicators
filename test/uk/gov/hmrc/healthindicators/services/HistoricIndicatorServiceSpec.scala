@@ -23,8 +23,8 @@ import org.scalatest.matchers.must.Matchers.convertToAnyMustWrapper
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import uk.gov.hmrc.healthindicators.connectors.RepoType.Service
-import uk.gov.hmrc.healthindicators.models.{BobbyRuleMetricType, Breakdown, DataPoint, GithubMetricType, HistoricIndicator, HistoricIndicatorAPI, Indicator, LeakDetectionMetricType, SortType, WeightedMetric}
-import uk.gov.hmrc.healthindicators.persistence.HistoricIndicatorsRepository
+import uk.gov.hmrc.healthindicators.models.{AveragePlatformScore, BobbyRuleMetricType, Breakdown, DataPoint, GithubMetricType, HistoricIndicator, HistoricIndicatorAPI, Indicator, LeakDetectionMetricType, SortType, WeightedMetric}
+import uk.gov.hmrc.healthindicators.persistence.{AveragePlatformScoreRepository, HistoricIndicatorsRepository}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import java.time.Instant
@@ -35,10 +35,11 @@ import scala.concurrent.{Await, Future}
 
 class HistoricIndicatorServiceSpec extends AnyWordSpec with Matchers with MockitoSugar with ScalaFutures {
 
-  private val mockRepository: HistoricIndicatorsRepository = mock[HistoricIndicatorsRepository]
+  private val mockRepositoryIndicator: HistoricIndicatorsRepository = mock[HistoricIndicatorsRepository]
   private val mockRepoIndicatorService: RepoIndicatorService = mock[RepoIndicatorService]
+  private val mockRepositoryAverageScore: AveragePlatformScoreRepository = mock[AveragePlatformScoreRepository]
 
-  private val historicIndicatorService = new HistoricIndicatorService(mockRepoIndicatorService, mockRepository)
+  private val historicIndicatorService = new HistoricIndicatorService(mockRepoIndicatorService, mockRepositoryIndicator, mockRepositoryAverageScore)
 
   private val now = Instant.now()
   private val dayBefore = Instant.now().minus(1, ChronoUnit.DAYS)
@@ -77,23 +78,28 @@ class HistoricIndicatorServiceSpec extends AnyWordSpec with Matchers with Mockit
 
   "HistoricIndicatorService.collectHistoricIndicators" should {
 
-    "Traverse all Indicators and create HistoricIndicator for each, inserting them into a mongo collection" in {
+    "Traverse all Indicators and create HistoricIndicator and calculate AveragePlatformScore, inserting them both into their own Mongo Collection" in {
       when(mockRepoIndicatorService.indicatorsForAllRepos(None, SortType.Ascending))
         .thenReturn(Future.successful(indicators))
 
-      when(mockRepository.insert(any[Seq[HistoricIndicator]]))
+      when(mockRepositoryIndicator.insert(any[Seq[HistoricIndicator]]))
         .thenReturn(Future.successful(Unit))
 
-      Await.result(historicIndicatorService.collectHistoricIndicators, 10.seconds) shouldBe ((): Unit)
+      when(mockRepositoryAverageScore.insert(any[AveragePlatformScore]))
+        .thenReturn(Future.successful(Unit))
 
-      verify(mockRepository, times(1)).insert(any[Seq[HistoricIndicator]])
+      Await.result(historicIndicatorService.collectHistoricIndicators(), 10.seconds) shouldBe ((): Unit)
+
+      verify(mockRepositoryIndicator, times(1)).insert(any[Seq[HistoricIndicator]])
+
+      verify(mockRepositoryAverageScore, times(1)).insert(any[AveragePlatformScore])
     }
   }
 
   "HistoricIndicatorService.historicIndicatorForRepo" should {
 
     "Return a HistoricIndicatorAPI for a specific repo" in {
-      when(mockRepository.findAllForRepo("foo"))
+      when(mockRepositoryIndicator.findAllForRepo("foo"))
         .thenReturn(Future.successful(historicIndicatorsFoo))
 
       val result = historicIndicatorService.historicIndicatorForRepo("foo")
@@ -104,7 +110,7 @@ class HistoricIndicatorServiceSpec extends AnyWordSpec with Matchers with Mockit
     }
 
     "Return None when repo not found" in {
-      when(mockRepository.findAllForRepo("foo"))
+      when(mockRepositoryIndicator.findAllForRepo("foo"))
         .thenReturn(Future.successful(Seq.empty))
 
       val result = historicIndicatorService.historicIndicatorForRepo("foo")
@@ -116,7 +122,7 @@ class HistoricIndicatorServiceSpec extends AnyWordSpec with Matchers with Mockit
   "HistoricIndicatorService.historicIndicatorsForAllRepos" should {
 
     "Return HistoricIndicatorAPI for all repos" in {
-      when(mockRepository.findAll)
+      when(mockRepositoryIndicator.findAll)
         .thenReturn(Future.successful(historicIndicators))
 
       val result = historicIndicatorService.historicIndicatorsForAllRepos

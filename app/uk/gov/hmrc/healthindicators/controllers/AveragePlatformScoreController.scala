@@ -16,39 +16,36 @@
 
 package uk.gov.hmrc.healthindicators.controllers
 
-import play.api.libs.json.{Json, Writes}
+import play.api.libs.json.{Format, Json}
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
-import uk.gov.hmrc.healthindicators.connectors.RepoType
-import uk.gov.hmrc.healthindicators.models.{Indicator, SortType}
-import uk.gov.hmrc.healthindicators.services.RepoIndicatorService
+import uk.gov.hmrc.healthindicators.models.AveragePlatformScore
+import uk.gov.hmrc.healthindicators.services.AveragePlatformScoreService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
 
 @Singleton
-class HealthIndicatorController @Inject() (
-  repoIndicatorService: RepoIndicatorService,
+class AveragePlatformScoreController @Inject() (
+  averagePlatformScoreService: AveragePlatformScoreService,
   cc: ControllerComponents
 )(implicit ec: ExecutionContext)
     extends BackendController(cc) {
 
-  def indicator(repo: String): Action[AnyContent] =
+  def history(): Action[AnyContent] =
     Action.async {
+      implicit val apf: Format[AveragePlatformScore] = AveragePlatformScore.format
       for {
-        score <- repoIndicatorService.indicatorForRepo(repo)
-        result = score.map(s => Ok(Json.toJson(s)(Indicator.writes))).getOrElse(NotFound)
-      } yield result
+        averages: Seq[AveragePlatformScore] <- averagePlatformScoreService.historic()
+      } yield Ok(Json.toJson(averages))
     }
 
-  def allIndicators(repoType: Option[RepoType], sort: SortType): Action[AnyContent] = {
-    implicit val writes: Writes[Indicator] = Indicator.writes
+  def latest(): Action[AnyContent] =
     Action.async {
+      implicit val apf: Format[AveragePlatformScore] = AveragePlatformScore.format
       for {
-        allRepos <- repoIndicatorService.indicatorsForAllRepos(repoType, sort)
-        result = Ok(Json.toJson(allRepos))
-      } yield result
+        average: Option[AveragePlatformScore] <- averagePlatformScoreService.latest()
+      } yield Ok(Json.toJson(average))
     }
 
-  }
 }

@@ -1,5 +1,8 @@
 GET             /indicators/:service              @uk.gov.hmrc.healthindicators.controllers.HealthIndicatorController.indicator(service)
 GET             /indicators                       @uk.gov.hmrc.healthindicators.controllers.HealthIndicatorController.allIndicators(repoType: Option[RepoType] ?= None, sort : SortType)
 GET             /history/:service                 @uk.gov.hmrc.healthindicators.controllers.HistoricIndicatorController.history(service)
+GET             /platform-average                 @uk.gov.hmrc.healthindicators.controllers.AveragePlatformScoreController.latest()
+GET             /platform-average/history         @uk.gov.hmrc.healthindicators.controllers.AveragePlatformScoreController.history()
+
 
 POST            /admin/rerun                         @uk.gov.hmrc.healthindicators.controllers.AdminController.rerun
