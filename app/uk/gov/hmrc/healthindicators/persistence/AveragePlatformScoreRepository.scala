@@ -26,16 +26,16 @@ import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 class AveragePlatformScoreRepository @Inject() (
-                                               mongoComponent: MongoComponent,
-                                             )(implicit ec: ExecutionContext)
-  extends PlayMongoRepository[AveragePlatformScore](
-    collectionName = "averagePlatformScores",
-    mongoComponent = mongoComponent,
-    domainFormat = AveragePlatformScore.format,
-    indexes = Seq(
-      IndexModel(descending("timestamp"), IndexOptions().background(true))
-    )
-  ) {
+  mongoComponent: MongoComponent
+)(implicit ec: ExecutionContext)
+    extends PlayMongoRepository[AveragePlatformScore](
+      collectionName = "averagePlatformScores",
+      mongoComponent = mongoComponent,
+      domainFormat = AveragePlatformScore.format,
+      indexes = Seq(
+        IndexModel(descending("timestamp"), IndexOptions().background(true))
+      )
+    ) {
 
   def insert(averagePlatformScore: AveragePlatformScore): Future[Unit] =
     collection
@@ -45,20 +45,16 @@ class AveragePlatformScoreRepository @Inject() (
       .toFuture()
       .map(_ => ())
 
-
   def findLatest: Future[Option[AveragePlatformScore]] =
     collection
       .find()
       .sort(descending("timestamp"))
       .headOption()
 
-
-
   def findAll(): Future[Seq[AveragePlatformScore]] =
     collection
       .find()
       .sort(descending("timestamp"))
       .toFuture()
-
 
 }

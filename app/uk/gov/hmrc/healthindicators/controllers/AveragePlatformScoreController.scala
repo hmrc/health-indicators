@@ -27,27 +27,25 @@ import scala.concurrent.ExecutionContext
 
 @Singleton
 class AveragePlatformScoreController @Inject() (
-                                              averagePlatformScoreService: AveragePlatformScoreService,
-                                              cc: ControllerComponents
-                                            )(implicit ec: ExecutionContext)
-  extends BackendController(cc) {
+  averagePlatformScoreService: AveragePlatformScoreService,
+  cc: ControllerComponents
+)(implicit ec: ExecutionContext)
+    extends BackendController(cc) {
 
-  def history(): Action[AnyContent] = {
+  def history(): Action[AnyContent] =
     Action.async {
       implicit val apf: Format[AveragePlatformScore] = AveragePlatformScore.format
       for {
         averages: Seq[AveragePlatformScore] <- averagePlatformScoreService.historic()
       } yield Ok(Json.toJson(averages))
     }
-  }
 
-  def latest(): Action[AnyContent] = {
+  def latest(): Action[AnyContent] =
     Action.async {
       implicit val apf: Format[AveragePlatformScore] = AveragePlatformScore.format
       for {
         average: Option[AveragePlatformScore] <- averagePlatformScoreService.latest()
       } yield Ok(Json.toJson(average))
     }
-  }
 
 }

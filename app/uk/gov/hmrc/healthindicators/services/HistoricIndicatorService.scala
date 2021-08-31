@@ -35,14 +35,12 @@ class HistoricIndicatorService @Inject() (
     for {
       allRepos <- repoIndicatorService.indicatorsForAllRepos(None, SortType.Ascending)
       historicIndicators = allRepos.map(x => HistoricIndicator(x.repoName, now, x.overallScore))
-      average = historicIndicators.foldLeft(0)((total, i) => i.overallScore + total) / historicIndicators.length
-      platformAverage = AveragePlatformScore(now, average)
-      _ <- historicIndicatorsRepository.insert(historicIndicators)
+      average            = historicIndicators.foldLeft(0)((total, i) => i.overallScore + total) / historicIndicators.length
+      platformAverage    = AveragePlatformScore(now, average)
+      _      <- historicIndicatorsRepository.insert(historicIndicators)
       result <- averagePlatformScoreRepository.insert(platformAverage)
     } yield result
   }
-
-
 
   def historicIndicatorForRepo(repoName: String): Future[Option[HistoricIndicatorAPI]] =
     historicIndicatorsRepository

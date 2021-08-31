@@ -24,16 +24,13 @@ import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class AveragePlatformScoreService @Inject() (
-                                           averagePlatformScoreRepository: AveragePlatformScoreRepository
-                                         )(implicit ec: ExecutionContext) {
+  averagePlatformScoreRepository: AveragePlatformScoreRepository
+)(implicit ec: ExecutionContext) {
 
-  def latest(): Future[Option[AveragePlatformScore]] = {
+  def latest(): Future[Option[AveragePlatformScore]] =
     averagePlatformScoreRepository.findLatest
-  }
 
-  def historic(): Future[Seq[AveragePlatformScore]] = {
+  def historic(): Future[Seq[AveragePlatformScore]] =
     averagePlatformScoreRepository.findAll()
-  }
-
 
 }
