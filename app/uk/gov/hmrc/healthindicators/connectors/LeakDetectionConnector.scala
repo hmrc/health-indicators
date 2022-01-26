@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 HM Revenue & Customs
+ * Copyright 2022 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import play.api.libs.functional.syntax._
 import play.api.libs.json.{Reads, __}
 import uk.gov.hmrc.healthindicators.configs.AppConfig
 import uk.gov.hmrc.http.HttpReads.Implicits._
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
+import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, StringContextOps}
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
@@ -35,42 +35,19 @@ class LeakDetectionConnector @Inject() (
 
   private val leakDetectionBaseUrl: String = healthIndicatorsConfig.leakDetectionUrl
 
-  def findLatestMasterReport(repo: String): Future[Option[Report]] = {
-    implicit val rF: Reads[Report] = Report.reads
-    httpClient.GET[Option[Report]](s"$leakDetectionBaseUrl/api/reports/repositories/$repo")
+  def findLeaks(repo: String): Future[Seq[Leak]] = {
+    implicit val rF = Leak.reads
+    httpClient.GET[Seq[Leak]](s"$leakDetectionBaseUrl/api/leaks?repository=$repo")
   }
+
 }
 
-case class ReportLine(
-  filePath: String,
-  scope: String,
-  lineNumber: Int,
-  urlToSource: String,
-  ruleId: Option[String],
-  description: String,
-  lineText: String
-)
+case class Leak(repoName: String, branch: String, ruleId: String)
 
-case class Report(
-  reportId: String,
-  inspectionResults: Seq[ReportLine]
-)
-
-object ReportLine {
-  val reads: Reads[ReportLine] =
-    ((__ \ "filePath").read[String]
-      ~ (__ \ "scope").read[String]
-      ~ (__ \ "lineNumber").read[Int]
-      ~ (__ \ "urlToSource").read[String]
-      ~ (__ \ "ruleId").readNullable[String]
-      ~ (__ \ "description").read[String]
-      ~ (__ \ "lineText").read[String])(ReportLine.apply _)
-}
-
-object Report {
-  val reads: Reads[Report] = {
-    implicit val rlR: Reads[ReportLine] = ReportLine.reads
-    ((__ \ "_id").read[String]
-      ~ (__ \ "inspectionResults").read[Seq[ReportLine]])(Report.apply _)
+object Leak {
+  val reads: Reads[Leak] = {
+    ( (__ \ "repoName").read[String]
+    ~ (__ \ "branch"  ).read[String]
+    ~ (__ \ "ruleId"  ).read[String]   )(Leak.apply _)
   }
 }
