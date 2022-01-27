@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 HM Revenue & Customs
+ * Copyright 2022 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -85,7 +85,7 @@ class IntegrationSpec
 
       serviceEndpoint(GET, "/api/dependencies/auth", willRespondWith = (200, Some(serviceDependenciesJson)))
 
-      serviceEndpoint(GET, "/api/reports/repositories/auth", willRespondWith = (200, Some(leakDetectionJson)))
+      serviceEndpoint(GET, url = "/api/leaks", queryParameters = Seq("repository" -> "auth"), willRespondWith = (200, Some(leakDetectionJson)))
 
       serviceEndpoint(GET, "/api/jenkins-url/auth", willRespondWith = (200, Some(teamsAndReposJenkinsJson)))
 
@@ -131,20 +131,21 @@ class IntegrationSpec
 
   val leakDetectionJson =
     """
-        {
-         "_id": "123",
-         "inspectionResults": [
-           {
-            "filePath": "/this/is/a/test",
-            "scope": "fileName",
-            "lineNumber": 1,
-            "urlToSource": "https://test-url",
-            "ruleId": "filename_test",
-            "description": "test123",
-            "lineText": "test.text"
-           }
-         ]
-      }"""
+      [
+         {
+          "repoName": "auth",
+          "branch": "main",
+          "filePath": "/this/is/a/test",
+          "scope": "fileName",
+          "lineNumber": 1,
+          "urlToSource": "https://test-url",
+          "ruleId": "filename_test",
+          "description": "test123",
+          "lineText": "test.text"
+         }
+      ]
+
+      """
 
   val serviceDependenciesJson =
     """{
@@ -210,7 +211,7 @@ class IntegrationSpec
   val bobbyRuleResponse =
     """{"metricType":"bobby-rule","score":-20,"breakdown":[{"points":-20,"description":"simple-reactivemongo - TEST DEPRECATION"}]}"""
   val leakDetectionResponse =
-    """{"metricType":"leak-detection","score":-15,"breakdown":[{"points":-15,"description":"test123","link":"https://test-url"}]}"""
+    """{"metricType":"leak-detection","score":-15,"breakdown":[{"points":-15,"description":"Branch main has an unresolved filename_test leak"}]}"""
   val githubResponse =
     """{"metricType":"github","score":-10,"breakdown":[{"points":-10,"description":"No Readme defined"}]}"""
   val buildStabilityResponse =

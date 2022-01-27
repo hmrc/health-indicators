@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 HM Revenue & Customs
+ * Copyright 2022 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 package uk.gov.hmrc.healthindicators.metricproducers
 
 import play.api.Logger
-import uk.gov.hmrc.healthindicators.connectors.{LeakDetectionConnector, Report}
+import uk.gov.hmrc.healthindicators.connectors.{LeakDetectionConnector}
 import uk.gov.hmrc.healthindicators.models.{LeakDetectionMetricType, LeakDetectionNotFound, LeakDetectionViolation, Metric, Result}
 
 import javax.inject.{Inject, Singleton}
@@ -31,16 +31,23 @@ class LeakDetectionMetricProducer @Inject() (
 
   private val logger = Logger(this.getClass)
 
+  final val maxLeaks = 10
+
   override def produce(repo: String): Future[Metric] = {
     logger.debug(s"Metric LeakDetection for: $repo")
-    leakDetectionConnector.findLatestMasterReport(repo).map { maybeReport =>
+    leakDetectionConnector.findLeaks(repo).map { reports =>
       val results =
-        if (maybeReport.isEmpty) Seq(Result(LeakDetectionNotFound, "No Leaks Detected", None))
-        else
-          for {
-            report: Report <- maybeReport.toSeq
-            reportLine     <- report.inspectionResults
-          } yield Result(LeakDetectionViolation, reportLine.description, Some(reportLine.urlToSource))
+        if (reports.isEmpty)
+          Seq(Result(LeakDetectionNotFound, "No Leaks Detected", None))
+        else {
+          reports
+            .take(maxLeaks)
+            .map(r =>
+              Result(LeakDetectionViolation, s"Branch ${r.branch} has an unresolved ${r.ruleId} leak", None)) ++ {
+                  // limit the amount of leaks we report, once over the limit just summarize.
+                  if(reports.length > maxLeaks) Seq(Result(LeakDetectionViolation, s"Has ${reports.length-maxLeaks} additional unresolved leaks.", None)) else Nil
+            }
+        }
       Metric(LeakDetectionMetricType, results)
     }
   }

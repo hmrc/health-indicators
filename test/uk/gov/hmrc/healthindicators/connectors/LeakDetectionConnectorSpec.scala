@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 HM Revenue & Customs
+ * Copyright 2022 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,6 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.libs.json.{JsSuccess, Json, Reads}
 import uk.gov.hmrc.healthindicators.WireMockEndpoints
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 
@@ -52,92 +51,75 @@ class LeakDetectionConnectorSpec
     "return a list of leak detections reports for a repository" in {
       serviceEndpoint(
         GET,
-        "/api/reports/repositories/repo1",
+        "/api/leaks",
+        queryParameters = Seq("repository" -> "repo1"),
         willRespondWith = (
           200,
           Some(
             """
+            |[ {
+            |    "repoName": "repo1",
+            |    "branch": "main",
+            |    "timestamp": "2019-04-01T10:26:57.486Z",
+            |    "reportId": "a5c4a789-697b-4964-90cf-a7fbd77f377b",
+            |    "ruleId": "rule1",
+            |    "description": "lds rule 1",
+            |    "filePath": "/keys",
+            |    "scope": "fileName",
+            |    "lineNumber": 1,
+            |    "urlToSource": "https://github.com/",
+            |    "lineText": "keystore",
+            |    "matches": [
+            |      {
+            |        "start": 8,
+            |        "end": 12
+            |      }
+            |    ],
+            |    "priority": "low"
+            |  },
             |  {
-            |   "_id": "123",
-            |   "inspectionResults": [
-            |     {
-            |      "filePath": "/this/is/a/test",
-            |      "scope": "fileName",
-            |      "lineNumber": 1,
-            |      "urlToSource": "https://test-url",
-            |      "ruleId": "filename_test",
-            |      "description": "test123",
-            |      "lineText": "test.text"
-            |     }
-            |   ]
-              }""".stripMargin
+            |    "repoName": "repo1",
+            |    "branch": "branch1",
+            |    "timestamp": "2019-04-01T10:26:57.486Z",
+            |    "reportId": "a5c4a789-697b-4964-90cf-a7fbd77f377b",
+            |    "ruleId": "rule2",
+            |    "description": "lds rule 2",
+            |    "filePath": "/keys",
+            |    "scope": "fileName",
+            |    "lineNumber": 1,
+            |    "urlToSource": "https://github.com/",
+            |    "lineText": "text",
+            |    "matches": [
+            |      {
+            |        "start": 6,
+            |        "end": 10
+            |      }
+            |    ],
+            |    "priority": "low"
+            |  }
+            |]""".stripMargin
           )
         )
       )
 
       val response = leakDetectionConnector
-        .findLatestMasterReport("repo1")
+        .findLeaks("repo1")
         .futureValue
-        .value
 
-      val expectedOutput = Report(
-        "123",
-        Seq(
-          ReportLine(
-            "/this/is/a/test",
-            "fileName",
-            1,
-            "https://test-url",
-            Some("filename_test"),
-            "test123",
-            "test.text"
-          )
-        )
-      )
+      val expectedOutput = Seq(Leak("repo1", "main", "rule1"), Leak("repo1", "branch1", "rule2"))
       response shouldBe expectedOutput
     }
 
-    "return a None for non existing repository" in {
-      serviceEndpoint(GET, "/api/reports/repositories/non-existing", willRespondWith = (404, None))
+    "return a Empty List for non existing repository" in {
+      serviceEndpoint(GET, "/api/leaks", queryParameters = Seq("repository" -> "non-existing"),  willRespondWith = (200, Some("[]")))
 
       val response = leakDetectionConnector
-        .findLatestMasterReport("non-existing")
+        .findLeaks("non-existing")
         .futureValue
 
-      response shouldBe None
+      response shouldBe Nil
     }
 
-    "ReportLine" should {
-      implicit val rlR: Reads[ReportLine] = ReportLine.reads
-      "parse json" in {
-        val jsonInput =
-          """
-        |{
-        |  "filePath": "/this/is/a/test",
-        |  "scope": "fileName",
-        |  "lineNumber": 1,
-        |  "urlToSource": "https://test-url",
-        |  "ruleId": "filename_test",
-        |  "description": "test123",
-        |  "lineText": "test.text"
-        |}
-        |""".stripMargin
-
-        val objectOutput = Json.parse(jsonInput).validate[ReportLine]
-        objectOutput shouldBe
-          JsSuccess(
-            ReportLine(
-              "/this/is/a/test",
-              "fileName",
-              1,
-              "https://test-url",
-              Some("filename_test"),
-              "test123",
-              "test.text"
-            )
-          )
-      }
-    }
   }
 
 }
