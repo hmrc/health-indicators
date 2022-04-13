@@ -53,7 +53,7 @@ class HistoricIndicatorsRepositorySpec
 
 
     "insert and find all correctly" in {
-      repository.insert(historicIndicatorOneA)
+      repository.insert(historicIndicatorOneA).futureValue
       repository.findAll.futureValue must contain(historicIndicatorOneA)
     }
 
