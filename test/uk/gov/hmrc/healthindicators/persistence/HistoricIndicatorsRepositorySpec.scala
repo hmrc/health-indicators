@@ -58,10 +58,10 @@ class HistoricIndicatorsRepositorySpec
     }
 
     "insert and find all for specific repo correctly" in {
-      repository.insert(historicIndicatorOneA)
-      repository.insert(historicIndicatorTwo)
-      repository.insert(historicIndicatorThree)
-      repository.insert(historicIndicatorOneB)
+      repository.insert(historicIndicatorOneA ).futureValue
+      repository.insert(historicIndicatorTwo  ).futureValue
+      repository.insert(historicIndicatorThree).futureValue
+      repository.insert(historicIndicatorOneB ).futureValue
       repository.findAllForRepo("test1").futureValue must contain(historicIndicatorOneA)
       repository.findAllForRepo("test1").futureValue must contain(historicIndicatorOneB)
       repository.findAllForRepo("test1").futureValue mustNot contain(historicIndicatorTwo)
