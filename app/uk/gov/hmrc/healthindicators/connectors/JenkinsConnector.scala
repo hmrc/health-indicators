@@ -17,12 +17,11 @@
 package uk.gov.hmrc.healthindicators.connectors
 
 import com.google.common.io.BaseEncoding
-import play.api.Logger
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
 import uk.gov.hmrc.healthindicators.configs.JenkinsConfig
 import uk.gov.hmrc.http.HttpReads.Implicits._
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, StringContextOps, NotFoundException}
+import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, StringContextOps}
 
 import java.time.Instant
 import javax.inject.Inject
@@ -36,7 +35,6 @@ class JenkinsConnector @Inject() (config: JenkinsConfig, http: HttpClient) {
 
     // Stops Server Side Request Forgery
     assert(baseUrl.startsWith(config.jenkinsHost))
-    val logger                     = Logger(this.getClass)
     val authorizationHeader =
       s"Basic ${BaseEncoding.base64().encode(s"${config.username}:${config.token}".getBytes("UTF-8"))}"
 
