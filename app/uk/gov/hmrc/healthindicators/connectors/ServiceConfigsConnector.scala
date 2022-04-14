@@ -16,11 +16,9 @@
 
 package uk.gov.hmrc.healthindicators.connectors
 
-import play.api.Logger
 import uk.gov.hmrc.healthindicators.configs.AppConfig
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, NotFoundException}
+import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
 import play.api.libs.json._
-
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 import uk.gov.hmrc.http.HttpReads.Implicits._
@@ -34,14 +32,8 @@ class ServiceConfigsConnector @Inject() (httpClient: HttpClient, ratersConfig: A
   private val serviceConfigsBaseURL: String = ratersConfig.serviceConfigs
 
   def findAlertConfigs(repo: String): Future[Option[AlertConfig]] = {
-    val logger                     = Logger(this.getClass)
     implicit val aR: Reads[AlertConfig] = AlertConfig.reads
     httpClient.GET[Option[AlertConfig]](s"$serviceConfigsBaseURL/alert-configs/$repo")
-    .recoverWith {
-      case _: NotFoundException =>
-        logger.error(s"An error occurred when connecting to $serviceConfigsBaseURL/alert-configs/$repo")
-        Future.successful(None)
-    }
   }
 
 }

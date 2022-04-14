@@ -35,6 +35,7 @@ class JenkinsConnector @Inject() (config: JenkinsConfig, http: HttpClient) {
 
     // Stops Server Side Request Forgery
     assert(baseUrl.startsWith(config.jenkinsHost))
+
     val authorizationHeader =
       s"Basic ${BaseEncoding.base64().encode(s"${config.username}:${config.token}".getBytes("UTF-8"))}"
 

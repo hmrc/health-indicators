@@ -16,13 +16,12 @@
 
 package uk.gov.hmrc.healthindicators.connectors
 
-import play.api.Logger
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
 import play.api.mvc.QueryStringBindable
 import uk.gov.hmrc.healthindicators.configs.AppConfig
 import uk.gov.hmrc.http.HttpReads.Implicits._
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, NotFoundException}
+import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
@@ -42,13 +41,7 @@ class TeamsAndRepositoriesConnector @Inject() (
 
   def getJenkinsUrl(repo: String)(implicit hc: HeaderCarrier): Future[Option[JenkinsUrl]] = {
     implicit val reads: Reads[JenkinsUrl] = JenkinsUrl.juF
-    val logger                     = Logger(this.getClass)
     httpClient.GET[Option[JenkinsUrl]](s"$teamsAndRepositoriesBaseUrl/api/jenkins-url/$repo")
-      .recoverWith {
-        case _: NotFoundException =>
-          logger.error(s"An error occurred when connecting to $teamsAndRepositoriesBaseUrl/api/jenkins-url/$repo")
-          Future.successful(None)
-      }
   }
 }
 
