@@ -40,12 +40,11 @@ class BuildStabilityMetricProducer @Inject() (
     logger.debug(s"Metric BuildStability for: $repo")
 
     for {
-      maybeUrl <- teamsAndRepositoriesConnector.getJenkinsUrl(repo)
-      buildReport <-
-        maybeUrl.map(url => jenkinsConnector.getBuildJob(url.jenkinsURL)).getOrElse(Future.successful(None))
-      result = buildReport
-                 .map(i => getResultType(i))
-                 .getOrElse(Result(JenkinsBuildNotFound, s"No Jenkins Build Found for: $repo", None))
+      maybeUrl    <- teamsAndRepositoriesConnector.getJenkinsUrl(repo)
+      buildReport <- maybeUrl.map(url => jenkinsConnector.getBuildJob(url.jenkinsURL)).getOrElse(Future.successful(None))
+      result      =  buildReport
+                      .map(i => getResultType(i))
+                      .getOrElse(Result(JenkinsBuildNotFound, s"No Jenkins Build Found for: $repo", None))
     } yield Metric(BuildStabilityMetricType, Seq(result))
   }
 }
