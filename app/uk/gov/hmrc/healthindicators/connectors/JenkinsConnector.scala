@@ -48,11 +48,6 @@ class JenkinsConnector @Inject() (config: JenkinsConfig, http: HttpClient) {
         url = url,
         headers = Seq("Authorization" -> authorizationHeader)
       )
-      .recoverWith {
-        case _: NotFoundException =>
-          logger.error(s"An error occurred when connecting to $url")
-          Future.successful(None)
-      }
   }
 }
 
