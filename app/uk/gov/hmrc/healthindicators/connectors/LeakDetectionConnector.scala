@@ -37,7 +37,7 @@ class LeakDetectionConnector @Inject() (
 
   def findLeaks(repo: String): Future[Seq[Leak]] = {
     implicit val rF = Leak.reads
-    httpClient.GET[Seq[Leak]](s"$leakDetectionBaseUrl/api/leaks?repository=$repo")
+    httpClient.GET[Seq[Leak]](url"$leakDetectionBaseUrl/api/leaks?repository=$repo")
   }
 
 }

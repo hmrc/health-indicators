@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.healthindicators.persistence
 
-import java.time.Instant
 import org.mockito.MockitoSugar
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpec
@@ -25,6 +24,8 @@ import uk.gov.hmrc.healthindicators.configs.SchedulerConfigs
 import uk.gov.hmrc.healthindicators.models.HistoricIndicator
 import uk.gov.hmrc.mongo.test.DefaultPlayMongoRepositorySupport
 
+import java.time.Instant
+import java.time.temporal.ChronoUnit
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class HistoricIndicatorsRepositorySpec
@@ -44,13 +45,11 @@ class HistoricIndicatorsRepositorySpec
   override protected val repository = new HistoricIndicatorsRepository(mongoComponent, schedulerConfigs)
 
   "HistoricIndicatorRepository" should {
-
-    val historicIndicatorOneA = HistoricIndicator("test1", Instant.now, 100)
-    val historicIndicatorTwo = HistoricIndicator("test2", Instant.now, 50)
-    val historicIndicatorThree = HistoricIndicator("test3", Instant.now, 75)
-
-    val historicIndicatorOneB = HistoricIndicator("test1", Instant.now, 25)
-
+    val now = Instant.now.truncatedTo(ChronoUnit.MILLIS)
+    val historicIndicatorOneA  = HistoricIndicator("test1", now, 100)
+    val historicIndicatorTwo   = HistoricIndicator("test2", now, 50)
+    val historicIndicatorThree = HistoricIndicator("test3", now, 75)
+    val historicIndicatorOneB  = HistoricIndicator("test1", now, 25)
 
     "insert and find all correctly" in {
       repository.insert(historicIndicatorOneA).futureValue

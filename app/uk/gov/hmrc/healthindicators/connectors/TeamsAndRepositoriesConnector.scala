@@ -21,7 +21,7 @@ import play.api.libs.json._
 import play.api.mvc.QueryStringBindable
 import uk.gov.hmrc.healthindicators.configs.AppConfig
 import uk.gov.hmrc.http.HttpReads.Implicits._
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
+import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, StringContextOps}
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
@@ -36,12 +36,12 @@ class TeamsAndRepositoriesConnector @Inject() (
 
   def allRepositories(implicit hc: HeaderCarrier): Future[List[TeamsAndRepos]] = {
     implicit val reads: Reads[TeamsAndRepos] = TeamsAndRepos.reads
-    httpClient.GET[List[TeamsAndRepos]](s"$teamsAndRepositoriesBaseUrl/api/repositories")
+    httpClient.GET[List[TeamsAndRepos]](url"$teamsAndRepositoriesBaseUrl/api/repositories")
   }
 
   def getJenkinsUrl(repo: String)(implicit hc: HeaderCarrier): Future[Option[JenkinsUrl]] = {
     implicit val reads: Reads[JenkinsUrl] = JenkinsUrl.juF
-    httpClient.GET[Option[JenkinsUrl]](s"$teamsAndRepositoriesBaseUrl/api/jenkins-url/$repo")
+    httpClient.GET[Option[JenkinsUrl]](url"$teamsAndRepositoriesBaseUrl/api/jenkins-url/$repo")
   }
 }
 
