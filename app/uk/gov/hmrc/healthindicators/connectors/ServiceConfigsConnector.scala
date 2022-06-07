@@ -16,12 +16,13 @@
 
 package uk.gov.hmrc.healthindicators.connectors
 
-import uk.gov.hmrc.healthindicators.configs.AppConfig
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
 import play.api.libs.json._
 import javax.inject.Inject
-import scala.concurrent.{ExecutionContext, Future}
+import uk.gov.hmrc.healthindicators.configs.AppConfig
 import uk.gov.hmrc.http.HttpReads.Implicits._
+import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, StringContextOps}
+
+import scala.concurrent.{ExecutionContext, Future}
 
 class ServiceConfigsConnector @Inject() (httpClient: HttpClient, ratersConfig: AppConfig)(implicit
   val ec: ExecutionContext
@@ -33,7 +34,7 @@ class ServiceConfigsConnector @Inject() (httpClient: HttpClient, ratersConfig: A
 
   def findAlertConfigs(repo: String): Future[Option[AlertConfig]] = {
     implicit val aR: Reads[AlertConfig] = AlertConfig.reads
-    httpClient.GET[Option[AlertConfig]](s"$serviceConfigsBaseURL/alert-configs/$repo")
+    httpClient.GET[Option[AlertConfig]](url"$serviceConfigsBaseURL/alert-configs/$repo")
   }
 
 }

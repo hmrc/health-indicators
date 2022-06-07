@@ -20,7 +20,7 @@ import play.api.libs.functional.syntax._
 import play.api.libs.json.{Reads, __}
 import uk.gov.hmrc.healthindicators.configs.AppConfig
 import uk.gov.hmrc.http.HttpReads.Implicits._
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
+import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, StringContextOps}
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
@@ -37,7 +37,7 @@ class LeakDetectionConnector @Inject() (
 
   def findLeaks(repo: String): Future[Seq[Leak]] = {
     implicit val rF = Leak.reads
-    httpClient.GET[Seq[Leak]](s"$leakDetectionBaseUrl/api/leaks?repository=$repo")
+    httpClient.GET[Seq[Leak]](url"$leakDetectionBaseUrl/api/leaks?repository=$repo")
   }
 
 }

@@ -21,7 +21,7 @@ import play.api.libs.functional.syntax._
 import play.api.libs.json.{JsValue, Reads, __}
 import uk.gov.hmrc.healthindicators.configs.GithubConfig
 import uk.gov.hmrc.http.HttpReads.Implicits._
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse, NotFoundException}
+import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse, NotFoundException, StringContextOps}
 
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -37,7 +37,7 @@ class GithubConnector @Inject() (
 
   def findReadMe(repo: String): Future[Option[String]] = {
     val url =
-      s"${githubConfig.rawUrl}/hmrc/$repo/HEAD/README.md"
+      url"${githubConfig.rawUrl}/hmrc/$repo/HEAD/README.md"
     implicit val hc: HeaderCarrier = HeaderCarrier()
 
     httpClient
@@ -52,7 +52,7 @@ class GithubConnector @Inject() (
 
   def getOpenPRs(repo: String): Future[Option[Seq[OpenPR]]] = {
     val url =
-      s"${githubConfig.restUrl}/repos/hmrc/$repo/pulls?state=open"
+      url"${githubConfig.restUrl}/repos/hmrc/$repo/pulls?state=open"
     implicit val hc: HeaderCarrier = HeaderCarrier()
     implicit val oR: Reads[OpenPR] = OpenPR.reads
     val logger                     = Logger(this.getClass)

@@ -21,7 +21,7 @@ import play.api.libs.functional.syntax._
 import play.api.libs.json.{JsValue, Reads, __}
 import uk.gov.hmrc.healthindicators.configs.AppConfig
 import uk.gov.hmrc.http.HttpReads.Implicits._
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, UpstreamErrorResponse}
+import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, UpstreamErrorResponse, StringContextOps}
 
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -42,7 +42,7 @@ class ServiceDependenciesConnector @Inject() (
     implicit val rF: Reads[Dependencies] = Dependencies.reads
     val logger                           = Logger(this.getClass)
     httpClient
-      .GET[Option[Dependencies]](s"$serviceDependenciesBaseURL/api/dependencies/$repo")
+      .GET[Option[Dependencies]](url"$serviceDependenciesBaseURL/api/dependencies/$repo")
       .recoverWith {
         case UpstreamErrorResponse.Upstream5xxResponse(x) =>
           logger.error(s"An error occurred when connecting to $repo: ${x.getMessage()}", x)
