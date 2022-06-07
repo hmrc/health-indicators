@@ -16,8 +16,6 @@
 
 package uk.gov.hmrc.healthindicators.persistence
 
-import java.time.Instant
-import java.time.temporal.ChronoUnit
 import org.mockito.MockitoSugar
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpec
@@ -25,6 +23,8 @@ import uk.gov.hmrc.healthindicators.connectors.RepoType.{Prototype, Service}
 import uk.gov.hmrc.healthindicators.models.RepositoryMetrics
 import uk.gov.hmrc.mongo.test.DefaultPlayMongoRepositorySupport
 
+import java.time.Instant
+import java.time.temporal.ChronoUnit
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class RepositoryMetricsRepositorySpec
@@ -33,13 +33,13 @@ class RepositoryMetricsRepositorySpec
     with MockitoSugar
     with DefaultPlayMongoRepositorySupport[RepositoryMetrics] {
 
-
   override protected val repository = new RepositoryMetricsRepository(mongoComponent)
 
-  "insert" should {
+  private val now = Instant.now.truncatedTo(ChronoUnit.MILLIS)
 
-    val metrics = RepositoryMetrics("test", Instant.now, Service, Seq.empty)
-    val metricsTwo = RepositoryMetrics("test", Instant.now.plus(1, ChronoUnit.DAYS), Service, Seq.empty)
+  "insert" should {
+    val metrics    = RepositoryMetrics("test", now,                          Service, Seq.empty)
+    val metricsTwo = RepositoryMetrics("test", now.plus(1, ChronoUnit.DAYS), Service, Seq.empty)
 
     "insert correctly" in {
       repository.insert(metrics.repoName, metrics).futureValue
@@ -54,8 +54,7 @@ class RepositoryMetricsRepositorySpec
   }
 
     "getRepositoryMetrics" should {
-
-      val foo = RepositoryMetrics("foo", Instant.now, Service, Seq.empty)
+      val foo = RepositoryMetrics("foo", now, Service, Seq.empty)
 
       "return metrics for repo" in {
        repository.insert(foo.repoName, foo).futureValue
@@ -69,34 +68,32 @@ class RepositoryMetricsRepositorySpec
     }
 
   "MetricsPersistence.getAllRepositoryMetrics" should {
+    val foo = RepositoryMetrics("foo", now, Service  , Seq.empty)
+    val bar = RepositoryMetrics("bar", now, Prototype, Seq.empty)
 
-    val foo = RepositoryMetrics("foo", Instant.now, Service, Seq.empty)
-
-    val bar = RepositoryMetrics("bar", Instant.now, Prototype, Seq.empty)
-
-        "return the metrics for all repos when no filter is applied" in {
-          repository.insert(foo.repoName, foo).futureValue
-          repository.insert(bar.repoName, bar).futureValue
-          repository.getAllRepositoryMetrics(repoType = None).futureValue must contain theSameElementsAs Seq(
-            foo,
-            bar
-          )
-        }
+    "return the metrics for all repos when no filter is applied" in {
+      repository.insert(foo.repoName, foo).futureValue
+      repository.insert(bar.repoName, bar).futureValue
+      repository.getAllRepositoryMetrics(repoType = None).futureValue must contain theSameElementsAs Seq(
+        foo,
+        bar
+      )
+    }
 
     "returns empty list when no results are found" in {
       repository.getAllRepositoryMetrics(repoType = None).futureValue mustBe List()
     }
 
-        "returns only Services when filtered by Service" in {
-          repository.insert(foo.repoName, foo).futureValue
-          repository.insert(bar.repoName, bar).futureValue
-          repository.getAllRepositoryMetrics(Some(Service)).futureValue mustBe List(foo)
-        }
+    "returns only Services when filtered by Service" in {
+      repository.insert(foo.repoName, foo).futureValue
+      repository.insert(bar.repoName, bar).futureValue
+      repository.getAllRepositoryMetrics(Some(Service)).futureValue mustBe List(foo)
+    }
 
-        "returns only Prototypes when filtered by Prototype" in {
-          repository.insert(foo.repoName, foo).futureValue
-          repository.insert(bar.repoName, bar).futureValue
-          repository.getAllRepositoryMetrics(Some(Prototype)).futureValue mustBe List(bar)
-        }
-      }
+    "returns only Prototypes when filtered by Prototype" in {
+      repository.insert(foo.repoName, foo).futureValue
+      repository.insert(bar.repoName, bar).futureValue
+      repository.getAllRepositoryMetrics(Some(Prototype)).futureValue mustBe List(bar)
+    }
+  }
 }
