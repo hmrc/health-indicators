@@ -16,53 +16,49 @@
 
 package uk.gov.hmrc.healthindicators.connectors
 
-import com.github.tomakehurst.wiremock.http.RequestMethod.GET
+import com.github.tomakehurst.wiremock.client.WireMock._
 import org.scalatest.OptionValues
-import org.scalatest.concurrent.ScalaFutures.convertScalaFuture
+import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
-import play.api.Application
-import play.api.inject.guice.GuiceApplicationBuilder
-import uk.gov.hmrc.healthindicators.WireMockEndpoints
-import org.scalatestplus.play.guice.GuiceOneAppPerSuite
+import play.api.Configuration
+import uk.gov.hmrc.http.test.{HttpClientV2Support, WireMockSupport}
+import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
+
+import scala.concurrent.ExecutionContext.Implicits.global
 
 class ServiceConfigsConnectorSpec
   extends AnyWordSpec
-    with Matchers
-    with GuiceOneAppPerSuite
-    with OptionValues
-    with WireMockEndpoints {
+     with Matchers
+     with OptionValues
+     with ScalaFutures
+     with IntegrationPatience
+     with HttpClientV2Support
+     with WireMockSupport {
 
-  override def fakeApplication: Application =
-    new GuiceApplicationBuilder()
-      .disable(classOf[com.kenshoo.play.metrics.PlayModule])
-      .configure(
-        Map(
-          "microservice.services.service-configs.port" -> endpointPort,
-          "microservice.services.service-configs.host" -> host,
-          "metrics.jvm"                               -> false
-        )
-      )
-      .build()
-
-  private lazy val serviceConfigsConnector = app.injector.instanceOf[ServiceConfigsConnector]
+  private lazy val serviceConfigsConnector =
+    new ServiceConfigsConnector(
+      httpClientV2,
+      new ServicesConfig(Configuration(
+        "microservice.services.service-configs.port" -> wireMockPort,
+        "microservice.services.service-configs.host" -> wireMockHost
+      ))
+    )
 
   "GET findAlertConfigs" should {
-    "Return AlertConfig for repo that has config enabled" in {
-
-      serviceEndpoint(
-        GET,
-        "/alert-configs/foo",
-        willRespondWith = (200,
-          Some(
-            """
-              |{
-              |"serviceName": "foo",
-              |"production": true
-              |}
-              |""".stripMargin
+    "return AlertConfig for repo" in {
+      stubFor(
+        get(urlEqualTo("/alert-configs/foo"))
+          .willReturn(
+            aResponse()
+            .withStatus(200)
+            .withBody(
+              """{
+                "serviceName": "foo",
+                "production": true
+              }"""
+            )
           )
-        )
       )
 
       val response = serviceConfigsConnector
@@ -75,39 +71,10 @@ class ServiceConfigsConnectorSpec
       response shouldBe expectedOutput
     }
 
-    "Return AlertConfig for repo that has config disabled" in {
-
-      serviceEndpoint(
-        GET,
-        "/alert-configs/foo",
-        willRespondWith = (200,
-          Some(
-            """
-              |{
-              |"serviceName": "foo",
-              |"production": false
-              |}
-              |""".stripMargin
-          )
-        )
-      )
-
-      val response = serviceConfigsConnector
-        .findAlertConfigs("foo")
-        .futureValue
-        .value
-
-      val expectedOutput = AlertConfig(false)
-
-      response shouldBe expectedOutput
-    }
-
-    "Return AlertConfig for repo when config is not found" in {
-
-      serviceEndpoint(
-        GET,
-        "/alert-configs/foo",
-        willRespondWith = (404, None)
+    "return AlertConfig for repo when config is not found" in {
+      stubFor(
+        get(urlEqualTo("/alert-configs/foo"))
+          .willReturn(aResponse().withStatus(404))
       )
 
       val response: Option[AlertConfig] = serviceConfigsConnector
@@ -117,5 +84,4 @@ class ServiceConfigsConnectorSpec
       response shouldBe None
     }
   }
-
 }

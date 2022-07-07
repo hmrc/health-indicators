@@ -16,54 +16,51 @@
 
 package uk.gov.hmrc.healthindicators.connectors
 
-import com.github.tomakehurst.wiremock.http.RequestMethod.GET
+import com.github.tomakehurst.wiremock.client.WireMock._
 import org.scalatest.OptionValues
-import org.scalatest.concurrent.ScalaFutures.convertScalaFuture
+import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
-import org.scalatestplus.play.guice.GuiceOneAppPerSuite
-import play.api.Application
-import play.api.inject.guice.GuiceApplicationBuilder
-import uk.gov.hmrc.healthindicators.WireMockEndpoints
-import uk.gov.hmrc.healthindicators.connectors.RepoType.{Library, Other, Prototype, Service}
+import play.api.Configuration
 import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.http.test.{HttpClientV2Support, WireMockSupport}
+import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
+
+import scala.concurrent.ExecutionContext.Implicits.global
 
 class TeamsAndRepositoriesConnectorSpec
-    extends AnyWordSpec
-    with Matchers
-    with GuiceOneAppPerSuite
-    with OptionValues
-    with WireMockEndpoints {
+  extends AnyWordSpec
+     with Matchers
+     with OptionValues
+     with ScalaFutures
+     with IntegrationPatience
+     with WireMockSupport
+     with HttpClientV2Support {
 
-  override def fakeApplication: Application =
-    new GuiceApplicationBuilder()
-      .disable(classOf[com.kenshoo.play.metrics.PlayModule])
-      .configure(
-        Map(
-          "microservice.services.teams-and-repositories.port" -> endpointPort,
-          "microservice.services.teams-and-repositories.host" -> host,
-          "metrics.jvm"                                       -> false
-        )
-      )
-      .build()
+  private val config =
+    Configuration(
+      "microservice.services.teams-and-repositories.port" -> wireMockPort,
+      "microservice.services.teams-and-repositories.host" -> wireMockHost
+    )
 
-  private lazy val teamsAndRepositoriesConnector = app.injector.instanceOf[TeamsAndRepositoriesConnector]
+  val teamsAndRepositoriesConnector =
+    new TeamsAndRepositoriesConnector(httpClientV2, new ServicesConfig(config))
+
+  implicit val headerCarrier: HeaderCarrier = HeaderCarrier()
 
   "GET jenkinsUrl" should {
-    "use repository name to return a jenkins url" in new Setup {
-      serviceEndpoint(
-        GET,
-        "/api/jenkins-url/test",
-        willRespondWith = (
-          200,
-          Some(
-            """
-              |{
-              | "jenkinsURL": "https://build.tax.service.gov.uk/job/GG/job/test"
-              |}
-              |""".stripMargin
+    "use repository name to return a jenkins url" in {
+      stubFor(
+        get(urlEqualTo("/api/jenkins-url/test"))
+          .willReturn(
+            aResponse()
+              .withStatus(200)
+              .withBody(
+                """{
+                  "jenkinsURL": "https://build.tax.service.gov.uk/job/GG/job/test"
+                }"""
+              )
           )
-        )
       )
 
       val response = teamsAndRepositoriesConnector
@@ -75,8 +72,12 @@ class TeamsAndRepositoriesConnectorSpec
       response shouldBe expectedResult
     }
 
-    "use repository name to return a None when no jenkins url found" in new Setup {
-      serviceEndpoint(GET, "/api/jenkins-url/test", willRespondWith = (404, None))
+    "use repository name to return a None when no jenkins url found" in {
+      stubFor(
+        get(urlEqualTo("/api/jenkins-url/test"))
+          .willReturn(aResponse().withStatus(404))
+      )
+
       val response = teamsAndRepositoriesConnector
         .getJenkinsUrl("test")
         .futureValue
@@ -86,39 +87,39 @@ class TeamsAndRepositoriesConnectorSpec
   }
 
   "GET allRepositories" should {
-    "return a list of all repositories" in new Setup {
-      serviceEndpoint(
-        GET,
-        "/api/repositories",
-        willRespondWith = (
-          200,
-          Some(
-            """[{
-              "name": "2-way-messaging-prototype",
-              "createdAt": 1541588042000,
-              "lastUpdatedAt": 1601630778000,
-              "repoType": "Prototype",
-              "language": "HTML",
-              "archived": false
-            },
-            {
-              "name": "2way-testbed-prototype",
-              "createdAt": 1570720430000,
-              "lastUpdatedAt": 1605862299000,
-              "repoType": "Prototype",
-              "language": "HTML",
-              "archived": false
-            },
-            {
-              "name": "5mld-prototype",
-              "createdAt": 1576747271000,
-              "lastUpdatedAt": 1581517326000,
-              "repoType": "Prototype",
-              "language": "CSS",
-              "archived": false
-            }]"""
+    "return a list of all repositories" in {
+      stubFor(
+        get(urlEqualTo("/api/repositories"))
+          .willReturn(
+            aResponse()
+              .withStatus(200)
+              .withBody(
+                """[{
+                  "name": "2-way-messaging-prototype",
+                  "createdAt": 1541588042000,
+                  "lastUpdatedAt": 1601630778000,
+                  "repoType": "Prototype",
+                  "language": "HTML",
+                  "archived": false
+                },
+                {
+                  "name": "2way-testbed-prototype",
+                  "createdAt": 1570720430000,
+                  "lastUpdatedAt": 1605862299000,
+                  "repoType": "Prototype",
+                  "language": "HTML",
+                  "archived": false
+                },
+                {
+                  "name": "5mld-prototype",
+                  "createdAt": 1576747271000,
+                  "lastUpdatedAt": 1581517326000,
+                  "repoType": "Prototype",
+                  "language": "CSS",
+                  "archived": false
+                }]"""
+              )
           )
-        )
       )
 
       val response = teamsAndRepositoriesConnector
@@ -126,24 +127,24 @@ class TeamsAndRepositoriesConnectorSpec
         .futureValue
 
       val expectedResult = List(
-        TeamsAndRepos("2-way-messaging-prototype", Prototype),
-        TeamsAndRepos("2way-testbed-prototype", Prototype),
-        TeamsAndRepos("5mld-prototype", Prototype)
+        TeamsAndRepos("2-way-messaging-prototype", RepoType.Prototype),
+        TeamsAndRepos("2way-testbed-prototype"   , RepoType.Prototype),
+        TeamsAndRepos("5mld-prototype"           , RepoType.Prototype)
       )
 
       response shouldBe expectedResult
     }
 
     "bind query string correctly when given a valid repoType" in {
-      val paramsPrototype = Map("repoType" -> Seq(Prototype.toString))
-      val paramsService   = Map("repoType" -> Seq(Service.toString))
-      val paramsLibrary   = Map("repoType" -> Seq(Library.toString))
-      val paramsOther     = Map("repoType" -> Seq(Other.toString))
+      val paramsPrototype = Map("repoType" -> Seq(RepoType.Prototype.toString))
+      val paramsService   = Map("repoType" -> Seq(RepoType.Service.toString))
+      val paramsLibrary   = Map("repoType" -> Seq(RepoType.Library.toString))
+      val paramsOther     = Map("repoType" -> Seq(RepoType.Other.toString))
 
-      RepoType.queryStringBindable.bind(key = "repoType", paramsPrototype).value shouldBe Right(Prototype)
-      RepoType.queryStringBindable.bind(key = "repoType", paramsService).value   shouldBe Right(Service)
-      RepoType.queryStringBindable.bind(key = "repoType", paramsLibrary).value   shouldBe Right(Library)
-      RepoType.queryStringBindable.bind(key = "repoType", paramsOther).value     shouldBe Right(Other)
+      RepoType.queryStringBindable.bind(key = "repoType", paramsPrototype).value shouldBe Right(RepoType.Prototype)
+      RepoType.queryStringBindable.bind(key = "repoType", paramsService  ).value shouldBe Right(RepoType.Service)
+      RepoType.queryStringBindable.bind(key = "repoType", paramsLibrary  ).value shouldBe Right(RepoType.Library)
+      RepoType.queryStringBindable.bind(key = "repoType", paramsOther    ).value shouldBe Right(RepoType.Other)
     }
 
     "not bind when no query string is given" in {
@@ -161,13 +162,8 @@ class TeamsAndRepositoriesConnectorSpec
     }
 
     "fail to bind when more than one value is given" in {
-      val params = Map("sort" -> Seq(Prototype.toString, Library.toString))
+      val params = Map("sort" -> Seq(RepoType.Prototype.toString, RepoType.Library.toString))
       RepoType.queryStringBindable.bind(key = "repoType", params) shouldBe None
     }
   }
-
-  private trait Setup {
-    implicit val headerCarrier: HeaderCarrier = HeaderCarrier()
-  }
-
 }

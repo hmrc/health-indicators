@@ -16,63 +16,59 @@
 
 package uk.gov.hmrc.healthindicators.connectors
 
-import com.github.tomakehurst.wiremock.http.RequestMethod.GET
+import com.github.tomakehurst.wiremock.client.WireMock._
 import org.scalatest.OptionValues
-import org.scalatest.concurrent.ScalaFutures.convertScalaFuture
+import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
-import org.scalatestplus.play.guice.GuiceOneAppPerSuite
-import play.api.Application
-import play.api.inject.guice.GuiceApplicationBuilder
-import uk.gov.hmrc.healthindicators.WireMockEndpoints
+import play.api.Configuration
+import uk.gov.hmrc.healthindicators.configs.JenkinsConfig
+import uk.gov.hmrc.http.test.{HttpClientV2Support, WireMockSupport}
 
 import java.time.Instant
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class JenkinsConnectorSpec
-    extends AnyWordSpec
-    with Matchers
-    with GuiceOneAppPerSuite
-    with OptionValues
-    with WireMockEndpoints {
+  extends AnyWordSpec
+     with Matchers
+     with OptionValues
+     with ScalaFutures
+     with IntegrationPatience
+     with HttpClientV2Support
+     with WireMockSupport {
 
-  override def fakeApplication: Application =
-    new GuiceApplicationBuilder()
-      .disable(classOf[com.kenshoo.play.metrics.PlayModule])
-      .configure(
-        Map(
-          "jenkins.username" -> "username",
-          "jenkins.token"    -> "token"
-        )
-      )
-      .build()
-
-  val connector = app.injector.instanceOf[JenkinsConnector]
+  val connector =
+    new JenkinsConnector(
+      new JenkinsConfig(Configuration(
+        "jenkins.username" -> "username",
+        "jenkins.token"    -> "token",
+        "jenkins.host"     -> wireMockUrl
+      )),
+      httpClientV2
+    )
 
   "Get build job" should {
-    "Return health report for build" in {
-
-      serviceEndpoint(
-        GET,
-        "/job/GG/job/test/api/json?depth=1&tree=lastCompletedBuild%5Bresult,timestamp%5D",
-        willRespondWith = (
-          200,
-          Some(
-            """
-              {
-              |"_class": "hudson.model.FreeStyleProject",
-              |"lastCompletedBuild": {
-              |"_class": "hudson.model.FreeStyleBuild",
-              |"result": "SUCCESS",
-              |"timestamp": 1614779578869
-              |}
-              |}
-              |""".stripMargin
+    "return health report for build" in {
+      stubFor(
+        get(urlEqualTo("/job/GG/job/test/api/json?depth=1&tree=lastCompletedBuild%5Bresult,timestamp%5D"))
+          .willReturn(
+            aResponse()
+              .withStatus(200)
+              .withBody(
+                """{
+                  "_class": "hudson.model.FreeStyleProject",
+                  "lastCompletedBuild": {
+                    "_class": "hudson.model.FreeStyleBuild",
+                    "result": "SUCCESS",
+                    "timestamp": 1614779578869
+                  }
+                }"""
+              )
           )
-        )
       )
+
       val response = connector
-        .getBuildJob(s"http://$host:$endpointPort/job/GG/job/test/")
+        .getBuildJob(s"$wireMockUrl/job/GG/job/test/")
         .futureValue
         .value
 
@@ -81,50 +77,17 @@ class JenkinsConnectorSpec
       response shouldBe expectedOutput
     }
 
-    "Return health report for build that has never failed" in {
-
-      serviceEndpoint(
-        GET,
-        "/job/GG/job/test/api/json?depth=1&tree=lastCompletedBuild%5Bresult,timestamp%5D",
-        willRespondWith = (
-          200,
-          Some(
-            """
-              {
-              |"_class": "hudson.model.FreeStyleProject",
-              |"lastCompletedBuild": {
-              |"_class": "hudson.model.FreeStyleBuild",
-              |"result": "SUCCESS",
-              |"timestamp": 1614779578869
-              |}
-              |}
-              |""".stripMargin
-          )
-        )
-      )
-      val response = connector
-        .getBuildJob(s"http://$host:$endpointPort/job/GG/job/test/")
-        .futureValue
-        .value
-
-      val expectedOutput = JenkinsBuildReport(Some(JenkinsBuildStatus("SUCCESS", Instant.ofEpochMilli(1614779578869L))))
-
-      response shouldBe expectedOutput
-    }
-
-    "Return a None if build job not found" in {
-      serviceEndpoint(
-        GET,
-        "/job/GG/job/test/api/json?depth=1&tree=lastCompletedBuild%5Bresult,timestamp%5D",
-        willRespondWith = (404, None)
+    "return a None if build job not found" in {
+      stubFor(
+        get(urlEqualTo("/job/GG/job/test/api/json?depth=1&tree=lastCompletedBuild%5Bresult,timestamp%5D"))
+          .willReturn(aResponse().withStatus(404))
       )
 
       val response: Option[JenkinsBuildReport] = connector
-        .getBuildJob(s"http://$host:$endpointPort/job/GG/job/non-existing/")
+        .getBuildJob(s"$wireMockUrl/job/GG/job/non-existing/")
         .futureValue
 
       response shouldBe None
     }
   }
-
 }

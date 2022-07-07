@@ -19,29 +19,35 @@ package uk.gov.hmrc.healthindicators.connectors
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
 import play.api.mvc.QueryStringBindable
-import uk.gov.hmrc.healthindicators.configs.AppConfig
-import uk.gov.hmrc.http.HttpReads.Implicits._
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, StringContextOps}
+import uk.gov.hmrc.http.{HeaderCarrier, HttpReads, StringContextOps}
+import uk.gov.hmrc.http.client.HttpClientV2
+import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class TeamsAndRepositoriesConnector @Inject() (
-  httpClient: HttpClient,
-  healthIndicatorsConfig: AppConfig
+  httpClientV2  : HttpClientV2,
+  servicesConfig: ServicesConfig
 )(implicit val ec: ExecutionContext) {
+  import HttpReads.Implicits._
 
-  private val teamsAndRepositoriesBaseUrl: String = healthIndicatorsConfig.teamsAndRepositoriesUrl
+  private val teamsAndRepositoriesBaseUrl: String =
+    servicesConfig.baseUrl("teams-and-repositories")
 
   def allRepositories(implicit hc: HeaderCarrier): Future[List[TeamsAndRepos]] = {
     implicit val reads: Reads[TeamsAndRepos] = TeamsAndRepos.reads
-    httpClient.GET[List[TeamsAndRepos]](url"$teamsAndRepositoriesBaseUrl/api/repositories")
+    httpClientV2
+      .get(url"$teamsAndRepositoriesBaseUrl/api/repositories")
+      .execute[List[TeamsAndRepos]]
   }
 
   def getJenkinsUrl(repo: String)(implicit hc: HeaderCarrier): Future[Option[JenkinsUrl]] = {
     implicit val reads: Reads[JenkinsUrl] = JenkinsUrl.juF
-    httpClient.GET[Option[JenkinsUrl]](url"$teamsAndRepositoriesBaseUrl/api/jenkins-url/$repo")
+    httpClientV2
+      .get(url"$teamsAndRepositoriesBaseUrl/api/jenkins-url/$repo")
+      .execute[Option[JenkinsUrl]]
   }
 }
 
@@ -102,8 +108,9 @@ case class TeamsAndRepos(
 object TeamsAndRepos {
   val reads: Reads[TeamsAndRepos] = {
     implicit val rtF: Format[RepoType] = RepoType.format
-    ((__ \ "name").read[String]
-      ~ (__ \ "repoType").format[RepoType])(TeamsAndRepos.apply _)
+    ( (__ \ "name"    ).read[String]
+    ~ (__ \ "repoType").format[RepoType]
+    )(TeamsAndRepos.apply _)
   }
 }
 

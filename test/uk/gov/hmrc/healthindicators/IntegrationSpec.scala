@@ -16,11 +16,10 @@
 
 package uk.gov.hmrc.healthindicators
 
-import com.github.tomakehurst.wiremock.http.RequestMethod.GET
+import com.github.tomakehurst.wiremock.client.WireMock._
 import com.google.common.io.BaseEncoding
-import org.scalatest.concurrent.{Eventually, ScalaFutures}
+import org.scalatest.concurrent.{Eventually, IntegrationPatience, ScalaFutures}
 import org.scalatest.matchers.should.Matchers
-import org.scalatest.time.{Millis, Seconds, Span}
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.play.guice.GuiceOneServerPerSuite
 import play.api.inject.guice.GuiceApplicationBuilder
@@ -28,22 +27,22 @@ import play.api.libs.ws.WSClient
 import play.api.Application
 import uk.gov.hmrc.healthindicators.models.RepositoryMetrics
 import uk.gov.hmrc.healthindicators.persistence.RepositoryMetricsRepository
+import uk.gov.hmrc.http.test.WireMockSupport
 import uk.gov.hmrc.mongo.test.DefaultPlayMongoRepositorySupport
 
 class IntegrationSpec
-    extends AnyWordSpec
-    with DefaultPlayMongoRepositorySupport[RepositoryMetrics]
-    with GuiceOneServerPerSuite
-    with WireMockEndpoints
-    with Matchers
-    with ScalaFutures
-    with Eventually {
+  extends AnyWordSpec
+     with DefaultPlayMongoRepositorySupport[RepositoryMetrics]
+     with GuiceOneServerPerSuite
+     with Matchers
+     with ScalaFutures
+     with IntegrationPatience
+     with WireMockSupport
+     with Eventually {
 
-  implicit override val patienceConfig: PatienceConfig =
-    PatienceConfig(timeout = scaled(Span(10, Seconds)), interval = scaled(Span(1000, Millis)))
+  protected val repository = app.injector.instanceOf[RepositoryMetricsRepository]
 
-  protected val repository: RepositoryMetricsRepository = app.injector.instanceOf[RepositoryMetricsRepository]
-  private[this] lazy val ws                            = app.injector.instanceOf[WSClient]
+  private[this] lazy val ws = app.injector.instanceOf[WSClient]
 
   override def fakeApplication: Application =
     new GuiceApplicationBuilder()
@@ -54,19 +53,19 @@ class IntegrationSpec
           "metrics.refresh.enabled"                           -> "true",
           "metrics.refresh.interval"                          -> "5.minutes",
           "metrics.refresh.initialDelay"                      -> "5.seconds",
-          "microservice.services.service-dependencies.port"   -> endpointPort,
-          "microservice.services.service-dependencies.host"   -> host,
-          "microservice.services.leak-detection.port"         -> endpointPort,
-          "microservice.services.leak-detection.host"         -> host,
-          "github.open.api.rawurl"                            -> endpointMockUrl,
+          "microservice.services.service-dependencies.port"   -> wireMockPort,
+          "microservice.services.service-dependencies.host"   -> wireMockHost,
+          "microservice.services.leak-detection.port"         -> wireMockPort,
+          "microservice.services.leak-detection.host"         -> wireMockHost,
+          "github.open.api.rawurl"                            -> wireMockUrl,
           "github.open.api.token"                             -> "test-token",
           "jenkins.username"                                  -> "test-username",
           "jenkins.token"                                     -> "test-token",
-          "microservice.services.teams-and-repositories.port" -> endpointPort,
-          "microservice.services.teams-and-repositories.host" -> host,
-          "github.rest.api.url"                               -> endpointMockUrl,
-          "microservice.services.service-configs.port"        -> endpointPort,
-          "microservice.services.service-configs.host"        -> host,
+          "microservice.services.teams-and-repositories.port" -> wireMockPort,
+          "microservice.services.teams-and-repositories.host" -> wireMockHost,
+          "github.rest.api.url"                               -> wireMockUrl,
+          "microservice.services.service-configs.port"        -> wireMockPort,
+          "microservice.services.service-configs.host"        -> wireMockHost,
           "metrics.jvm"                                       -> false
         )
       )
@@ -80,38 +79,46 @@ class IntegrationSpec
     }
 
     "return correct json when HealthIndicatorController.indicator receives a get request with valid repo name" in {
+      stubFor(
+        get(urlEqualTo("/api/repositories"))
+          .willReturn(aResponse().withStatus(200).withBody(teamsAndReposJson))
+      )
 
-      serviceEndpoint(GET, "/api/repositories", willRespondWith = (200, Some(teamsAndReposJson)))
+      stubFor(
+        get(urlEqualTo("/api/dependencies/auth"))
+          .willReturn(aResponse().withStatus(200).withBody(serviceDependenciesJson))
+      )
 
-      serviceEndpoint(GET, "/api/dependencies/auth", willRespondWith = (200, Some(serviceDependenciesJson)))
+      stubFor(
+        get(urlEqualTo("/api/leaks?repository=auth"))
+          .willReturn(aResponse().withStatus(200).withBody(leakDetectionJson))
+      )
 
-      serviceEndpoint(GET, url = "/api/leaks", queryParameters = Seq("repository" -> "auth"), willRespondWith = (200, Some(leakDetectionJson)))
+      stubFor(
+        get(urlEqualTo("/api/jenkins-url/auth"))
+          .willReturn(aResponse().withStatus(200).withBody(teamsAndReposJenkinsJson))
+      )
 
-      serviceEndpoint(GET, "/api/jenkins-url/auth", willRespondWith = (200, Some(teamsAndReposJenkinsJson)))
-
-      serviceEndpoint(GET, "/alert-configs/auth", willRespondWith = (200, Some(serviceConfigsJson)))
+      stubFor(
+        get(urlEqualTo("/alert-configs/auth"))
+          .willReturn(aResponse().withStatus(200).withBody(serviceConfigsJson))
+      )
 
       val jenkinsCred = s"Basic ${BaseEncoding.base64().encode("test-username:test-token".getBytes("UTF-8"))}"
-      serviceEndpoint(
-        GET,
-        s"$endpointMockUrl/job/GG/job/auth/api/json.*",
-        queryParameters = Seq("depth" -> "1", "tree" -> "lastCompletedBuild%5Bresult,timestamp%5D"),
-        extraHeaders = Map("Authorization" -> jenkinsCred),
-        willRespondWith = (404, None)
+
+      stubFor(
+        get(urlPathEqualTo("/job/GG/job/auth/api/json"))
+          .willReturn(aResponse().withStatus(404))
       )
 
-      serviceEndpoint(
-        GET,
-        "/hmrc/auth/HEAD/README.md",
-        requestHeaders = Map("Authorization" -> s"token test-token"),
-        willRespondWith = (404, None)
+      stubFor(
+        get(urlEqualTo("/hmrc/auth/HEAD/README.md"))
+          .willReturn(aResponse().withStatus(404))
       )
 
-      serviceEndpoint(
-        GET,
-        "/repos/hmrc/auth/pulls?state=open",
-        requestHeaders = Map("Authorization" -> s"token test-token"),
-        willRespondWith = (200, Some("""[]""".stripMargin))
+      stubFor(
+        get(urlEqualTo("/repos/hmrc/auth/pulls?state=open"))
+          .willReturn(aResponse().withStatus(200).withBody("""[]"""))
       )
 
       eventually {
@@ -126,60 +133,74 @@ class IntegrationSpec
         response.body     should include(buildStabilityResponse)
         response.body     should include(alertConfigResponse)
       }
+
+      verify(
+        getRequestedFor(urlPathEqualTo("/job/GG/job/auth/api/json"))
+          .withQueryParam("depth", equalTo("1"))
+          .withQueryParam("tree" , equalTo("lastCompletedBuild[result,timestamp]"))
+          .withHeader("Authorization", equalTo(jenkinsCred))
+      )
+
+      verify(
+        getRequestedFor(urlEqualTo("/hmrc/auth/HEAD/README.md"))
+          .withHeader("Authorization", equalTo("token test-token"))
+      )
+
+      verify(
+        getRequestedFor(urlEqualTo("/repos/hmrc/auth/pulls?state=open"))
+          .withHeader("Authorization", equalTo("token test-token"))
+      )
     }
   }
 
   val leakDetectionJson =
-    """
-      [
-         {
-          "repoName": "auth",
-          "branch": "main",
-          "filePath": "/this/is/a/test",
-          "scope": "fileName",
-          "lineNumber": 1,
-          "urlToSource": "https://test-url",
-          "ruleId": "filename_test",
-          "description": "test123",
-          "lineText": "test.text"
-         }
-      ]
-
-      """
+    """[
+      {
+        "repoName": "auth",
+        "branch": "main",
+        "filePath": "/this/is/a/test",
+        "scope": "fileName",
+        "lineNumber": 1,
+        "urlToSource": "https://test-url",
+        "ruleId": "filename_test",
+        "description": "test123",
+        "lineText": "test.text"
+      }
+    ]"""
 
   val serviceDependenciesJson =
     """{
-    "repositoryName": "auth",
-    "libraryDependencies": [
-    {
-      "name": "simple-reactivemongo",
-      "group": "uk.gov.hmrc",
-      "currentVersion": {
-        "major": 7,
-        "minor": 30,
-        "patch": 0,
-        "original": "7.30.0-play-26"
-       },
-      "latestVersion": {
-        "major": 7,
-        "minor": 31,
-        "patch": 0,
-        "original": "7.31.0-play-26"
-      },
-      "bobbyRuleViolations": [
-        {
-          "reason": "TEST DEPRECATION",
-          "from": "2050-05-01",
-          "range": "(,99.99.99)"
+      "repositoryName": "auth",
+      "libraryDependencies": [
+      {
+        "name": "simple-reactivemongo",
+        "group": "uk.gov.hmrc",
+        "currentVersion": {
+          "major": 7,
+          "minor": 30,
+          "patch": 0,
+          "original": "7.30.0-play-26"
+         },
+        "latestVersion": {
+          "major": 7,
+          "minor": 31,
+          "patch": 0,
+          "original": "7.31.0-play-26"
+        },
+        "bobbyRuleViolations": [
+          {
+            "reason": "TEST DEPRECATION",
+            "from": "2050-05-01",
+            "range": "(,99.99.99)"
+          }
+        ],
+        "isExternal": false
         }
       ],
-      "isExternal": false
-      }
-    ],
-    "sbtPluginsDependencies": [],
-    "otherDependencies": [],
-    "lastUpdated": "2020-12-07T11:11:53.122Z"
-            }"""
+      "sbtPluginsDependencies": [],
+      "otherDependencies": [],
+      "lastUpdated": "2020-12-07T11:11:53.122Z"
+    }"""
 
   val teamsAndReposJson =
     """
@@ -195,18 +216,18 @@ class IntegrationSpec
 
   val teamsAndReposJenkinsJson =
     s"""
-       |{
-       | "jenkinsURL": "$endpointMockUrl/job/GG/job/auth/"
-       |}
-       |""".stripMargin
+       {
+        "jenkinsURL": "$wireMockUrl/job/GG/job/auth/"
+       }
+     """
 
   val serviceConfigsJson =
     """
-      |{
-      |"serviceName": "auth",
-      |"production": false
-      |}
-      |""".stripMargin
+      {
+      "serviceName": "auth",
+      "production": false
+      }
+    """
 
   val bobbyRuleResponse =
     """{"metricType":"bobby-rule","score":-20,"breakdown":[{"points":-20,"description":"simple-reactivemongo - TEST DEPRECATION"}]}"""
@@ -220,5 +241,3 @@ class IntegrationSpec
     """{"metricType":"alert-config","score":20,"breakdown":[{"points":20,"description":"Alert Config is Disabled"}]}"""
   val expectedResponse = """"repoName":"auth","repoType":"Prototype","overallScore":-25,"""
 }
-
-

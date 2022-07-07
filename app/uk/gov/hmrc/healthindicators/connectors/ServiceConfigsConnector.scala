@@ -18,25 +18,31 @@ package uk.gov.hmrc.healthindicators.connectors
 
 import play.api.libs.json._
 import javax.inject.Inject
-import uk.gov.hmrc.healthindicators.configs.AppConfig
-import uk.gov.hmrc.http.HttpReads.Implicits._
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, StringContextOps}
+import uk.gov.hmrc.http.{HeaderCarrier, HttpReads, StringContextOps}
+import uk.gov.hmrc.http.client.HttpClientV2
+import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class ServiceConfigsConnector @Inject() (httpClient: HttpClient, ratersConfig: AppConfig)(implicit
-  val ec: ExecutionContext
+class ServiceConfigsConnector @Inject()(
+  httpClientV2  : HttpClientV2,
+  servicesConfig: ServicesConfig
+)(implicit
+  ec: ExecutionContext
 ) {
+  import HttpReads.Implicits._
 
   private implicit val hc: HeaderCarrier = HeaderCarrier()
 
-  private val serviceConfigsBaseURL: String = ratersConfig.serviceConfigs
+  private val serviceConfigsBaseURL: String =
+    servicesConfig.baseUrl("service-configs")
 
   def findAlertConfigs(repo: String): Future[Option[AlertConfig]] = {
     implicit val aR: Reads[AlertConfig] = AlertConfig.reads
-    httpClient.GET[Option[AlertConfig]](url"$serviceConfigsBaseURL/alert-configs/$repo")
+    httpClientV2
+      .get(url"$serviceConfigsBaseURL/alert-configs/$repo")
+      .execute[Option[AlertConfig]]
   }
-
 }
 
 case class AlertConfig(
