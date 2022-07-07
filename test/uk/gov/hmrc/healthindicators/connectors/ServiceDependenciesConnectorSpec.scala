@@ -16,46 +16,42 @@
 
 package uk.gov.hmrc.healthindicators.connectors
 
-import com.github.tomakehurst.wiremock.http.RequestMethod.GET
+import com.github.tomakehurst.wiremock.client.WireMock._
 import org.scalatest.OptionValues
-import org.scalatest.concurrent.ScalaFutures.convertScalaFuture
+import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
-import org.scalatestplus.play.guice.GuiceOneAppPerSuite
-import play.api.Application
-import play.api.inject.guice.GuiceApplicationBuilder
+import play.api.Configuration
 import play.api.libs.json.{JsSuccess, Json, Reads}
-import uk.gov.hmrc.healthindicators.WireMockEndpoints
+import uk.gov.hmrc.http.test.{HttpClientV2Support, WireMockSupport}
 import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
+import scala.concurrent.ExecutionContext.Implicits.global
 
 class ServiceDependenciesConnectorSpec
-    extends AnyWordSpec
-    with Matchers
-    with GuiceOneAppPerSuite
-    with OptionValues
-    with WireMockEndpoints {
+  extends AnyWordSpec
+     with Matchers
+     with OptionValues
+     with ScalaFutures
+     with IntegrationPatience
+     with HttpClientV2Support
+     with WireMockSupport {
 
-  override def fakeApplication: Application =
-    new GuiceApplicationBuilder()
-      .disable(classOf[com.kenshoo.play.metrics.PlayModule])
-      .configure(
-        Map(
-          "microservice.services.service-dependencies.port" -> endpointPort,
-          "microservice.services.service-dependencies.host" -> host,
-          "metrics.jvm"                                     -> false
-        )
-      )
-      .build()
+  private lazy val serviceDependenciesConnector =
+    new ServiceDependenciesConnector(
+      httpClientV2,
+      new ServicesConfig(Configuration(
+        "microservice.services.service-dependencies.port" -> wireMockPort,
+        "microservice.services.service-dependencies.host" -> wireMockHost
+      ))
+    )
 
-  private lazy val serviceDependenciesConnector = app.injector.instanceOf[ServiceDependenciesConnector]
-
-  val dateFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+  implicit val headerCarrier: HeaderCarrier = HeaderCarrier()
 
   "GET dependencies" should {
-    "return a list of leak detections reports for a repository that exists" in new Setup {
+    "return a list of leak detections reports for a repository that exists" in {
       val testJson = """{
               "repositoryName": "auth",
               "libraryDependencies": [
@@ -89,26 +85,30 @@ class ServiceDependenciesConnectorSpec
               "lastUpdated": "2020-12-07T11:11:53.122Z"
             }"""
 
-      serviceEndpoint(
-        GET,
-        "/api/dependencies/repo1",
-        willRespondWith = (200, Some(testJson))
+      stubFor(
+        get(urlEqualTo("/api/dependencies/repo1"))
+          .willReturn(
+            aResponse()
+              .withStatus(200)
+              .withBody(testJson)
+          )
       )
+
       val response: Dependencies = serviceDependenciesConnector
         .dependencies("repo1")
         .futureValue
         .value
 
       val expectedResponse: Dependencies = Dependencies(
-        "auth",
-        Seq(
+        repositoryName      = "auth",
+        libraryDependencies = Seq(
           Dependency(
             Seq(BobbyRuleViolation("TEST DEPRECATION", LocalDate.parse("2050-05-01"), "(,99.99.99)")),
             "simple-reactivemongo"
           )
         ),
-        Seq(),
-        Seq()
+        sbtPluginsDependencies = Seq.empty,
+        otherDependencies      = Seq.empty
       )
 
       implicit val df: Reads[Dependencies] = Dependencies.reads
@@ -117,15 +117,12 @@ class ServiceDependenciesConnectorSpec
 
       response shouldBe expectedResponse
     }
-    "return None when a repo does not exist" in new Setup {
-      serviceEndpoint(
-        GET,
-        "/api/dependencies/repo1",
-        willRespondWith = (
-          404,
-          None
-        )
-      )
+
+    "return None when a repo does not exist" in {
+      stubFor(
+        get(urlEqualTo("/api/dependencies/repo1"))
+          .willReturn(aResponse().withStatus(404))
+       )
 
       val response = serviceDependenciesConnector
         .dependencies("repo1")
@@ -138,16 +135,10 @@ class ServiceDependenciesConnectorSpec
   "BobbyRuleViolation" should {
     implicit val brvR: Reads[BobbyRuleViolation] = BobbyRuleViolation.reads
     "parse json correctly" in {
-      val dateFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
-      val jsonInput                        = """{"reason": "reason", "from": "1999-01-01", "range": "range"}"""
-      val objectOutput                     = Json.parse(jsonInput).validate[BobbyRuleViolation]
+      val jsonInput    = """{"reason": "reason", "from": "1999-01-01", "range": "range"}"""
+      val objectOutput = Json.parse(jsonInput).validate[BobbyRuleViolation]
       objectOutput shouldBe
-        JsSuccess(BobbyRuleViolation("reason", LocalDate.parse("1999-01-01", dateFormatter), "range"))
+        JsSuccess(BobbyRuleViolation("reason", LocalDate.parse("1999-01-01"), "range"))
     }
   }
-
-}
-
-private trait Setup {
-  implicit val headerCarrier: HeaderCarrier = HeaderCarrier()
 }

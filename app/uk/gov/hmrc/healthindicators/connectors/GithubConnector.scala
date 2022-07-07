@@ -16,12 +16,11 @@
 
 package uk.gov.hmrc.healthindicators.connectors
 
-import play.api.Logger
 import play.api.libs.functional.syntax._
 import play.api.libs.json.{JsValue, Reads, __}
 import uk.gov.hmrc.healthindicators.configs.GithubConfig
-import uk.gov.hmrc.http.HttpReads.Implicits._
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse, NotFoundException, StringContextOps}
+import uk.gov.hmrc.http.{HeaderCarrier, HttpReads, HttpResponse, StringContextOps}
+import uk.gov.hmrc.http.client.HttpClientV2
 
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -29,44 +28,32 @@ import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 class GithubConnector @Inject() (
-  httpClient: HttpClient,
+  httpClientV2: HttpClientV2,
   githubConfig: GithubConfig
 )(implicit ec: ExecutionContext) {
+  import HttpReads.Implicits._
 
   private val configKey = githubConfig.token
 
-  def findReadMe(repo: String): Future[Option[String]] = {
-    val url =
-      url"${githubConfig.rawUrl}/hmrc/$repo/HEAD/README.md"
-    implicit val hc: HeaderCarrier = HeaderCarrier()
+  private implicit val hc: HeaderCarrier = HeaderCarrier()
 
-    httpClient
-      .GET[Option[HttpResponse]](
-        url = url,
-        headers = Seq("Authorization" -> s"token $configKey")
-      )
+  def findReadMe(repo: String): Future[Option[String]] =
+    httpClientV2
+      .get(url"${githubConfig.rawUrl}/hmrc/$repo/HEAD/README.md")
+      .replaceHeader("Authorization" -> s"token $configKey")
+      .withProxy
+      .execute[Option[HttpResponse]]
       .map(_.map(_.body))
-  }.recoverWith {
-    case _: NotFoundException => Future.successful(None)
-  }
 
   def getOpenPRs(repo: String): Future[Option[Seq[OpenPR]]] = {
     val url =
       url"${githubConfig.restUrl}/repos/hmrc/$repo/pulls?state=open"
-    implicit val hc: HeaderCarrier = HeaderCarrier()
     implicit val oR: Reads[OpenPR] = OpenPR.reads
-    val logger                     = Logger(this.getClass)
-
-    httpClient
-      .GET[Option[Seq[OpenPR]]](
-        url = url,
-        headers = Seq("Authorization" -> s"token $configKey")
-      )
-      .recoverWith {
-        case _: NotFoundException =>
-          logger.error(s"An error occurred when connecting to ${githubConfig.restUrl}repos/hmrc/$repo/pulls")
-          Future.successful(None)
-      }
+    httpClientV2
+      .get(url)
+      .replaceHeader("Authorization" -> s"token $configKey")
+      .withProxy
+      .execute[Option[Seq[OpenPR]]]
   }
 }
 
@@ -79,7 +66,8 @@ object OpenPR {
     json.validate[String].map(LocalDate.parse(_, dateFormatter))
 
   val reads: Reads[OpenPR] =
-    ((__ \ "title").read[String]
-      ~ (__ \ "created_at").read[LocalDate]
-      ~ (__ \ "updated_at").read[LocalDate])(OpenPR.apply _)
+    ( (__ \ "title"     ).read[String]
+    ~ (__ \ "created_at").read[LocalDate]
+    ~ (__ \ "updated_at").read[LocalDate]
+    )(OpenPR.apply _)
 }

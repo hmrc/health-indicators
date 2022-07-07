@@ -16,49 +16,43 @@
 
 package uk.gov.hmrc.healthindicators.connectors
 
-import com.github.tomakehurst.wiremock.http.RequestMethod.GET
+import com.github.tomakehurst.wiremock.client.WireMock._
 import org.scalatest.OptionValues
-import org.scalatest.concurrent.ScalaFutures.convertScalaFuture
+import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
-import play.api.Application
-import play.api.inject.guice.GuiceApplicationBuilder
-import uk.gov.hmrc.healthindicators.WireMockEndpoints
-import org.scalatestplus.play.guice.GuiceOneAppPerSuite
+import play.api.Configuration
+import uk.gov.hmrc.healthindicators.configs.GithubConfig
+import uk.gov.hmrc.http.test.{HttpClientV2Support, WireMockSupport}
 
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
+import scala.concurrent.ExecutionContext.Implicits.global
 
 class GithubConnectorSpec
-    extends AnyWordSpec
-    with Matchers
-    with GuiceOneAppPerSuite
-    with OptionValues
-    with WireMockEndpoints {
+  extends AnyWordSpec
+     with Matchers
+     with OptionValues
+     with ScalaFutures
+     with IntegrationPatience
+     with HttpClientV2Support
+     with WireMockSupport {
 
-  override def fakeApplication: Application =
-    new GuiceApplicationBuilder()
-      .disable(classOf[com.kenshoo.play.metrics.PlayModule])
-      .configure(
-        Map(
-          "github.open.api.rawurl" -> endpointMockUrl,
-          "github.rest.api.url"    -> endpointMockUrl,
-          "github.open.api.token"  -> "test-token",
-          "metrics.jvm"            -> false
-        )
-      )
-      .build()
-
-  private lazy val githubConnector = app.injector.instanceOf[GithubConnector]
+  private lazy val githubConnector =
+    new GithubConnector(
+      httpClientV2,
+      new GithubConfig(Configuration(
+        "github.open.api.rawurl" -> wireMockUrl,
+        "github.rest.api.url"    -> wireMockUrl,
+        "github.open.api.token"  -> "test-token"
+      ))
+    )
 
   "GET findReadMe" should {
     "return a URL of README.md for the correct repo" in {
 
-      serviceEndpoint(
-        GET,
-        "/hmrc/repo1/HEAD/README.md",
-        requestHeaders = Map("Authorization" -> s"token test-token"),
-        willRespondWith = (200, Some("Hello World"))
+      stubFor(
+        get(urlEqualTo("/hmrc/repo1/HEAD/README.md"))
+          .willReturn(aResponse().withStatus(200).withBody("Hello World"))
       )
 
       val response = githubConnector
@@ -67,15 +61,17 @@ class GithubConnectorSpec
         .value
 
       response shouldBe "Hello World"
+
+      verify(
+        getRequestedFor(urlEqualTo("/hmrc/repo1/HEAD/README.md"))
+          .withHeader("Authorization", equalTo("token test-token"))
+      )
     }
 
     "return a None when no README.md is found" in {
-
-      serviceEndpoint(
-        GET,
-        "/hmrc/repo1/HEAD/README.md",
-        requestHeaders = Map("Authorization" -> s"token test-token"),
-        willRespondWith = (404, None)
+      stubFor(
+        get(urlEqualTo("/hmrc/repo1/HEAD/README.md"))
+          .willReturn(aResponse().withStatus(404))
       )
 
       val response = githubConnector
@@ -88,18 +84,21 @@ class GithubConnectorSpec
 
   "getOpenPrs" should {
     "respond with correct PR data" in {
-      val dateFormatter: DateTimeFormatter = DateTimeFormatter.ISO_DATE_TIME
-      val testJSON                         = Some("""[{
-          |"title": "hello-world",
-          |"created_at": "2021-04-16T13:38:36Z",
-          |"updated_at": "2021-04-16T13:38:33Z"
-          |}]""".stripMargin)
-
-      serviceEndpoint(
-        GET,
-        "/repos/hmrc/repo2/pulls?state=open",
-        requestHeaders = Map("Authorization" -> s"token test-token"),
-        willRespondWith = (200, testJSON)
+      stubFor(
+        get(urlEqualTo("/repos/hmrc/repo2/pulls?state=open"))
+          .willReturn(
+            aResponse()
+              .withStatus(200)
+              .withBody(
+                """[
+                  {
+                    "title": "hello-world",
+                    "created_at": "2021-04-16T13:38:36Z",
+                    "updated_at": "2021-04-16T13:38:33Z"
+                  }
+                ]"""
+              )
+          )
       )
 
       val response = githubConnector
@@ -110,19 +109,23 @@ class GithubConnectorSpec
         Seq(
           OpenPR(
             "hello-world",
-            LocalDate.parse("2021-04-16T13:38:36Z", dateFormatter),
-            LocalDate.parse("2021-04-16T13:38:33Z", dateFormatter)
+            LocalDate.parse("2021-04-16"),
+            LocalDate.parse("2021-04-16")
           )
         )
       )
+
+      verify(
+        getRequestedFor(urlPathEqualTo("/repos/hmrc/repo2/pulls"))
+          .withHeader("Authorization", equalTo("token test-token"))
+      )
+
     }
 
     "respond with None when repo not found" in {
-      serviceEndpoint(
-        GET,
-        "/repos/hmrc/repo2/pulls",
-        requestHeaders = Map("Authorization" -> s"token test-token"),
-        willRespondWith = (404, None)
+      stubFor(
+        get(urlEqualTo("/repos/hmrc/repo2/pulls?state=open"))
+          .willReturn(aResponse().withStatus(404))
       )
 
       val response = githubConnector
@@ -133,11 +136,9 @@ class GithubConnectorSpec
     }
 
     "respond with Seq.empty when no pulls found" in {
-      serviceEndpoint(
-        GET,
-        "/repos/hmrc/repo2/pulls?state=open",
-        requestHeaders = Map("Authorization" -> s"token test-token"),
-        willRespondWith = (200, Some("""[]""".stripMargin))
+      stubFor(
+        get(urlEqualTo("/repos/hmrc/repo2/pulls?state=open"))
+          .willReturn(aResponse().withStatus(200).withBody("[]"))
       )
 
       val response = githubConnector
@@ -147,5 +148,4 @@ class GithubConnectorSpec
       response shouldBe Some(Seq.empty)
     }
   }
-
 }

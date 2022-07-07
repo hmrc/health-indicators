@@ -18,36 +18,44 @@ package uk.gov.hmrc.healthindicators.connectors
 
 import play.api.libs.functional.syntax._
 import play.api.libs.json.{Reads, __}
-import uk.gov.hmrc.healthindicators.configs.AppConfig
-import uk.gov.hmrc.http.HttpReads.Implicits._
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, StringContextOps}
+import uk.gov.hmrc.http.{HeaderCarrier, HttpReads, StringContextOps}
+import uk.gov.hmrc.http.client.HttpClientV2
+import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class LeakDetectionConnector @Inject() (
-  httpClient: HttpClient,
-  healthIndicatorsConfig: AppConfig
+  httpClientV2  : HttpClientV2,
+  servicesConfig: ServicesConfig
 )(implicit val ec: ExecutionContext) {
+  import HttpReads.Implicits._
 
   private implicit val hc: HeaderCarrier = HeaderCarrier()
 
-  private val leakDetectionBaseUrl: String = healthIndicatorsConfig.leakDetectionUrl
+  private val leakDetectionBaseUrl: String =
+    servicesConfig.baseUrl("leak-detection")
 
   def findLeaks(repo: String): Future[Seq[Leak]] = {
     implicit val rF = Leak.reads
-    httpClient.GET[Seq[Leak]](url"$leakDetectionBaseUrl/api/leaks?repository=$repo")
+    httpClientV2
+      .get(url"$leakDetectionBaseUrl/api/leaks?repository=$repo")
+      .execute[Seq[Leak]]
   }
-
 }
 
-case class Leak(repoName: String, branch: String, ruleId: String)
+case class Leak(
+  repoName: String,
+  branch  : String,
+  ruleId  : String
+)
 
 object Leak {
   val reads: Reads[Leak] = {
     ( (__ \ "repoName").read[String]
     ~ (__ \ "branch"  ).read[String]
-    ~ (__ \ "ruleId"  ).read[String]   )(Leak.apply _)
+    ~ (__ \ "ruleId"  ).read[String]
+    )(Leak.apply _)
   }
 }

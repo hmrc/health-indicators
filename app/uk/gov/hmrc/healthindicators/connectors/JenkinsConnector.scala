@@ -20,16 +20,19 @@ import com.google.common.io.BaseEncoding
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
 import uk.gov.hmrc.healthindicators.configs.JenkinsConfig
-import uk.gov.hmrc.http.HttpReads.Implicits._
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, StringContextOps}
+import uk.gov.hmrc.http.{HeaderCarrier, HttpReads, StringContextOps}
+import uk.gov.hmrc.http.client.HttpClientV2
 
 import java.time.Instant
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class JenkinsConnector @Inject() (config: JenkinsConfig, http: HttpClient) {
-
+class JenkinsConnector @Inject()(
+  config      : JenkinsConfig,
+  httpClientV2: HttpClientV2
+) {
   import JenkinsApiReads._
+  import HttpReads.Implicits._
 
   def getBuildJob(baseUrl: String)(implicit ec: ExecutionContext): Future[Option[JenkinsBuildReport]] = {
 
@@ -40,13 +43,11 @@ class JenkinsConnector @Inject() (config: JenkinsConfig, http: HttpClient) {
       s"Basic ${BaseEncoding.base64().encode(s"${config.username}:${config.token}".getBytes("UTF-8"))}"
 
     implicit val hc: HeaderCarrier = HeaderCarrier()
-    val url                        = url"${baseUrl}api/json?depth=1&tree=lastCompletedBuild[result,timestamp]"
 
-    http
-      .GET[Option[JenkinsBuildReport]](
-        url = url,
-        headers = Seq("Authorization" -> authorizationHeader)
-      )
+    httpClientV2
+      .get(url"${baseUrl}api/json?depth=1&tree=lastCompletedBuild[result,timestamp]")
+      .replaceHeader("Authorization" -> authorizationHeader)
+      .execute[Option[JenkinsBuildReport]]
   }
 }
 
@@ -54,12 +55,14 @@ case class JenkinsBuildReport(lastCompletedBuild: Option[JenkinsBuildStatus])
 case class JenkinsBuildStatus(result: String, timeStamp: Instant)
 
 object JenkinsApiReads {
-  implicit val readsInstant: Reads[Instant] = (json: JsValue) => json.validate[Long].map(Instant.ofEpochMilli)
+  private implicit val readsInstant: Reads[Instant] =
+    (json: JsValue) => json.validate[Long].map(Instant.ofEpochMilli)
 
-  implicit val jenkinsBuildStatus: Reads[JenkinsBuildStatus] =
-    ((__ \ "result").read[String]
-      ~ (__ \ "timestamp").read[Instant])(JenkinsBuildStatus.apply _)
+  private implicit val jenkinsBuildStatus: Reads[JenkinsBuildStatus] =
+    ( (__ \ "result"   ).read[String]
+    ~ (__ \ "timestamp").read[Instant]
+    )(JenkinsBuildStatus.apply _)
 
-  implicit val jenkinsBuildReport: Reads[JenkinsBuildReport] = Json.reads[JenkinsBuildReport]
-
+  implicit val jenkinsBuildReport: Reads[JenkinsBuildReport] =
+    Json.reads[JenkinsBuildReport]
 }

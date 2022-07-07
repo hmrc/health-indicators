@@ -19,9 +19,9 @@ package uk.gov.hmrc.healthindicators.connectors
 import play.api.Logger
 import play.api.libs.functional.syntax._
 import play.api.libs.json.{JsValue, Reads, __}
-import uk.gov.hmrc.healthindicators.configs.AppConfig
-import uk.gov.hmrc.http.HttpReads.Implicits._
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, UpstreamErrorResponse, StringContextOps}
+import uk.gov.hmrc.http.{HeaderCarrier, HttpReads, UpstreamErrorResponse, StringContextOps}
+import uk.gov.hmrc.http.client.HttpClientV2
+import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -30,22 +30,27 @@ import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class ServiceDependenciesConnector @Inject() (
-  httpClient: HttpClient,
-  ratersConfig: AppConfig
+  httpClientV2  : HttpClientV2,
+  servicesConfig: ServicesConfig
 )(implicit val ec: ExecutionContext) {
+  import HttpReads.Implicits._
 
   private implicit val hc: HeaderCarrier = HeaderCarrier()
 
-  private val serviceDependenciesBaseURL: String = ratersConfig.serviceDependencies
+  private val serviceDependenciesBaseURL: String =
+    servicesConfig.baseUrl("service-dependencies")
+
+  private val logger = Logger(this.getClass)
 
   def dependencies(repo: String): Future[Option[Dependencies]] = {
     implicit val rF: Reads[Dependencies] = Dependencies.reads
-    val logger                           = Logger(this.getClass)
-    httpClient
-      .GET[Option[Dependencies]](url"$serviceDependenciesBaseURL/api/dependencies/$repo")
+    val url = url"$serviceDependenciesBaseURL/api/dependencies/$repo"
+    httpClientV2
+      .get(url)
+      .execute[Option[Dependencies]]
       .recoverWith {
         case UpstreamErrorResponse.Upstream5xxResponse(x) =>
-          logger.error(s"An error occurred when connecting to $repo: ${x.getMessage()}", x)
+          logger.error(s"An error occurred when connecting to $url: ${x.getMessage()}", x)
           Future.successful(None)
       }
   }
@@ -53,20 +58,22 @@ class ServiceDependenciesConnector @Inject() (
 
 case class BobbyRuleViolation(
   reason: String,
-  from: LocalDate,
-  range: String
+  from  : LocalDate,
+  range : String
 )
 
 object BobbyRuleViolation {
-  val dateFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+  private val dateFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
 
-  implicit val readsDate: Reads[LocalDate] = (json: JsValue) =>
-    json.validate[String].map(LocalDate.parse(_, dateFormatter))
+  private implicit val readsDate: Reads[LocalDate] =
+    (json: JsValue) =>
+      json.validate[String].map(LocalDate.parse(_, dateFormatter))
 
   val reads: Reads[BobbyRuleViolation] =
-    ((__ \ "reason").read[String]
-      ~ (__ \ "from").read[LocalDate]
-      ~ (__ \ "range").read[String])(BobbyRuleViolation.apply _)
+    ( (__ \ "reason").read[String]
+    ~ (__ \ "from"  ).read[LocalDate]
+    ~ (__ \ "range" ).read[String]
+    )(BobbyRuleViolation.apply _)
 }
 
 case class Dependency(
@@ -77,24 +84,26 @@ case class Dependency(
 object Dependency {
   val reads: Reads[Dependency] = {
     implicit val brvR: Reads[BobbyRuleViolation] = BobbyRuleViolation.reads
-    ((__ \ "bobbyRuleViolations").read[Seq[BobbyRuleViolation]]
-      ~ (__ \ "name").read[String])(Dependency.apply _)
+    ( (__ \ "bobbyRuleViolations").read[Seq[BobbyRuleViolation]]
+    ~ (__ \ "name"               ).read[String]
+    )(Dependency.apply _)
   }
 }
 
 case class Dependencies(
-  repositoryName: String,
-  libraryDependencies: Seq[Dependency],
+  repositoryName        : String,
+  libraryDependencies   : Seq[Dependency],
   sbtPluginsDependencies: Seq[Dependency],
-  otherDependencies: Seq[Dependency]
+  otherDependencies     : Seq[Dependency]
 )
 
 object Dependencies {
   val reads: Reads[Dependencies] = {
     implicit val ldR: Reads[Dependency] = Dependency.reads
-    ((__ \ "repositoryName").read[String]
-      ~ (__ \ "libraryDependencies").read[Seq[Dependency]]
-      ~ (__ \ "sbtPluginsDependencies").read[Seq[Dependency]]
-      ~ (__ \ "otherDependencies").read[Seq[Dependency]])(Dependencies.apply _)
+    ( (__ \ "repositoryName"        ).read[String]
+    ~ (__ \ "libraryDependencies"   ).read[Seq[Dependency]]
+    ~ (__ \ "sbtPluginsDependencies").read[Seq[Dependency]]
+    ~ (__ \ "otherDependencies"     ).read[Seq[Dependency]]
+    )(Dependencies.apply _)
   }
 }

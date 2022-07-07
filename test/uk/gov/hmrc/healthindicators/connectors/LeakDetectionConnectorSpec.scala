@@ -16,90 +16,87 @@
 
 package uk.gov.hmrc.healthindicators.connectors
 
-import com.github.tomakehurst.wiremock.http.RequestMethod.GET
+import com.github.tomakehurst.wiremock.client.WireMock._
 import org.scalatest.OptionValues
-import org.scalatest.concurrent.ScalaFutures.convertScalaFuture
+import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
-import play.api.Application
-import play.api.inject.guice.GuiceApplicationBuilder
-import uk.gov.hmrc.healthindicators.WireMockEndpoints
-import org.scalatestplus.play.guice.GuiceOneAppPerSuite
+import play.api.Configuration
+import uk.gov.hmrc.http.test.{HttpClientV2Support, WireMockSupport}
+import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
+
+import scala.concurrent.ExecutionContext.Implicits.global
 
 class LeakDetectionConnectorSpec
-    extends AnyWordSpec
-    with Matchers
-    with GuiceOneAppPerSuite
-    with OptionValues
-    with WireMockEndpoints {
+  extends AnyWordSpec
+     with Matchers
+     with OptionValues
+     with ScalaFutures
+     with IntegrationPatience
+     with HttpClientV2Support
+     with WireMockSupport {
 
-  override def fakeApplication: Application =
-    new GuiceApplicationBuilder()
-      .disable(classOf[com.kenshoo.play.metrics.PlayModule])
-      .configure(
-        Map(
-          "microservice.services.leak-detection.port" -> endpointPort,
-          "microservice.services.leak-detection.host" -> host,
-          "metrics.jvm"                               -> false
-        )
-      )
-      .build()
-
-  private lazy val leakDetectionConnector = app.injector.instanceOf[LeakDetectionConnector]
+  private lazy val leakDetectionConnector =
+    new LeakDetectionConnector(
+      httpClientV2,
+      new ServicesConfig(Configuration(
+        "microservice.services.leak-detection.port" -> wireMockPort,
+        "microservice.services.leak-detection.host" -> wireMockHost
+      ))
+    )
 
   "GET latestMasterReport" should {
     "return a list of leak detections reports for a repository" in {
-      serviceEndpoint(
-        GET,
-        "/api/leaks",
-        queryParameters = Seq("repository" -> "repo1"),
-        willRespondWith = (
-          200,
-          Some(
-            """
-            |[ {
-            |    "repoName": "repo1",
-            |    "branch": "main",
-            |    "timestamp": "2019-04-01T10:26:57.486Z",
-            |    "reportId": "a5c4a789-697b-4964-90cf-a7fbd77f377b",
-            |    "ruleId": "rule1",
-            |    "description": "lds rule 1",
-            |    "filePath": "/keys",
-            |    "scope": "fileName",
-            |    "lineNumber": 1,
-            |    "urlToSource": "https://github.com/",
-            |    "lineText": "keystore",
-            |    "matches": [
-            |      {
-            |        "start": 8,
-            |        "end": 12
-            |      }
-            |    ],
-            |    "priority": "low"
-            |  },
-            |  {
-            |    "repoName": "repo1",
-            |    "branch": "branch1",
-            |    "timestamp": "2019-04-01T10:26:57.486Z",
-            |    "reportId": "a5c4a789-697b-4964-90cf-a7fbd77f377b",
-            |    "ruleId": "rule2",
-            |    "description": "lds rule 2",
-            |    "filePath": "/keys",
-            |    "scope": "fileName",
-            |    "lineNumber": 1,
-            |    "urlToSource": "https://github.com/",
-            |    "lineText": "text",
-            |    "matches": [
-            |      {
-            |        "start": 6,
-            |        "end": 10
-            |      }
-            |    ],
-            |    "priority": "low"
-            |  }
-            |]""".stripMargin
+      stubFor(
+        get(urlEqualTo("/api/leaks?repository=repo1"))
+          .willReturn(
+            aResponse()
+              .withStatus(200)
+              .withBody(
+                """[
+                  {
+                    "repoName": "repo1",
+                    "branch": "main",
+                    "timestamp": "2019-04-01T10:26:57.486Z",
+                    "reportId": "a5c4a789-697b-4964-90cf-a7fbd77f377b",
+                    "ruleId": "rule1",
+                    "description": "lds rule 1",
+                    "filePath": "/keys",
+                    "scope": "fileName",
+                    "lineNumber": 1,
+                    "urlToSource": "https://github.com/",
+                    "lineText": "keystore",
+                    "matches": [
+                      {
+                        "start": 8,
+                        "end": 12
+                      }
+                    ],
+                    "priority": "low"
+                  },
+                  {
+                    "repoName": "repo1",
+                    "branch": "branch1",
+                    "timestamp": "2019-04-01T10:26:57.486Z",
+                    "reportId": "a5c4a789-697b-4964-90cf-a7fbd77f377b",
+                    "ruleId": "rule2",
+                    "description": "lds rule 2",
+                    "filePath": "/keys",
+                    "scope": "fileName",
+                    "lineNumber": 1,
+                    "urlToSource": "https://github.com/",
+                    "lineText": "text",
+                    "matches": [
+                      {
+                        "start": 6,
+                        "end": 10
+                      }
+                    ],
+                    "priority": "low"
+                  }
+                ]"""
+              )
           )
-        )
       )
 
       val response = leakDetectionConnector
@@ -111,7 +108,14 @@ class LeakDetectionConnectorSpec
     }
 
     "return a Empty List for non existing repository" in {
-      serviceEndpoint(GET, "/api/leaks", queryParameters = Seq("repository" -> "non-existing"),  willRespondWith = (200, Some("[]")))
+      stubFor(
+        get(urlEqualTo("/api/leaks?repository=non-existing"))
+          .willReturn(
+            aResponse()
+            .withStatus(200)
+            .withBody("[]")
+          )
+      )
 
       val response = leakDetectionConnector
         .findLeaks("non-existing")
@@ -119,7 +123,5 @@ class LeakDetectionConnectorSpec
 
       response shouldBe Nil
     }
-
   }
-
 }
