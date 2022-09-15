@@ -44,7 +44,7 @@ class IntegrationSpec
 
   private[this] lazy val ws = app.injector.instanceOf[WSClient]
 
-  override def fakeApplication: Application =
+  override def fakeApplication(): Application =
     new GuiceApplicationBuilder()
       .disable(classOf[com.kenshoo.play.metrics.PlayModule])
       .configure(
@@ -73,7 +73,7 @@ class IntegrationSpec
 
   "Service Health Indicators" should {
     "return 200 when it starts correctly and receives GET /ping/ping" in {
-      val response = ws.url(s"http://localhost:$port/ping/ping").get.futureValue
+      val response = ws.url(s"http://localhost:$port/ping/ping").get().futureValue
 
       response.status shouldBe 200
     }
@@ -122,7 +122,7 @@ class IntegrationSpec
       )
 
       eventually {
-        val response = ws.url(s"http://localhost:$port/health-indicators/indicators/auth").get.futureValue
+        val response = ws.url(s"http://localhost:$port/health-indicators/indicators/auth").get().futureValue
         response.status shouldBe 200
         println("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
         println(response.body)

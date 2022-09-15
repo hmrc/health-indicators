@@ -46,7 +46,7 @@ class JenkinsConnector @Inject()(
 
     httpClientV2
       .get(url"${baseUrl}api/json?depth=1&tree=lastCompletedBuild[result,timestamp]")
-      .replaceHeader("Authorization" -> authorizationHeader)
+      .setHeader("Authorization" -> authorizationHeader)
       .execute[Option[JenkinsBuildReport]]
   }
 }

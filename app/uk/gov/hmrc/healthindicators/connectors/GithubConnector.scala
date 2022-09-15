@@ -40,7 +40,7 @@ class GithubConnector @Inject() (
   def findReadMe(repo: String): Future[Option[String]] =
     httpClientV2
       .get(url"${githubConfig.rawUrl}/hmrc/$repo/HEAD/README.md")
-      .replaceHeader("Authorization" -> s"token $configKey")
+      .setHeader("Authorization" -> s"token $configKey")
       .withProxy
       .execute[Option[HttpResponse]]
       .map(_.map(_.body))
@@ -51,7 +51,7 @@ class GithubConnector @Inject() (
     implicit val oR: Reads[OpenPR] = OpenPR.reads
     httpClientV2
       .get(url)
-      .replaceHeader("Authorization" -> s"token $configKey")
+      .setHeader("Authorization" -> s"token $configKey")
       .withProxy
       .execute[Option[Seq[OpenPR]]]
   }

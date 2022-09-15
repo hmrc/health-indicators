@@ -40,7 +40,7 @@ class SortTypeQueryStringBindableSpec extends AnyWordSpec with Matchers with Opt
     "fail to bind when there is no matching value" in {
       val params = Map("sort" -> Seq.empty)
 
-      SortType.sortTypeBindable.bind(key = "sort", params).value shouldBe 'Left
+      SortType.sortTypeBindable.bind(key = "sort", params).value.isLeft shouldBe true
 
       // Alternative statement without OptionValues???
       //SortType.sortTypeBindable.bind(key = "sort", params).get.isLeft shouldBe true
@@ -49,13 +49,13 @@ class SortTypeQueryStringBindableSpec extends AnyWordSpec with Matchers with Opt
     "fail to bind when value is not recognised" in {
       val params = Map("sort" -> Seq("unknown"))
 
-      SortType.sortTypeBindable.bind(key = "sort", params).value shouldBe 'Left
+      SortType.sortTypeBindable.bind(key = "sort", params).value.isLeft shouldBe true
     }
 
     "fail to bind when there is more than one recognised value" in {
       val params = Map("sort" -> Seq(SortType.Descending.asString, SortType.Ascending.asString))
 
-      SortType.sortTypeBindable.bind(key = "sort", params).value shouldBe 'Left
+      SortType.sortTypeBindable.bind(key = "sort", params).value.isLeft shouldBe true
     }
 
   }

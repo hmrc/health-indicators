@@ -59,7 +59,7 @@ class MetricCollectionServiceSpec extends AnyWordSpec with Matchers with Mockito
       when(mockProducer.produce(any)) thenReturn
         Future.successful(Metric(GithubMetricType, Seq(Result(CleanGithub, "bar", None))))
 
-      when(repositoryMetricsRepository.insert(any, any)) thenReturn Future.successful(Unit)
+      when(repositoryMetricsRepository.insert(any, any)) thenReturn Future.unit
 
       Await.result(metricCollectionService.collectAll(), 10.seconds) shouldBe ((): Unit)
 

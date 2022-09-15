@@ -83,10 +83,10 @@ class HistoricIndicatorServiceSpec extends AnyWordSpec with Matchers with Mockit
         .thenReturn(Future.successful(indicators))
 
       when(mockRepositoryIndicator.insert(any[Seq[HistoricIndicator]]))
-        .thenReturn(Future.successful(Unit))
+        .thenReturn(Future.unit)
 
       when(mockRepositoryAverageScore.insert(any[AveragePlatformScore]))
-        .thenReturn(Future.successful(Unit))
+        .thenReturn(Future.unit)
 
       Await.result(historicIndicatorService.collectHistoricIndicators(), 10.seconds) shouldBe ((): Unit)
 
@@ -127,7 +127,7 @@ class HistoricIndicatorServiceSpec extends AnyWordSpec with Matchers with Mockit
 
       val result = historicIndicatorService.historicIndicatorsForAllRepos
 
-      result.futureValue mustBe Seq(
+      result.futureValue.toSet mustBe Set(
         HistoricIndicatorAPI("foo", Seq(DataPoint(now, 100), DataPoint(dayBefore, 50))),
         HistoricIndicatorAPI("bar", Seq(DataPoint(now, 75), DataPoint(dayBefore, 25))))
     }
