@@ -64,6 +64,9 @@ object RepoType {
   case object Library extends RepoType {
     val asString = "Library"
   }
+  case object Test extends RepoType {
+    val asString = "Test"
+  }
   case object Other extends RepoType {
     val asString = "Other"
   }
@@ -74,6 +77,7 @@ object RepoType {
         case Service.asString   => JsSuccess(Service)
         case Prototype.asString => JsSuccess(Prototype)
         case Library.asString   => JsSuccess(Library)
+        case Test.asString      => JsSuccess(Test)
         case Other.asString     => JsSuccess(Other)
         case s                  => JsError(s"Invalid RepositoryType: $s")
       }
@@ -90,6 +94,7 @@ object RepoType {
           case Seq(Service.asString)   => Right(Service)
           case Seq(Prototype.asString) => Right(Prototype)
           case Seq(Library.asString)   => Right(Library)
+          case Seq(Test.asString)      => Right(Test)
           case Seq(Other.asString)     => Right(Other)
           case _                       => Left("unable to bind RepositoryType from url")
         })
