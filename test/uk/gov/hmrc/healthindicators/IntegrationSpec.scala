@@ -100,7 +100,7 @@ class IntegrationSpec
       )
 
       stubFor(
-        get(urlEqualTo("/alert-configs/auth"))
+        get(urlEqualTo("/service-configs/alert-configs/auth"))
           .willReturn(aResponse().withStatus(200).withBody(serviceConfigsJson))
       )
 
