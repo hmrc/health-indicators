@@ -40,7 +40,7 @@ class ServiceConfigsConnector @Inject()(
   def findAlertConfigs(repo: String): Future[Option[AlertConfig]] = {
     implicit val aR: Reads[AlertConfig] = AlertConfig.reads
     httpClientV2
-      .get(url"$serviceConfigsBaseURL/alert-configs/$repo")
+      .get(url"$serviceConfigsBaseURL/service-configs/alert-configs/$repo")
       .execute[Option[AlertConfig]]
   }
 }

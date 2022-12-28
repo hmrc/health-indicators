@@ -48,7 +48,7 @@ class ServiceConfigsConnectorSpec
   "GET findAlertConfigs" should {
     "return AlertConfig for repo" in {
       stubFor(
-        get(urlEqualTo("/alert-configs/foo"))
+        get(urlEqualTo("/service-configs/alert-configs/foo"))
           .willReturn(
             aResponse()
             .withStatus(200)
@@ -73,7 +73,7 @@ class ServiceConfigsConnectorSpec
 
     "return AlertConfig for repo when config is not found" in {
       stubFor(
-        get(urlEqualTo("/alert-configs/foo"))
+        get(urlEqualTo("/service-configs/alert-configs/foo"))
           .willReturn(aResponse().withStatus(404))
       )
 
