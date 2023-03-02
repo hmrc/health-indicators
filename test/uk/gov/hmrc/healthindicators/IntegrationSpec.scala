@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,8 +57,8 @@ class IntegrationSpec
           "microservice.services.service-dependencies.host"   -> wireMockHost,
           "microservice.services.leak-detection.port"         -> wireMockPort,
           "microservice.services.leak-detection.host"         -> wireMockHost,
-          "github.open.api.rawurl"                            -> wireMockUrl,
-          "github.open.api.token"                             -> "test-token",
+          "microservice.services.platops-github-proxy.port"   -> wireMockPort,
+          "microservice.services.platops-github-proxy.host"   -> wireMockHost,
           "jenkins.username"                                  -> "test-username",
           "jenkins.token"                                     -> "test-token",
           "microservice.services.teams-and-repositories.port" -> wireMockPort,
@@ -112,20 +112,18 @@ class IntegrationSpec
       )
 
       stubFor(
-        get(urlEqualTo("/hmrc/auth/HEAD/README.md"))
+        get(urlEqualTo("/platops-github-proxy/github-raw/auth/HEAD/README.md"))
           .willReturn(aResponse().withStatus(404))
       )
 
       stubFor(
-        get(urlEqualTo("/repos/hmrc/auth/pulls?state=open"))
+        get(urlEqualTo("/platops-github-proxy/github-api/auth/pulls?state=open"))
           .willReturn(aResponse().withStatus(200).withBody("""[]"""))
       )
 
       eventually {
         val response = ws.url(s"http://localhost:$port/health-indicators/indicators/auth").get().futureValue
         response.status shouldBe 200
-        println("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
-        println(response.body)
         response.body     should include(expectedResponse)
         response.body     should include(bobbyRuleResponse)
         response.body     should include(leakDetectionResponse)
@@ -142,13 +140,11 @@ class IntegrationSpec
       )
 
       verify(
-        getRequestedFor(urlEqualTo("/hmrc/auth/HEAD/README.md"))
-          .withHeader("Authorization", equalTo("token test-token"))
+        getRequestedFor(urlEqualTo("/platops-github-proxy/github-raw/auth/HEAD/README.md"))
       )
 
       verify(
-        getRequestedFor(urlEqualTo("/repos/hmrc/auth/pulls?state=open"))
-          .withHeader("Authorization", equalTo("token test-token"))
+        getRequestedFor(urlEqualTo("/platops-github-proxy/github-rest/auth/pulls?state=open"))
       )
     }
   }

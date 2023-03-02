@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpec
-import uk.gov.hmrc.healthindicators.connectors.{GithubConnector, OpenPR}
+import uk.gov.hmrc.healthindicators.connectors.{GitHubProxyConnector, OpenPR}
 import uk.gov.hmrc.healthindicators.metricproducers.GithubMetricProducer
 import uk.gov.hmrc.healthindicators.models.{CleanGithub, DefaultReadme, GithubMetricType, Metric, NoReadme, Result, StalePR}
 import uk.gov.hmrc.http.HeaderCarrier
@@ -34,7 +34,7 @@ import scala.concurrent.Future
 
 class GithubMetricProducerSpec extends AnyWordSpec with Matchers with MockitoSugar with ScalaFutures with BeforeAndAfterEach {
 
-  private val mockGithubConnector: GithubConnector = mock[GithubConnector]
+  private val mockGithubConnector: GitHubProxyConnector = mock[GitHubProxyConnector]
   private val producer: GithubMetricProducer = new GithubMetricProducer(mockGithubConnector)
 
   private val readMeDefault = "This is a placeholder README.md for a new repository"

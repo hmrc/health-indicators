@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,13 +20,14 @@ import org.mongodb.scala.model.Filters.equal
 import org.mongodb.scala.model.Indexes._
 import org.mongodb.scala.model.{IndexModel, IndexOptions}
 import uk.gov.hmrc.healthindicators.configs.SchedulerConfigs
-import uk.gov.hmrc.healthindicators.models.{HistoricIndicator}
+import uk.gov.hmrc.healthindicators.models.HistoricIndicator
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 
-import javax.inject.Inject
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
+@Singleton
 class HistoricIndicatorsRepository @Inject() (
   mongoComponent: MongoComponent,
   config: SchedulerConfigs

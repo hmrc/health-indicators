@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,41 +18,36 @@ package uk.gov.hmrc.healthindicators.connectors
 
 import play.api.libs.functional.syntax._
 import play.api.libs.json.{JsValue, Reads, __}
-import uk.gov.hmrc.healthindicators.configs.GithubConfig
 import uk.gov.hmrc.http.{HeaderCarrier, HttpReads, HttpResponse, StringContextOps}
 import uk.gov.hmrc.http.client.HttpClientV2
+import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class GithubConnector @Inject() (
+class GitHubProxyConnector @Inject()(
   httpClientV2: HttpClientV2,
-  githubConfig: GithubConfig
+  servicesConfig: ServicesConfig
 )(implicit ec: ExecutionContext) {
   import HttpReads.Implicits._
 
-  private val configKey = githubConfig.token
-
   private implicit val hc: HeaderCarrier = HeaderCarrier()
+
+  private val gitHubProxyBaseURL: String = servicesConfig.baseUrl("platops-github-proxy")
 
   def findReadMe(repo: String): Future[Option[String]] =
     httpClientV2
-      .get(url"${githubConfig.rawUrl}/hmrc/$repo/HEAD/README.md")
-      .setHeader("Authorization" -> s"token $configKey")
-      .withProxy
+      .get(url"$gitHubProxyBaseURL/platops-github-proxy/github-raw/$repo/HEAD/README.md")
       .execute[Option[HttpResponse]]
       .map(_.map(_.body))
 
   def getOpenPRs(repo: String): Future[Option[Seq[OpenPR]]] = {
-    val url =
-      url"${githubConfig.restUrl}/repos/hmrc/$repo/pulls?state=open"
+    val url = url"$gitHubProxyBaseURL/platops-github-proxy/github-rest/$repo/pulls?state=open"
     implicit val oR: Reads[OpenPR] = OpenPR.reads
     httpClientV2
       .get(url)
-      .setHeader("Authorization" -> s"token $configKey")
-      .withProxy
       .execute[Option[Seq[OpenPR]]]
   }
 }
