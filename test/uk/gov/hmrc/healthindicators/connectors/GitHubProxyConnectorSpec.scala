@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,13 +22,13 @@ import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import play.api.Configuration
-import uk.gov.hmrc.healthindicators.configs.GithubConfig
 import uk.gov.hmrc.http.test.{HttpClientV2Support, WireMockSupport}
+import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 import java.time.LocalDate
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class GithubConnectorSpec
+class GitHubProxyConnectorSpec
   extends AnyWordSpec
      with Matchers
      with OptionValues
@@ -37,25 +37,24 @@ class GithubConnectorSpec
      with HttpClientV2Support
      with WireMockSupport {
 
-  private lazy val githubConnector =
-    new GithubConnector(
+  private lazy val gitHubProxyConnector =
+    new GitHubProxyConnector(
       httpClientV2,
-      new GithubConfig(Configuration(
-        "github.open.api.rawurl" -> wireMockUrl,
-        "github.rest.api.url"    -> wireMockUrl,
-        "github.open.api.token"  -> "test-token"
+      new ServicesConfig(Configuration(
+        "microservice.services.platops-github-proxy.port" -> wireMockPort,
+        "microservice.services.platops-github-proxy.host" -> wireMockHost
       ))
     )
 
-  "GET findReadMe" should {
+  "GET findReadMe with github-raw" should {
     "return a URL of README.md for the correct repo" in {
 
       stubFor(
-        get(urlEqualTo("/hmrc/repo1/HEAD/README.md"))
+        get(urlEqualTo("/platops-github-proxy/github-raw/repo1/HEAD/README.md"))
           .willReturn(aResponse().withStatus(200).withBody("Hello World"))
       )
 
-      val response = githubConnector
+      val response = gitHubProxyConnector
         .findReadMe("repo1")
         .futureValue
         .value
@@ -63,18 +62,17 @@ class GithubConnectorSpec
       response shouldBe "Hello World"
 
       verify(
-        getRequestedFor(urlEqualTo("/hmrc/repo1/HEAD/README.md"))
-          .withHeader("Authorization", equalTo("token test-token"))
+        getRequestedFor(urlEqualTo("/platops-github-proxy/github-raw/repo1/HEAD/README.md"))
       )
     }
 
     "return a None when no README.md is found" in {
       stubFor(
-        get(urlEqualTo("/hmrc/repo1/HEAD/README.md"))
+        get(urlEqualTo("/platops-github-proxy/github-raw/repo1/HEAD/README.md"))
           .willReturn(aResponse().withStatus(404))
       )
 
-      val response = githubConnector
+      val response = gitHubProxyConnector
         .findReadMe("repo1")
         .futureValue
 
@@ -85,7 +83,7 @@ class GithubConnectorSpec
   "getOpenPrs" should {
     "respond with correct PR data" in {
       stubFor(
-        get(urlEqualTo("/repos/hmrc/repo2/pulls?state=open"))
+        get(urlEqualTo("/platops-github-proxy/github-rest/repo2/pulls?state=open"))
           .willReturn(
             aResponse()
               .withStatus(200)
@@ -101,7 +99,7 @@ class GithubConnectorSpec
           )
       )
 
-      val response = githubConnector
+      val response = gitHubProxyConnector
         .getOpenPRs("repo2")
         .futureValue
 
@@ -116,19 +114,17 @@ class GithubConnectorSpec
       )
 
       verify(
-        getRequestedFor(urlPathEqualTo("/repos/hmrc/repo2/pulls"))
-          .withHeader("Authorization", equalTo("token test-token"))
+        getRequestedFor(urlPathEqualTo("/platops-github-proxy/github-rest/repo2/pulls"))
       )
-
     }
 
     "respond with None when repo not found" in {
       stubFor(
-        get(urlEqualTo("/repos/hmrc/repo2/pulls?state=open"))
+        get(urlEqualTo("/platops-github-proxy/github-rest/repo2/pulls?state=open"))
           .willReturn(aResponse().withStatus(404))
       )
 
-      val response = githubConnector
+      val response = gitHubProxyConnector
         .getOpenPRs("repo2")
         .futureValue
 
@@ -137,11 +133,11 @@ class GithubConnectorSpec
 
     "respond with Seq.empty when no pulls found" in {
       stubFor(
-        get(urlEqualTo("/repos/hmrc/repo2/pulls?state=open"))
+        get(urlEqualTo("/platops-github-proxy/github-rest/repo2/pulls?state=open"))
           .willReturn(aResponse().withStatus(200).withBody("[]"))
       )
 
-      val response = githubConnector
+      val response = gitHubProxyConnector
         .getOpenPRs("repo2")
         .futureValue
 
