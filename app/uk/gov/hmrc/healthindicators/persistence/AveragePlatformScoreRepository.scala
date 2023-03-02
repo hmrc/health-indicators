@@ -22,9 +22,10 @@ import uk.gov.hmrc.healthindicators.models.AveragePlatformScore
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 
-import javax.inject.Inject
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
+@Singleton
 class AveragePlatformScoreRepository @Inject() (
   mongoComponent: MongoComponent
 )(implicit ec: ExecutionContext)

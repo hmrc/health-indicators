@@ -26,15 +26,18 @@ import uk.gov.hmrc.healthindicators.utils.SchedulerUtils
 import uk.gov.hmrc.http.HeaderCarrier
 
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.ExecutionContext
 
 @Singleton
 class MetricScheduler @Inject() (
   metricCollectionService: MetricCollectionService,
   historicIndicatorService: HistoricIndicatorService,
   config: SchedulerConfigs,
-  mongoLocks: MongoLock
-)(implicit actorSystem: ActorSystem, applicationLifecycle: ApplicationLifecycle)
+  mongoLocks: MongoLock,
+)(implicit
+  actorSystem: ActorSystem,
+  applicationLifecycle: ApplicationLifecycle,
+  ec: ExecutionContext)
     extends SchedulerUtils {
 
   private val logger                     = Logger(this.getClass)
