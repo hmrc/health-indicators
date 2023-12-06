@@ -79,7 +79,7 @@ class JenkinsConnectorSpec
 
     "return a None if build job not found" in {
       stubFor(
-        get(urlEqualTo("/job/GG/job/test/api/json?depth=1&tree=lastCompletedBuild%5Bresult,timestamp%5D"))
+        get(urlEqualTo("/job/GG/job/non-existing/api/json?depth=1&tree=lastCompletedBuild%5Bresult,timestamp%5D"))
           .willReturn(aResponse().withStatus(404))
       )
 

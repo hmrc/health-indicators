@@ -19,7 +19,6 @@ package uk.gov.hmrc.healthindicators.persistence
 import org.mongodb.scala.model.Filters.equal
 import org.mongodb.scala.model.Indexes._
 import org.mongodb.scala.model.{IndexModel, IndexOptions}
-import uk.gov.hmrc.healthindicators.configs.SchedulerConfigs
 import uk.gov.hmrc.healthindicators.models.HistoricIndicator
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
@@ -29,8 +28,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class HistoricIndicatorsRepository @Inject() (
-  mongoComponent: MongoComponent,
-  config: SchedulerConfigs
+  mongoComponent: MongoComponent
 )(implicit ec: ExecutionContext)
     extends PlayMongoRepository[HistoricIndicator](
       collectionName = "historicHealthIndicators",
@@ -41,6 +39,8 @@ class HistoricIndicatorsRepository @Inject() (
         IndexModel(descending("timestamp"), IndexOptions().background(true))
       )
     ) {
+
+  override lazy val requiresTtlIndex: Boolean = false // we want to accumulate historic data
 
   def insert(historicIndicator: HistoricIndicator): Future[Unit] =
     collection
