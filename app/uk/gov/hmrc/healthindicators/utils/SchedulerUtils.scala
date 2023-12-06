@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.healthindicators.utils
 
-import akka.actor.ActorSystem
+import org.apache.pekko.actor.ActorSystem
 import play.api.Logger
 import play.api.inject.ApplicationLifecycle
 import uk.gov.hmrc.healthindicators.configs.SchedulerConfig

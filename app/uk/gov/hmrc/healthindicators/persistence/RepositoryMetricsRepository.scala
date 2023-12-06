@@ -42,6 +42,8 @@ class RepositoryMetricsRepository @Inject() (
       )
     ) {
 
+  override lazy val requiresTtlIndex: Boolean = false // records are replaced on a schedule
+
   def getRepositoryMetrics(repo: String): Future[Option[RepositoryMetrics]] =
     collection
       .find(equal("repoName", repo))

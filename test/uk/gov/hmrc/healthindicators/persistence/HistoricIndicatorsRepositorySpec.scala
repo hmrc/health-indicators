@@ -19,8 +19,6 @@ package uk.gov.hmrc.healthindicators.persistence
 import org.mockito.MockitoSugar
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpec
-import play.api.Configuration
-import uk.gov.hmrc.healthindicators.configs.SchedulerConfigs
 import uk.gov.hmrc.healthindicators.models.HistoricIndicator
 import uk.gov.hmrc.mongo.test.DefaultPlayMongoRepositorySupport
 
@@ -34,15 +32,7 @@ class HistoricIndicatorsRepositorySpec
     with MockitoSugar
     with DefaultPlayMongoRepositorySupport[HistoricIndicator]{
 
-  private val config: Configuration = Configuration(
-    "metrics.refresh.enabled"      -> "false",
-    "metrics.refresh.interval"     -> "5.minutes",
-    "metrics.refresh.initialDelay" -> "5.minutes"
-  )
-
-  private val schedulerConfigs = new SchedulerConfigs(config)
-
-  override protected val repository = new HistoricIndicatorsRepository(mongoComponent, schedulerConfigs)
+  override protected val repository = new HistoricIndicatorsRepository(mongoComponent)
 
   "HistoricIndicatorRepository" should {
     val now = Instant.now.truncatedTo(ChronoUnit.MILLIS)

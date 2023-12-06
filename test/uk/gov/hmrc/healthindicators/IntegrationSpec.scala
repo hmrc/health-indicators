@@ -46,7 +46,6 @@ class IntegrationSpec
 
   override def fakeApplication(): Application =
     new GuiceApplicationBuilder()
-      .disable(classOf[com.kenshoo.play.metrics.PlayModule])
       .configure(
         Map(
           "mongodb.uri"                                       -> mongoUri,
@@ -117,7 +116,7 @@ class IntegrationSpec
       )
 
       stubFor(
-        get(urlEqualTo("/platops-github-proxy/github-api/auth/pulls?state=open"))
+        get(urlEqualTo("/platops-github-proxy/github-rest/auth/pulls?state=open"))
           .willReturn(aResponse().withStatus(200).withBody("""[]"""))
       )
 
