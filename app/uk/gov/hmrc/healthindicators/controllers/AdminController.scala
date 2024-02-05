@@ -18,20 +18,20 @@ package uk.gov.hmrc.healthindicators.controllers
 
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import uk.gov.hmrc.healthindicators.services.MetricCollectionService
-import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class AdminController @Inject() (metricCollectionService: MetricCollectionService, cc: ControllerComponents)(implicit
+class AdminController @Inject() (
+  metricCollectionService: MetricCollectionService,
+  cc                     : ControllerComponents
+)(implicit
   ec: ExecutionContext
 ) extends BackendController(cc) {
 
-  implicit val hc: HeaderCarrier = HeaderCarrier()
-
-  def rerun(): Action[AnyContent] =
-    Action.async {
+  val rerun: Action[AnyContent] =
+    Action.async { implicit request =>
       metricCollectionService.collectAll().recover {
         case e: Throwable => e.printStackTrace()
       }

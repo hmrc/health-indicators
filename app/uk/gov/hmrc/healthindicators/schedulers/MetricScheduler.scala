@@ -20,30 +20,33 @@ import org.apache.pekko.actor.ActorSystem
 import play.api.Logger
 import play.api.inject.ApplicationLifecycle
 import uk.gov.hmrc.healthindicators.configs.SchedulerConfigs
-import uk.gov.hmrc.healthindicators.persistence.MongoLock
 import uk.gov.hmrc.healthindicators.services.{HistoricIndicatorService, MetricCollectionService}
 import uk.gov.hmrc.healthindicators.utils.SchedulerUtils
 import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.mongo.lock.{LockService, MongoLockRepository}
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
+import scala.concurrent.duration.DurationInt
 
 @Singleton
 class MetricScheduler @Inject() (
-  metricCollectionService: MetricCollectionService,
+  metricCollectionService : MetricCollectionService,
   historicIndicatorService: HistoricIndicatorService,
-  config: SchedulerConfigs,
-  mongoLocks: MongoLock,
+  config                  : SchedulerConfigs,
+  mongoLockRepository     : MongoLockRepository
 )(implicit
-  actorSystem: ActorSystem,
+  as                  : ActorSystem,
   applicationLifecycle: ApplicationLifecycle,
-  ec: ExecutionContext)
-    extends SchedulerUtils {
+  ec                  : ExecutionContext
+) extends SchedulerUtils {
+  private val logger = Logger(this.getClass)
 
-  private val logger                     = Logger(this.getClass)
   private implicit val hc: HeaderCarrier = HeaderCarrier()
 
-  scheduleWithLock("Metric Reloader", config.metricScheduler, mongoLocks.metricsMongoLock) {
+  val metricsMongoLock: LockService = LockService(mongoLockRepository, "metrics-lock", 1.hour)
+
+  scheduleWithLock("Metric Reloader", config.metricScheduler, metricsMongoLock) {
     for {
       metric <- metricCollectionService
                   .collectAll()

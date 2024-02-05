@@ -30,19 +30,18 @@ import scala.concurrent.{ExecutionContext, Future}
 class JenkinsConnector @Inject()(
   config      : JenkinsConfig,
   httpClientV2: HttpClientV2
+)(implicit
+  ec: ExecutionContext
 ) {
   import JenkinsApiReads._
   import HttpReads.Implicits._
 
-  def getBuildJob(baseUrl: String)(implicit ec: ExecutionContext): Future[Option[JenkinsBuildReport]] = {
-
+  def getBuildJob(baseUrl: String)(implicit hc: HeaderCarrier): Future[Option[JenkinsBuildReport]] = {
     // Stops Server Side Request Forgery
     assert(baseUrl.startsWith(config.jenkinsHost))
 
     val authorizationHeader =
       s"Basic ${BaseEncoding.base64().encode(s"${config.username}:${config.token}".getBytes("UTF-8"))}"
-
-    implicit val hc: HeaderCarrier = HeaderCarrier()
 
     httpClientV2
       .get(url"${baseUrl}api/json?depth=1&tree=lastCompletedBuild[result,timestamp]")
@@ -51,8 +50,14 @@ class JenkinsConnector @Inject()(
   }
 }
 
-case class JenkinsBuildReport(lastCompletedBuild: Option[JenkinsBuildStatus])
-case class JenkinsBuildStatus(result: String, timeStamp: Instant)
+case class JenkinsBuildReport(
+  lastCompletedBuild: Option[JenkinsBuildStatus]
+)
+
+case class JenkinsBuildStatus(
+  result   : String,
+  timeStamp: Instant
+)
 
 object JenkinsApiReads {
   private implicit val readsInstant: Reads[Instant] =
@@ -64,5 +69,5 @@ object JenkinsApiReads {
     )(JenkinsBuildStatus.apply _)
 
   implicit val jenkinsBuildReport: Reads[JenkinsBuildReport] =
-    Json.reads[JenkinsBuildReport]
+    (__ \ "lastCompletedBuild").readNullable[JenkinsBuildStatus].map(JenkinsBuildReport.apply)
 }

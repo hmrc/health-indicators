@@ -29,9 +29,10 @@ import scala.concurrent.ExecutionContext
 @Singleton
 class HealthIndicatorController @Inject() (
   repoIndicatorService: RepoIndicatorService,
-  cc: ControllerComponents
-)(implicit ec: ExecutionContext)
-    extends BackendController(cc) {
+  cc                  : ControllerComponents
+)(implicit
+  ec: ExecutionContext
+) extends BackendController(cc) {
 
   def indicator(repo: String): Action[AnyContent] =
     Action.async {
@@ -49,6 +50,5 @@ class HealthIndicatorController @Inject() (
         result = Ok(Json.toJson(allRepos))
       } yield result
     }
-
   }
 }

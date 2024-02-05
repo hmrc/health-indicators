@@ -30,27 +30,26 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class MetricCollectionService @Inject() (
   teamsAndRepositoriesConnector: TeamsAndRepositoriesConnector,
-  metricProducers: List[MetricProducer],
-  repository: RepositoryMetricsRepository
-)(implicit val ec: ExecutionContext) {
+  metricProducers              : List[MetricProducer],
+  repository                   : RepositoryMetricsRepository
+)(implicit ec: ExecutionContext) {
 
   private val logger = Logger(this.getClass)
 
   def collectAll()(implicit hc: HeaderCarrier): Future[Unit] =
     for {
       repos <- teamsAndRepositoriesConnector.allRepositories
-      _ <- repos.foldLeftM(())((_, r) =>
-             for {
-               indicators <- createMetricsForRepo(r)
-               _          <- repository.insert(indicators.repoName, indicators)
-             } yield ()
-           )
+      _     <- repos.foldLeftM(())((_, r) =>
+                 for {
+                   indicators <- createMetricsForRepo(r)
+                   _          <- repository.insert(indicators.repoName, indicators)
+                 } yield ()
+               )
     } yield ()
 
-  private def createMetricsForRepo(repo: TeamsAndRepos): Future[RepositoryMetrics] = {
-    logger.info(s"Creating Metrics For: $repo")
+  private def createMetricsForRepo(repo: TeamsAndRepos): Future[RepositoryMetrics] =
     for {
+      _       <- Future.successful(logger.info(s"Creating Metrics For: $repo"))
       metrics <- metricProducers.traverse(_.produce(repo.name))
     } yield RepositoryMetrics(repo.name, Instant.now(), repo.repositoryType, metrics)
-  }
 }

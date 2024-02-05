@@ -25,26 +25,32 @@ case class Breakdown(points: Int, description: String, href: Option[String])
 
 object Breakdown {
   val writes: Writes[Breakdown] =
-    ((__ \ "points").write[Int]
-      ~ (__ \ "description").write[String]
-      ~ (__ \ "link").writeNullable[String])(unlift(Breakdown.unapply))
+    ( (__ \ "points"     ).write[Int]
+    ~ (__ \ "description").write[String]
+    ~ (__ \ "link"       ).writeNullable[String]
+    )(unlift(Breakdown.unapply))
 }
 
-case class WeightedMetric(metricType: MetricType, score: Int, breakdown: Seq[Breakdown])
+case class WeightedMetric(
+  metricType: MetricType,
+  score     : Int,
+  breakdown : Seq[Breakdown]
+)
 
 object WeightedMetric {
   val writes: Writes[WeightedMetric] = {
     implicit val sW: Writes[Breakdown]   = Breakdown.writes
     implicit val rtW: Writes[MetricType] = MetricType.format
-    ((__ \ "metricType").write[MetricType]
-      ~ (__ \ "score").write[Int]
-      ~ (__ \ "breakdown").write[Seq[Breakdown]])(unlift(WeightedMetric.unapply))
+    ( (__ \ "metricType").write[MetricType]
+    ~ (__ \ "score"     ).write[Int]
+    ~ (__ \ "breakdown" ).write[Seq[Breakdown]]
+    )(unlift(WeightedMetric.unapply))
   }
 }
 case class Indicator(
-  repoName: String,
-  repoType: RepoType,
-  overallScore: Int,
+  repoName       : String,
+  repoType       : RepoType,
+  overallScore   : Int,
   weightedMetrics: Seq[WeightedMetric]
 )
 
@@ -52,9 +58,10 @@ object Indicator {
   val writes: Writes[Indicator] = {
     implicit val rW: Writes[WeightedMetric] = WeightedMetric.writes
     implicit val rtF: Writes[RepoType]      = RepoType.format
-    ((__ \ "repoName").write[String]
-      ~ (__ \ "repoType").write[RepoType]
-      ~ (__ \ "overallScore").write[Int]
-      ~ (__ \ "weightedMetrics").write[Seq[WeightedMetric]])(unlift(Indicator.unapply))
+    ( (__ \ "repoName"       ).write[String]
+    ~ (__ \ "repoType"       ).write[RepoType]
+    ~ (__ \ "overallScore"   ).write[Int]
+    ~ (__ \ "weightedMetrics").write[Seq[WeightedMetric]]
+    )(unlift(Indicator.unapply))
   }
 }

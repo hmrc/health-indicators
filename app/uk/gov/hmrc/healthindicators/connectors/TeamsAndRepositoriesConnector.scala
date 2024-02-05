@@ -30,7 +30,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class TeamsAndRepositoriesConnector @Inject() (
   httpClientV2  : HttpClientV2,
   servicesConfig: ServicesConfig
-)(implicit val ec: ExecutionContext) {
+)(implicit ec: ExecutionContext) {
   import HttpReads.Implicits._
 
   private val teamsAndRepositoriesBaseUrl: String =
@@ -44,9 +44,9 @@ class TeamsAndRepositoriesConnector @Inject() (
   }
 
   def getJenkinsUrl(repo: String)(implicit hc: HeaderCarrier): Future[Option[JenkinsUrl]] = {
-    implicit val reads: Reads[JenkinsUrl] = JenkinsUrl.juF
+    implicit val reads: Reads[JenkinsUrl] = JenkinsUrl.jur
     httpClientV2
-      .get(url"$teamsAndRepositoriesBaseUrl/api/jenkins-url/$repo")
+      .get(url"$teamsAndRepositoriesBaseUrl/api/v2/repositories/$repo/jenkins-url")
       .execute[Option[JenkinsUrl]]
   }
 }
@@ -55,21 +55,11 @@ sealed trait RepoType {
   val asString: String
 }
 object RepoType {
-  case object Service extends RepoType {
-    val asString = "Service"
-  }
-  case object Prototype extends RepoType {
-    val asString = "Prototype"
-  }
-  case object Library extends RepoType {
-    val asString = "Library"
-  }
-  case object Test extends RepoType {
-    val asString = "Test"
-  }
-  case object Other extends RepoType {
-    val asString = "Other"
-  }
+  case object Service   extends RepoType { override val asString = "Service"   }
+  case object Prototype extends RepoType { override val asString = "Prototype" }
+  case object Library   extends RepoType { override val asString = "Library"   }
+  case object Test      extends RepoType { override val asString = "Test"      }
+  case object Other     extends RepoType { override val asString = "Other"     }
 
   val format: Format[RepoType] = new Format[RepoType] {
     override def reads(json: JsValue): JsResult[RepoType] =
@@ -86,7 +76,7 @@ object RepoType {
       JsString(o.asString)
   }
 
-  implicit def queryStringBindable(implicit stringBinder: QueryStringBindable[String]) =
+  implicit def queryStringBindable(implicit stringBinder: QueryStringBindable[String]): QueryStringBindable[RepoType] =
     new QueryStringBindable[RepoType] {
       override def bind(key: String, params: Map[String, Seq[String]]): Option[Either[String, RepoType]] = {
         val repositoryTypeString = params.get(key)
@@ -106,21 +96,22 @@ object RepoType {
 }
 
 case class TeamsAndRepos(
-  name: String,
+  name          : String,
   repositoryType: RepoType
 )
 
 object TeamsAndRepos {
   val reads: Reads[TeamsAndRepos] = {
-    implicit val rtF: Format[RepoType] = RepoType.format
+    implicit val rtr: Reads[RepoType] = RepoType.format
     ( (__ \ "name"    ).read[String]
-    ~ (__ \ "repoType").format[RepoType]
+    ~ (__ \ "repoType").read[RepoType]
     )(TeamsAndRepos.apply _)
   }
 }
 
-case class JenkinsUrl(jenkinsURL: String)
+case class JenkinsUrl(asString: String)
 
 object JenkinsUrl {
-  implicit val juF: Format[JenkinsUrl] = Json.format[JenkinsUrl]
+  implicit val jur: Reads[JenkinsUrl] =
+    (__ \ "jenkinsURL").read[String].map(JenkinsUrl.apply)
 }

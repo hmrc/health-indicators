@@ -29,32 +29,29 @@ import scala.concurrent.{ExecutionContext, Future}
 @Singleton
 class HistoricIndicatorsRepository @Inject() (
   mongoComponent: MongoComponent
-)(implicit ec: ExecutionContext)
-    extends PlayMongoRepository[HistoricIndicator](
-      collectionName = "historicHealthIndicators",
-      mongoComponent = mongoComponent,
-      domainFormat = HistoricIndicator.format,
-      indexes = Seq(
-        IndexModel(hashed("repoName"), IndexOptions().background(true)),
-        IndexModel(descending("timestamp"), IndexOptions().background(true))
-      )
-    ) {
+)(implicit
+  ec: ExecutionContext
+) extends PlayMongoRepository[HistoricIndicator](
+  collectionName = "historicHealthIndicators",
+  mongoComponent = mongoComponent,
+  domainFormat = HistoricIndicator.format,
+  indexes = Seq(
+    IndexModel(hashed("repoName"), IndexOptions().background(true)),
+    IndexModel(descending("timestamp"), IndexOptions().background(true))
+  )
+) {
 
   override lazy val requiresTtlIndex: Boolean = false // we want to accumulate historic data
 
   def insert(historicIndicator: HistoricIndicator): Future[Unit] =
     collection
-      .insertOne(
-        historicIndicator
-      )
+      .insertOne(historicIndicator)
       .toFuture()
       .map(_ => ())
 
   def insert(historicIndicators: Seq[HistoricIndicator]): Future[Unit] =
     collection
-      .insertMany(
-        historicIndicators
-      )
+      .insertMany(historicIndicators)
       .toFuture()
       .map(_ => ())
 

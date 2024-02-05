@@ -24,17 +24,19 @@ import uk.gov.hmrc.healthindicators.persistence.RepositoryMetricsRepository
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class RepoIndicatorService @Inject() (repository: RepositoryMetricsRepository, pointsConfig: PointsConfig)(implicit
-  val ec: ExecutionContext
+class RepoIndicatorService @Inject() (
+  repositoryMetricsRepository: RepositoryMetricsRepository,
+  pointsConfig: PointsConfig
+)(implicit
+  ec: ExecutionContext
 ) {
-
   def indicatorForRepo(repo: String): Future[Option[Indicator]] =
-    repository.getRepositoryMetrics(repo).map { maybeRepositoryMetric =>
+    repositoryMetricsRepository.getRepositoryMetrics(repo).map { maybeRepositoryMetric =>
       indicate(maybeRepositoryMetric.toSeq).headOption
     }
 
   def indicatorsForAllRepos(repoType: Option[RepoType], sort: SortType): Future[Seq[Indicator]] =
-    repository.getAllRepositoryMetrics(repoType).map { repositoryMetrics =>
+    repositoryMetricsRepository.findAll(repoType).map { repositoryMetrics =>
       val sortingBy: Indicator => Int = sort match {
         case SortType.Ascending  => _.overallScore
         case SortType.Descending => -_.overallScore
@@ -45,9 +47,9 @@ class RepoIndicatorService @Inject() (repository: RepositoryMetricsRepository, p
   def indicate(repositoryMetrics: Seq[RepositoryMetrics]): Seq[Indicator] =
     for {
       repositoryMetrics <- repositoryMetrics
-      weightedMetric = repositoryMetrics.metrics.map(applyWeighting)
-      overallScore   = weightedMetric.map(_.score).sum
-      indicator      = Indicator(repositoryMetrics.repoName, repositoryMetrics.repoType, overallScore, weightedMetric)
+      weightedMetric    =  repositoryMetrics.metrics.map(applyWeighting)
+      overallScore      =  weightedMetric.map(_.score).sum
+      indicator         =  Indicator(repositoryMetrics.repoName, repositoryMetrics.repoType, overallScore, weightedMetric)
     } yield indicator
 
   private def applyWeighting(metric: Metric): WeightedMetric = {
@@ -56,9 +58,11 @@ class RepoIndicatorService @Inject() (repository: RepositoryMetricsRepository, p
     WeightedMetric(metric.metricType, overallScore, scores)
   }
 
-  private def createScore(result: Result): Breakdown = {
-    val points = pointsConfig.points(result.resultType)
-    Breakdown(points, result.description, result.href)
-  }
+  private def createScore(result: Result): Breakdown =
+    Breakdown(
+      points = pointsConfig.points(result.resultType),
+      result.description,
+      result.href
+    )
 
 }

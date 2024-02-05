@@ -94,7 +94,7 @@ class IntegrationSpec
       )
 
       stubFor(
-        get(urlEqualTo("/api/jenkins-url/auth"))
+        get(urlEqualTo("/api/v2/repositories/auth/jenkins-url"))
           .willReturn(aResponse().withStatus(200).withBody(teamsAndReposJenkinsJson))
       )
 

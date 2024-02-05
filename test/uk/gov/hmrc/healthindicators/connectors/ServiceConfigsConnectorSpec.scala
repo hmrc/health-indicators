@@ -22,6 +22,7 @@ import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import play.api.Configuration
+import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.http.test.{HttpClientV2Support, WireMockSupport}
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
@@ -44,6 +45,8 @@ class ServiceConfigsConnectorSpec
         "microservice.services.service-configs.host" -> wireMockHost
       ))
     )
+
+  private implicit val hc: HeaderCarrier = HeaderCarrier()
 
   "GET findAlertConfigs" should {
     "return AlertConfig for repo" in {

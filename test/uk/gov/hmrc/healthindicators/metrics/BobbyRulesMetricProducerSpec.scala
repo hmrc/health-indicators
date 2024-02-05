@@ -35,7 +35,7 @@ package uk.gov.hmrc.healthindicators.metrics
 import java.time.LocalDate
 import org.mockito.MockitoSugar
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.matchers.must.Matchers
+import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import uk.gov.hmrc.healthindicators.connectors.{BobbyRuleViolation, Dependencies, Dependency, ServiceDependenciesConnector}
 import uk.gov.hmrc.healthindicators.models._
@@ -63,73 +63,78 @@ class BobbyRulesMetricProducerSpec extends AnyWordSpec with Matchers with Mockit
   "BobbyRulesMetricProducer.produce" should {
 
     "Return a Metric with no results when repo is not found" in {
-      when(mockBobbyRulesConnector.dependencies("foo")) thenReturn Future.successful(None)
+      when(mockBobbyRulesConnector.dependencies("foo"))
+        .thenReturn(Future.successful(None))
 
       val result = producer.produce("foo")
 
-      result.futureValue mustBe Metric(BobbyRuleMetricType, Seq(Result(NoActiveOrPending, "No Active or Pending Bobby Rules", None)))
+      result.futureValue shouldBe Metric(BobbyRuleMetricType, Seq(Result(NoActiveOrPending, "No Active or Pending Bobby Rules", None)))
     }
 
     "Return a Metric with no violations result when a report with no bobby rules is found" in {
-      when(mockBobbyRulesConnector.dependencies("foo")) thenReturn Future.successful(
-        Some(Dependencies("repoName", Seq(), Seq(), Seq()))
-      )
+      when(mockBobbyRulesConnector.dependencies("foo"))
+        .thenReturn(Future.successful(
+          Some(Dependencies("repoName", Seq(), Seq(), Seq()))
+        ))
 
       val result = producer.produce("foo")
 
-      result.futureValue mustBe Metric(BobbyRuleMetricType, Seq(Result(NoActiveOrPending, "No Active or Pending Bobby Rules", None)))
+      result.futureValue shouldBe Metric(BobbyRuleMetricType, Seq(Result(NoActiveOrPending, "No Active or Pending Bobby Rules", None)))
     }
 
     "Return a Metric with active violation result when bobby violation is found" in {
-      when(mockBobbyRulesConnector.dependencies("foo")) thenReturn Future.successful(
-        Some(
-          Dependencies(
-            "repoName",
-            Seq(dependencyWithActiveViolation),
-            Seq(dependencyWithoutViolation),
-            Seq(dependencyWithoutViolation)
+      when(mockBobbyRulesConnector.dependencies("foo"))
+        .thenReturn(Future.successful(
+          Some(
+            Dependencies(
+              "repoName",
+              Seq(dependencyWithActiveViolation),
+              Seq(dependencyWithoutViolation),
+              Seq(dependencyWithoutViolation)
+            )
           )
-        )
-      )
+        ))
 
       val result = producer.produce("foo")
 
-      result.futureValue mustBe Metric(BobbyRuleMetricType, Seq(Result(BobbyRuleActive, "name - reason", None)))
+      result.futureValue shouldBe Metric(BobbyRuleMetricType, Seq(Result(BobbyRuleActive, "name - reason", None)))
     }
 
     "Return a Metric with pending violation result when pending bobby violation is found" in {
-      when(mockBobbyRulesConnector.dependencies("foo")) thenReturn Future.successful(
-        Some(
-          Dependencies(
-            "repoName",
-            Seq(dependencyWithPendingViolation),
-            Seq(dependencyWithoutViolation),
-            Seq(dependencyWithoutViolation)
+      when(mockBobbyRulesConnector.dependencies("foo"))
+        .thenReturn(Future.successful(
+          Some(
+            Dependencies(
+              "repoName",
+              Seq(dependencyWithPendingViolation),
+              Seq(dependencyWithoutViolation),
+              Seq(dependencyWithoutViolation)
+            )
           )
-        )
-      )
+        ))
 
       val result = producer.produce("foo")
 
-      result.futureValue mustBe Metric(BobbyRuleMetricType, Seq(Result(BobbyRulePending, "name - reason", None)))
+      result.futureValue shouldBe Metric(BobbyRuleMetricType, Seq(Result(BobbyRulePending, "name - reason", None)))
 
     }
 
     "Return a Metric with pending violation and 2 active results when bobby violations found" in {
-      when(mockBobbyRulesConnector.dependencies("foo")) thenReturn Future.successful(
-        Some(
-          Dependencies(
-            "repoName",
-            Seq(dependencyWithPendingViolation),
-            Seq(dependencyWithActiveViolation),
-            Seq(dependencyWithActiveViolation)
+      when(mockBobbyRulesConnector.dependencies("foo"))
+        .thenReturn(Future.successful(
+          Some(
+            Dependencies(
+              "repoName",
+              Seq(dependencyWithPendingViolation),
+              Seq(dependencyWithActiveViolation),
+              Seq(dependencyWithActiveViolation)
+            )
           )
-        )
-      )
+        ))
 
       val result = producer.produce("foo")
 
-      result.futureValue mustBe Metric(
+      result.futureValue shouldBe Metric(
         BobbyRuleMetricType,
         Seq(
           Result(BobbyRuleActive, "name - reason\nname - reason", None),

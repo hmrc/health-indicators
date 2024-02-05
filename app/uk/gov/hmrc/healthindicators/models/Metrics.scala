@@ -200,10 +200,10 @@ object RepositoryMetrics {
     implicit val instantFormat: Format[Instant]   = MongoJavatimeFormats.instantFormat
     implicit val metricFormat: Format[Metric]     = Metric.format
     implicit val repoTypeFormat: Format[RepoType] = RepoType.format
-    ((__ \ "repoName").format[String]
-      ~ (__ \ "timestamp").format[Instant]
-      ~ (__ \ "repoType").format[RepoType]
-      ~ (__ \ "metrics")
-        .format[Seq[Metric]])(RepositoryMetrics.apply, unlift(RepositoryMetrics.unapply))
+    ( (__ \ "repoName" ).format[String]
+    ~ (__ \ "timestamp").format[Instant]
+    ~ (__ \ "repoType" ).format[RepoType]
+    ~ (__ \ "metrics"  ).format[Seq[Metric]]
+    )(RepositoryMetrics.apply, unlift(RepositoryMetrics.unapply))
   }
 }

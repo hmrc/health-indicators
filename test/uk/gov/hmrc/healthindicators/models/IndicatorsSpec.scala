@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.healthindicators.models
 
-import org.scalatest.matchers.must.Matchers
+import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import play.api.libs.json._
 
@@ -27,23 +27,23 @@ class IndicatorsSpec extends AnyWordSpec with Matchers {
   "ResultType" should {
 
     "parse DefaultReadme" in {
-      JsString("default-readme").validate[ResultType] mustBe JsSuccess(DefaultReadme)
+      JsString("default-readme").validate[ResultType] shouldBe JsSuccess(DefaultReadme)
     }
 
     "parse NoReadme" in {
-      JsString("no-readme").validate[ResultType] mustBe JsSuccess(NoReadme)
+      JsString("no-readme").validate[ResultType] shouldBe JsSuccess(NoReadme)
     }
 
     "parse LeakDetectionViolation" in {
-      JsString("leak-detection-violation").validate[ResultType] mustBe JsSuccess(LeakDetectionViolation)
+      JsString("leak-detection-violation").validate[ResultType] shouldBe JsSuccess(LeakDetectionViolation)
     }
 
     "parse BobbyRulePending" in {
-      JsString("bobby-rule-pending").validate[ResultType] mustBe JsSuccess(BobbyRulePending)
+      JsString("bobby-rule-pending").validate[ResultType] shouldBe JsSuccess(BobbyRulePending)
     }
 
     "parse BobbyRuleActive" in {
-      JsString("bobby-rule-active").validate[ResultType] mustBe JsSuccess(BobbyRuleActive)
+      JsString("bobby-rule-active").validate[ResultType] shouldBe JsSuccess(BobbyRuleActive)
     }
 
     "error on unrecognised ResultType" in {
@@ -51,27 +51,27 @@ class IndicatorsSpec extends AnyWordSpec with Matchers {
       val exception = intercept[JsResultException] {
         JsString("bobby-rule").as[ResultType]
       }
-      exception.getMessage must include("Invalid Result Type")
+      exception.getMessage should include("Invalid Result Type")
     }
 
     "write DefaultReadme" in {
-      Json.toJson(DefaultReadme: ResultType) mustBe JsString("default-readme")
+      Json.toJson(DefaultReadme: ResultType) shouldBe JsString("default-readme")
     }
 
     "write NoReadme" in {
-      Json.toJson(NoReadme: ResultType) mustBe JsString("no-readme")
+      Json.toJson(NoReadme: ResultType) shouldBe JsString("no-readme")
     }
 
     "write LeakDetectionViolation" in {
-      Json.toJson(LeakDetectionViolation: ResultType) mustBe JsString("leak-detection-violation")
+      Json.toJson(LeakDetectionViolation: ResultType) shouldBe JsString("leak-detection-violation")
     }
 
     "write BobbyRulePending" in {
-      Json.toJson(BobbyRulePending: ResultType) mustBe JsString("bobby-rule-pending")
+      Json.toJson(BobbyRulePending: ResultType) shouldBe JsString("bobby-rule-pending")
     }
 
     "write BobbyRuleActive" in {
-      Json.toJson(BobbyRuleActive: ResultType) mustBe JsString("bobby-rule-active")
+      Json.toJson(BobbyRuleActive: ResultType) shouldBe JsString("bobby-rule-active")
     }
   }
 }

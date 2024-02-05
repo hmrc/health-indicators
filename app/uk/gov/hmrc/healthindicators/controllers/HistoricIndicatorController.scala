@@ -28,9 +28,10 @@ import scala.concurrent.ExecutionContext
 @Singleton
 class HistoricIndicatorController @Inject() (
   historicIndicatorService: HistoricIndicatorService,
-  cc: ControllerComponents
-)(implicit ec: ExecutionContext)
-    extends BackendController(cc) {
+  cc                      : ControllerComponents
+)(implicit
+  ec: ExecutionContext
+) extends BackendController(cc) {
 
   def history(repoName: String): Action[AnyContent] =
     Action.async {
