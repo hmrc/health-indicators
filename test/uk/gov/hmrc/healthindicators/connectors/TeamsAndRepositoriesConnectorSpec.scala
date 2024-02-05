@@ -51,7 +51,7 @@ class TeamsAndRepositoriesConnectorSpec
   "GET jenkinsUrl" should {
     "use repository name to return a jenkins url" in {
       stubFor(
-        get(urlEqualTo("/api/jenkins-url/test"))
+        get(urlEqualTo("/api/v2/repositories/test/jenkins-url"))
           .willReturn(
             aResponse()
               .withStatus(200)
@@ -74,7 +74,7 @@ class TeamsAndRepositoriesConnectorSpec
 
     "use repository name to return a None when no jenkins url found" in {
       stubFor(
-        get(urlEqualTo("/api/jenkins-url/test"))
+        get(urlEqualTo("/api/v2/repositories/test/jenkins-url"))
           .willReturn(aResponse().withStatus(404))
       )
 

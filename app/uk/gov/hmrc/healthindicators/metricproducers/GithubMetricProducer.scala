@@ -19,6 +19,7 @@ package uk.gov.hmrc.healthindicators.metricproducers
 import play.api.Logger
 import uk.gov.hmrc.healthindicators.connectors.{GitHubProxyConnector, OpenPR}
 import uk.gov.hmrc.healthindicators.models.{CleanGithub, DefaultReadme, GithubMetricType, Metric, NoReadme, Result, StalePR}
+import uk.gov.hmrc.http.HeaderCarrier
 
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
@@ -28,10 +29,12 @@ import scala.concurrent.{ExecutionContext, Future}
 class GithubMetricProducer @Inject() (
   githubConnector: GitHubProxyConnector
 )(implicit
-  val ec: ExecutionContext
+  ec: ExecutionContext
 ) extends MetricProducer {
 
   private val logger: Logger = Logger(this.getClass)
+
+  private implicit val hc: HeaderCarrier = HeaderCarrier()
 
   val prStalenessDays = 30
 
@@ -39,12 +42,13 @@ class GithubMetricProducer @Inject() (
     logger.debug(s"Metric ReadMe for: $repo")
 
     for {
-      readMe <- githubConnector.findReadMe(repo).map(getReadMeResultType)
-      openPR <- githubConnector.getOpenPRs(repo).map(getPRResultType)
-      groupStalePR = openPR.headOption.map(_.copy(description = s"Found ${openPR.length} Stale PR's"))
-      result       = readMe ++ groupStalePR
-      clean =
-        if (result.isEmpty) Seq(Result(CleanGithub, "Clean GitHub: Valid ReadMe and no Stale PRS", None)) else Seq.empty
+      readMe       <- githubConnector.findReadMe(repo).map(getReadMeResultType)
+      openPR       <- githubConnector.getOpenPRs(repo).map(getPRResultType)
+      groupStalePR =  openPR.headOption.map(_.copy(description = s"Found ${openPR.length} Stale PR's"))
+      result       =  readMe ++ groupStalePR
+      clean        = if (result.isEmpty)
+                       Seq(Result(CleanGithub, "Clean GitHub: Valid ReadMe and no Stale PRS", None))
+                     else Seq.empty
     } yield Metric(GithubMetricType, result ++ clean)
 
   }

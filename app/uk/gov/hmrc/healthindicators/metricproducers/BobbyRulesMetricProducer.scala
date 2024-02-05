@@ -27,46 +27,44 @@ import scala.concurrent.{ExecutionContext, Future}
 @Singleton
 class BobbyRulesMetricProducer @Inject() (
   serviceDependenciesConnector: ServiceDependenciesConnector
-)(implicit val ec: ExecutionContext)
-    extends MetricProducer {
+)(implicit
+   ec: ExecutionContext
+) extends MetricProducer {
 
   private val logger = Logger(this.getClass)
 
-  override def produce(repo: String): Future[Metric] = {
-    logger.debug(s"Metric BobbyRules for: $repo")
-
+  override def produce(repo: String): Future[Metric] =
     for {
+      _                 <- Future.successful(logger.debug(s"Metric BobbyRules for: $repo"))
       maybeDependencies <- serviceDependenciesConnector.dependencies(repo)
-      allDependencies = maybeDependencies
-                          .map(dependencies =>
-                            dependencies.libraryDependencies ++
-                              dependencies.sbtPluginsDependencies ++ dependencies.otherDependencies
-                          )
-                          .getOrElse(Seq.empty)
-      allViolations = allDependencies.flatMap(d =>
-                        d.bobbyRuleViolations
-                          .map(v => Result(getResultType(v), s"${d.name} - ${v.reason}", None))
-                      )
+      allDependencies   =  maybeDependencies
+                             .map(dependencies =>
+                               dependencies.libraryDependencies ++
+                                 dependencies.sbtPluginsDependencies ++ dependencies.otherDependencies
+                             )
+                             .getOrElse(Seq.empty)
+      allViolations     =  allDependencies.flatMap(d =>
+                             d.bobbyRuleViolations
+                               .map(v => Result(getResultType(v), s"${d.name} - ${v.reason}", None))
+                           )
 
       groupViolations   = allViolations.partition(_.resultType == BobbyRuleActive)
       activeViolations  = groupViolations._1.foldLeft(Option.empty[Result])(mergeResult)
       pendingViolations = groupViolations._2.foldLeft(Option.empty[Result])(mergeResult)
       groupedViolations = activeViolations.toSeq ++ pendingViolations.toSeq
 
-      result = if (groupedViolations.isEmpty) Seq(Result(NoActiveOrPending, "No Active or Pending Bobby Rules", None))
-               else groupedViolations
+      result            = if (groupedViolations.isEmpty)
+                            Seq(Result(NoActiveOrPending, "No Active or Pending Bobby Rules", None))
+                          else groupedViolations
     } yield Metric(BobbyRuleMetricType, result)
 
-  }
-
   private def mergeResult(output: Option[Result], cur: Result): Option[Result] =
-    if (output.isEmpty) Some(cur) else output.map(r => r.copy(description = r.description + "\n" + cur.description))
+    if (output.isEmpty) Some(cur)
+    else output.map(r => r.copy(description = r.description + "\n" + cur.description))
 
-  private def getResultType(violation: BobbyRuleViolation): BobbyRuleResultType = {
-    val now = LocalDate.now
-    if (violation.from.isBefore(now))
+  private def getResultType(violation: BobbyRuleViolation): BobbyRuleResultType =
+    if (violation.from.isBefore(LocalDate.now()))
       BobbyRuleActive
     else
       BobbyRulePending
-  }
 }

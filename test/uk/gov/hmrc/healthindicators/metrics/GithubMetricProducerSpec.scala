@@ -16,11 +16,10 @@
 
 package uk.gov.hmrc.healthindicators.metrics
 
-import org.mockito.MockitoSugar
-import org.mockito.ArgumentMatchersSugar.eqTo
+import org.mockito.{ArgumentMatchersSugar, MockitoSugar}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.matchers.must.Matchers
+import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import uk.gov.hmrc.healthindicators.connectors.{GitHubProxyConnector, OpenPR}
 import uk.gov.hmrc.healthindicators.metricproducers.GithubMetricProducer
@@ -32,41 +31,50 @@ import java.time.format.DateTimeFormatter
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class GithubMetricProducerSpec extends AnyWordSpec with Matchers with MockitoSugar with ScalaFutures with BeforeAndAfterEach {
+class GithubMetricProducerSpec
+   extends AnyWordSpec
+      with Matchers
+      with MockitoSugar
+      with ArgumentMatchersSugar
+      with ScalaFutures
+      with BeforeAndAfterEach {
 
   private val mockGithubConnector: GitHubProxyConnector = mock[GitHubProxyConnector]
   private val producer: GithubMetricProducer = new GithubMetricProducer(mockGithubConnector)
 
   private val readMeDefault = "This is a placeholder README.md for a new repository"
 
-  implicit val hc: HeaderCarrier = HeaderCarrier()
-
-  override def beforeEach(): Unit = reset(mockGithubConnector)
+  override def beforeEach(): Unit =
+    reset(mockGithubConnector)
 
   "GithubMetricProducer.produce" should {
-
     "Return a Metric with NoReadMe when no readme found" in {
-      when(mockGithubConnector.findReadMe(eqTo("foo"))).thenReturn(Future.successful(None))
-      when(mockGithubConnector.getOpenPRs(eqTo("foo"))).thenReturn(Future.successful(None))
+      when(mockGithubConnector.findReadMe(eqTo("foo"))(any[HeaderCarrier]))
+        .thenReturn(Future.successful(None))
+      when(mockGithubConnector.getOpenPRs(eqTo("foo"))(any[HeaderCarrier]))
+        .thenReturn(Future.successful(None))
 
       val result = producer.produce("foo")
 
-      result.futureValue mustBe Metric(GithubMetricType, Seq(Result(NoReadme, "No Readme defined", None)))
+      result.futureValue shouldBe Metric(GithubMetricType, Seq(Result(NoReadme, "No Readme defined", None)))
     }
 
     "Return a Metric with DefaultReadMe when default readme is found" in {
-      when(mockGithubConnector.findReadMe(eqTo("foo"))).thenReturn(Future.successful(Some(readMeDefault)))
-      when(mockGithubConnector.getOpenPRs(eqTo("foo"))).thenReturn(Future.successful(None))
+      when(mockGithubConnector.findReadMe(eqTo("foo"))(any[HeaderCarrier]))
+        .thenReturn(Future.successful(Some(readMeDefault)))
+      when(mockGithubConnector.getOpenPRs(eqTo("foo"))(any[HeaderCarrier]))
+        .thenReturn(Future.successful(None))
 
       val result = producer.produce("foo")
 
-      result.futureValue mustBe Metric(GithubMetricType, Seq(Result(DefaultReadme, "Default readme", None)))
+      result.futureValue shouldBe Metric(GithubMetricType, Seq(Result(DefaultReadme, "Default readme", None)))
     }
 
     "Return a Metric with StalePR when there is an Open PR over 30 days old" in {
-      when(mockGithubConnector.findReadMe(eqTo("foo"))).thenReturn(Future.successful(Some("This is a valid readme")))
-      when(mockGithubConnector.getOpenPRs(eqTo("foo"))).thenReturn(
-        Future.successful(
+      when(mockGithubConnector.findReadMe(eqTo("foo"))(any[HeaderCarrier]))
+        .thenReturn(Future.successful(Some("This is a valid readme")))
+      when(mockGithubConnector.getOpenPRs(eqTo("foo"))(any[HeaderCarrier]))
+        .thenReturn(Future.successful(
           Some(
             Seq(
               OpenPR(
@@ -80,22 +88,25 @@ class GithubMetricProducerSpec extends AnyWordSpec with Matchers with MockitoSug
 
       val result = producer.produce("foo")
 
-      result.futureValue mustBe Metric(GithubMetricType, Seq(Result(StalePR, "Found 1 Stale PR's", None)))
+      result.futureValue shouldBe Metric(GithubMetricType, Seq(Result(StalePR, "Found 1 Stale PR's", None)))
     }
 
     "Return a Metric with CleanGithub when there is valid read me and no stale PRs" in {
-      when(mockGithubConnector.findReadMe(eqTo("foo"))).thenReturn(Future.successful(Some("This is a valid readme")))
-      when(mockGithubConnector.getOpenPRs(eqTo("foo"))).thenReturn(Future.successful(None))
+      when(mockGithubConnector.findReadMe(eqTo("foo"))(any[HeaderCarrier]))
+        .thenReturn(Future.successful(Some("This is a valid readme")))
+      when(mockGithubConnector.getOpenPRs(eqTo("foo"))(any[HeaderCarrier]))
+        .thenReturn(Future.successful(None))
 
       val result = producer.produce("foo")
 
-      result.futureValue mustBe Metric(GithubMetricType, Seq(Result(CleanGithub, "Clean GitHub: Valid ReadMe and no Stale PRS", None)))
+      result.futureValue shouldBe Metric(GithubMetricType, Seq(Result(CleanGithub, "Clean GitHub: Valid ReadMe and no Stale PRS", None)))
     }
 
     "Return a Metric with NoReadMe and StalePR" in {
-      when(mockGithubConnector.findReadMe(eqTo("foo"))).thenReturn(Future.successful(None))
-      when(mockGithubConnector.getOpenPRs(eqTo("foo"))).thenReturn(
-        Future.successful(
+      when(mockGithubConnector.findReadMe(eqTo("foo"))(any[HeaderCarrier]))
+        .thenReturn(Future.successful(None))
+      when(mockGithubConnector.getOpenPRs(eqTo("foo"))(any[HeaderCarrier]))
+        .thenReturn(Future.successful(
           Some(
             Seq(
               OpenPR(
@@ -109,29 +120,27 @@ class GithubMetricProducerSpec extends AnyWordSpec with Matchers with MockitoSug
 
       val result = producer.produce("foo")
 
-      result.futureValue mustBe Metric(GithubMetricType, Seq(Result(NoReadme, "No Readme defined", None), Result(StalePR, s"Found 1 Stale PR's", None)))
-
+      result.futureValue shouldBe Metric(GithubMetricType, Seq(Result(NoReadme, "No Readme defined", None), Result(StalePR, s"Found 1 Stale PR's", None)))
     }
   }
 
   "GithubMetricProducer.isStale" should {
     "Return None when is less than 30 days old" in {
       val pr = OpenPR(
-        title = "hello-world",
+        title     = "hello-world",
         createdAt = LocalDate.parse("2021-04-16T13:38:36Z", DateTimeFormatter.ISO_DATE_TIME),
         updatedAt = LocalDate.now.minusDays(1L)
       )
-      producer.isStale(pr) mustBe None
+      producer.isStale(pr) shouldBe None
     }
 
     "Return StalePR Metric when is more than 30 days old" in {
       val pr = OpenPR(
-        title = "hello-world",
+        title     = "hello-world",
         createdAt = LocalDate.parse("2021-04-16T13:38:36Z", DateTimeFormatter.ISO_DATE_TIME),
         updatedAt = LocalDate.now.minusDays(31L)
       )
-      producer.isStale(pr) mustBe Some(Result(StalePR, s"${pr.title}: PR older than ${producer.prStalenessDays} days", None))
+      producer.isStale(pr) shouldBe Some(Result(StalePR, s"${pr.title}: PR older than ${producer.prStalenessDays} days", None))
     }
   }
-
 }

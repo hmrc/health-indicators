@@ -32,12 +32,10 @@ class ServiceConfigsConnector @Inject()(
 ) {
   import HttpReads.Implicits._
 
-  private implicit val hc: HeaderCarrier = HeaderCarrier()
-
   private val serviceConfigsBaseURL: String =
     servicesConfig.baseUrl("service-configs")
 
-  def findAlertConfigs(repo: String): Future[Option[AlertConfig]] = {
+  def findAlertConfigs(repo: String)(implicit hc: HeaderCarrier): Future[Option[AlertConfig]] = {
     implicit val aR: Reads[AlertConfig] = AlertConfig.reads
     httpClientV2
       .get(url"$serviceConfigsBaseURL/service-configs/alert-configs/$repo")
@@ -50,5 +48,6 @@ case class AlertConfig(
 )
 
 object AlertConfig {
-  implicit val reads: Reads[AlertConfig] = Json.reads[AlertConfig]
+  implicit val reads: Reads[AlertConfig] =
+    (__ \ "production").read[Boolean].map(AlertConfig.apply)
 }

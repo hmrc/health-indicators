@@ -28,21 +28,18 @@ import scala.concurrent.{ExecutionContext, Future}
 @Singleton
 class AveragePlatformScoreRepository @Inject() (
   mongoComponent: MongoComponent
-)(implicit ec: ExecutionContext)
-    extends PlayMongoRepository[AveragePlatformScore](
-      collectionName = "averagePlatformScores",
-      mongoComponent = mongoComponent,
-      domainFormat = AveragePlatformScore.format,
-      indexes = Seq(
-        IndexModel(descending("timestamp"), IndexOptions().background(true))
-      )
-    ) {
+)(implicit
+  ec: ExecutionContext
+) extends PlayMongoRepository[AveragePlatformScore](
+  collectionName = "averagePlatformScores",
+  mongoComponent = mongoComponent,
+  domainFormat   = AveragePlatformScore.format,
+  indexes        = Seq(IndexModel(descending("timestamp"), IndexOptions().background(true)))
+) {
 
   def insert(averagePlatformScore: AveragePlatformScore): Future[Unit] =
     collection
-      .insertOne(
-        averagePlatformScore
-      )
+      .insertOne(averagePlatformScore)
       .toFuture()
       .map(_ => ())
 
@@ -57,5 +54,4 @@ class AveragePlatformScoreRepository @Inject() (
       .find()
       .sort(descending("timestamp"))
       .toFuture()
-
 }

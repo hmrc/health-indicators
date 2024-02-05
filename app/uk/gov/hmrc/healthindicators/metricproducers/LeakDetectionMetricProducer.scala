@@ -19,6 +19,7 @@ package uk.gov.hmrc.healthindicators.metricproducers
 import play.api.Logger
 import uk.gov.hmrc.healthindicators.connectors.{LeakDetectionConnector}
 import uk.gov.hmrc.healthindicators.models.{LeakDetectionMetricType, LeakDetectionNotFound, LeakDetectionViolation, Metric, Result}
+import uk.gov.hmrc.http.HeaderCarrier
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
@@ -26,29 +27,31 @@ import scala.concurrent.{ExecutionContext, Future}
 @Singleton
 class LeakDetectionMetricProducer @Inject() (
   leakDetectionConnector: LeakDetectionConnector
-)(implicit val ec: ExecutionContext)
-    extends MetricProducer {
+)(implicit
+  ec: ExecutionContext
+) extends MetricProducer {
 
   private val logger = Logger(this.getClass)
 
-  final val maxLeaks = 10
+  private implicit val hc: HeaderCarrier = HeaderCarrier()
 
-  override def produce(repo: String): Future[Metric] = {
-    logger.debug(s"Metric LeakDetection for: $repo")
-    leakDetectionConnector.findLeaks(repo).map { reports =>
-      val results =
-        if (reports.isEmpty)
-          Seq(Result(LeakDetectionNotFound, "No Leaks Detected", None))
-        else {
-          reports
-            .take(maxLeaks)
-            .map(r =>
-              Result(LeakDetectionViolation, s"Branch ${r.branch} has an unresolved ${r.ruleId} leak", None)) ++ {
-                  // limit the amount of leaks we report, once over the limit just summarize.
-                  if(reports.length > maxLeaks) Seq(Result(LeakDetectionViolation, s"Has ${reports.length-maxLeaks} additional unresolved leaks.", None)) else Nil
-            }
-        }
+  val maxLeaks = 10
+
+  override def produce(repo: String): Future[Metric] =
+    for {
+      _       <- Future.successful(logger.debug(s"Metric LeakDetection for: $repo"))
+      reports <- leakDetectionConnector.findLeaks(repo)
+      results =  if (reports.isEmpty)
+                   Seq(Result(LeakDetectionNotFound, "No Leaks Detected", None))
+                 else {
+                   reports
+                     .take(maxLeaks)
+                     .map(r =>
+                       Result(LeakDetectionViolation, s"Branch ${r.branch} has an unresolved ${r.ruleId} leak", None)) ++ {
+                           // limit the amount of leaks we report, once over the limit just summarize.
+                           if(reports.length > maxLeaks) Seq(Result(LeakDetectionViolation, s"Has ${reports.length-maxLeaks} additional unresolved leaks.", None)) else Nil
+                     }
+                 }
+    } yield
       Metric(LeakDetectionMetricType, results)
-    }
-  }
 }

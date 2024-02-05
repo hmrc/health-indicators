@@ -22,12 +22,16 @@ import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats
 
 import java.time.Instant
 
-case class AveragePlatformScore(timestamp: Instant, averageScore: Int)
+case class AveragePlatformScore(
+  timestamp   : Instant,
+  averageScore: Int
+)
 
 object AveragePlatformScore {
   val format: Format[AveragePlatformScore] = {
     implicit val instantFormat: Format[Instant] = MongoJavatimeFormats.instantFormat
-    ((__ \ "timestamp").format[Instant]
-      ~ (__ \ "averageScore").format[Int])(AveragePlatformScore.apply, unlift(AveragePlatformScore.unapply))
+    ( (__ \ "timestamp").format[Instant]
+    ~ (__ \ "averageScore").format[Int]
+    )(AveragePlatformScore.apply, unlift(AveragePlatformScore.unapply))
   }
 }

@@ -1,13 +1,13 @@
 import play.sbt.routes.RoutesKeys
+import uk.gov.hmrc.DefaultBuildSettings
 
-val appName = "health-indicators"
+ThisBuild / majorVersion := 0
+ThisBuild / scalaVersion := "2.13.12"
 
-lazy val microservice = Project(appName, file("."))
+lazy val microservice = Project("health-indicators", file("."))
   .enablePlugins(play.sbt.PlayScala, SbtDistributablesPlugin)
   .disablePlugins(JUnitXmlReportPlugin) //Required to prevent https://github.com/scalatest/scalatest/issues/1427
   .settings(
-    majorVersion := 0,
-    scalaVersion := "2.13.12",
     libraryDependencies     ++= AppDependencies.compile ++ AppDependencies.test,
     RoutesKeys.routesImport ++= Seq(
       "uk.gov.hmrc.healthindicators.models.SortType",
@@ -17,3 +17,9 @@ lazy val microservice = Project(appName, file("."))
   )
   .settings(resolvers += Resolver.jcenterRepo)
   .settings(scalacOptions += "-Wconf:src=routes/.*:s")
+
+lazy val it = project
+  .enablePlugins(PlayScala)
+  .dependsOn(microservice % "test->test")
+  .settings(DefaultBuildSettings.itSettings())
+  .settings(libraryDependencies ++= AppDependencies.it)

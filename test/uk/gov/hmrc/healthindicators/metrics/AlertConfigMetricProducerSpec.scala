@@ -16,54 +16,59 @@
 
 package uk.gov.hmrc.healthindicators.metrics
 
-import org.mockito.MockitoSugar
+import org.mockito.{ArgumentMatchersSugar, MockitoSugar}
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.matchers.must.Matchers
+import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import uk.gov.hmrc.healthindicators.connectors.{AlertConfig, ServiceConfigsConnector}
 import uk.gov.hmrc.healthindicators.models.{AlertConfigDisabled, AlertConfigEnabled, AlertConfigMetricType, AlertConfigNotFound}
 import uk.gov.hmrc.healthindicators.metricproducers.AlertConfigMetricProducer
+import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class AlertConfigMetricProducerSpec extends AnyWordSpec with Matchers with MockitoSugar with ScalaFutures {
+class AlertConfigMetricProducerSpec
+  extends AnyWordSpec
+     with Matchers
+     with MockitoSugar
+     with ArgumentMatchersSugar
+     with ScalaFutures {
 
   private val mockServiceConfigsConnector: ServiceConfigsConnector = mock[ServiceConfigsConnector]
   private val producer: AlertConfigMetricProducer = new AlertConfigMetricProducer(mockServiceConfigsConnector)
 
   "AlertConfigMetricProducer.produce" should {
-
     "Return a Metric with AlertConfigNotFound when service configs connector returns None" in {
-      when(mockServiceConfigsConnector.findAlertConfigs("foo")).thenReturn(Future.successful(None))
+      when(mockServiceConfigsConnector.findAlertConfigs(eqTo("foo"))(any[HeaderCarrier]))
+        .thenReturn(Future.successful(None))
 
       val result = producer.produce("foo").futureValue
 
-      result.metricType mustBe AlertConfigMetricType
-      result.results.head.resultType mustBe AlertConfigNotFound
+      result.metricType shouldBe AlertConfigMetricType
+      result.results.head.resultType shouldBe AlertConfigNotFound
     }
 
     "Return a Metric with AlertConfigEnabled when a service has config enabled" in {
 
-      when(mockServiceConfigsConnector.findAlertConfigs("foo")).thenReturn(Future.successful(Some(AlertConfig(true))))
+      when(mockServiceConfigsConnector.findAlertConfigs(eqTo("foo"))(any[HeaderCarrier]))
+        .thenReturn(Future.successful(Some(AlertConfig(true))))
 
       val result = producer.produce("foo").futureValue
 
-      result.metricType mustBe AlertConfigMetricType
-      result.results.head.resultType mustBe AlertConfigEnabled
-
+      result.metricType shouldBe AlertConfigMetricType
+      result.results.head.resultType shouldBe AlertConfigEnabled
     }
 
     "Return a Metric with AlertConfigDisabled when a service has config disabled" in {
 
-      when(mockServiceConfigsConnector.findAlertConfigs("foo")).thenReturn(Future.successful(Some(AlertConfig(false))))
+      when(mockServiceConfigsConnector.findAlertConfigs(eqTo("foo"))(any[HeaderCarrier]))
+        .thenReturn(Future.successful(Some(AlertConfig(false))))
 
       val result = producer.produce("foo").futureValue
 
-      result.metricType mustBe AlertConfigMetricType
-      result.results.head.resultType mustBe AlertConfigDisabled
-
+      result.metricType shouldBe AlertConfigMetricType
+      result.results.head.resultType shouldBe AlertConfigDisabled
     }
-
   }
 }

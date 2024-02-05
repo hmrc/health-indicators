@@ -16,6 +16,8 @@
 
 package uk.gov.hmrc.healthindicators.persistence
 
+import org.mongodb.scala.bson.BsonDocument
+import org.mongodb.scala.bson.conversions.Bson
 import org.mongodb.scala.model.Filters.equal
 import org.mongodb.scala.model.Indexes._
 import org.mongodb.scala.model.{IndexModel, IndexOptions, ReplaceOptions}
@@ -30,44 +32,37 @@ import scala.concurrent.{ExecutionContext, Future}
 @Singleton
 class RepositoryMetricsRepository @Inject() (
   mongoComponent: MongoComponent
-)(implicit ec: ExecutionContext)
-    extends PlayMongoRepository[RepositoryMetrics](
-      collectionName = "repositoryMetrics",
-      mongoComponent = mongoComponent,
-      domainFormat = RepositoryMetrics.mongoFormats,
-      indexes = Seq(
-        IndexModel(hashed("repoName"), IndexOptions().background(true)),
-        IndexModel(descending("timestamp"), IndexOptions().background(true)),
-        IndexModel(hashed("repoType"), IndexOptions().background(true))
-      )
-    ) {
-
+)(implicit
+  ec: ExecutionContext
+) extends PlayMongoRepository[RepositoryMetrics](
+  collectionName = "repositoryMetrics",
+  mongoComponent = mongoComponent,
+  domainFormat   = RepositoryMetrics.mongoFormats,
+  indexes        = Seq(
+                     IndexModel(hashed("repoName"), IndexOptions().background(true)),
+                     IndexModel(descending("timestamp"), IndexOptions().background(true)),
+                     IndexModel(hashed("repoType"), IndexOptions().background(true))
+                   )
+) {
   override lazy val requiresTtlIndex: Boolean = false // records are replaced on a schedule
 
-  def getRepositoryMetrics(repo: String): Future[Option[RepositoryMetrics]] =
+  def getRepositoryMetrics(repoName: String): Future[Option[RepositoryMetrics]] =
     collection
-      .find(equal("repoName", repo))
+      .find(equal("repoName", repoName))
       .headOption()
 
-  def getAllRepositoryMetrics(repoType: Option[RepoType]): Future[Seq[RepositoryMetrics]] =
-    repoType match {
-      case Some(rt) => collection.find(equal("repoType", rt.asString)).toFuture()
-      case None     => findAll()
-    }
+  def findAll(repoType: Option[RepoType] = None): Future[Seq[RepositoryMetrics]] =
+    collection
+      .find(repoType.fold[Bson](BsonDocument())(rt => equal("repoType", rt.asString)))
+      .toFuture()
 
   def insert(repo: String, metrics: RepositoryMetrics): Future[Unit] =
     collection
       .replaceOne(
-        filter = equal("repoName", repo),
+        filter      = equal("repoName", repo),
         replacement = metrics,
-        options = ReplaceOptions().upsert(true)
+        options     = ReplaceOptions().upsert(true)
       )
       .toFuture()
       .map(_ => ())
-
-  def findAll(): Future[Seq[RepositoryMetrics]] =
-    collection
-      .find()
-      .toFuture()
-      .map(_.toList)
 }

@@ -17,7 +17,7 @@
 package uk.gov.hmrc.healthindicators.persistence
 
 import org.mockito.MockitoSugar
-import org.scalatest.matchers.must.Matchers
+import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import uk.gov.hmrc.healthindicators.connectors.RepoType.{Prototype, Service}
 import uk.gov.hmrc.healthindicators.models.RepositoryMetrics
@@ -43,57 +43,57 @@ class RepositoryMetricsRepositorySpec
 
     "insert correctly" in {
       repository.insert(metrics.repoName, metrics).futureValue
-      repository.findAll().futureValue must contain(metrics)
+      repository.findAll().futureValue should contain(metrics)
     }
 
     "replace correctly" in {
       repository.insert(metrics.repoName, metrics).futureValue
       repository.insert(metrics.repoName, metricsTwo).futureValue
-      repository.findAll().futureValue must contain(metricsTwo)
+      repository.findAll().futureValue should contain(metricsTwo)
     }
   }
 
-    "getRepositoryMetrics" should {
-      val foo = RepositoryMetrics("foo", now, Service, Seq.empty)
+  "getRepositoryMetrics" should {
+    val foo = RepositoryMetrics("foo", now, Service, Seq.empty)
 
-      "return metrics for repo" in {
-       repository.insert(foo.repoName, foo).futureValue
-        repository.getRepositoryMetrics(foo.repoName).futureValue mustBe Some(foo)
-      }
-
-      "return none if no metrics are found for repo" in {
-        repository.insert(foo.repoName, foo).futureValue
-        repository.getRepositoryMetrics("notfound").futureValue mustBe None
-      }
+    "return metrics for repo" in {
+      repository.insert(foo.repoName, foo).futureValue
+      repository.getRepositoryMetrics(foo.repoName).futureValue shouldBe Some(foo)
     }
 
-  "MetricsPersistence.getAllRepositoryMetrics" should {
+    "return none if no metrics are found for repo" in {
+      repository.insert(foo.repoName, foo).futureValue
+      repository.getRepositoryMetrics("notfound").futureValue shouldBe None
+    }
+  }
+
+  "MetricsPersistence.findAll" should {
     val foo = RepositoryMetrics("foo", now, Service  , Seq.empty)
     val bar = RepositoryMetrics("bar", now, Prototype, Seq.empty)
 
     "return the metrics for all repos when no filter is applied" in {
       repository.insert(foo.repoName, foo).futureValue
       repository.insert(bar.repoName, bar).futureValue
-      repository.getAllRepositoryMetrics(repoType = None).futureValue must contain theSameElementsAs Seq(
+      repository.findAll(repoType = None).futureValue should contain theSameElementsAs Seq(
         foo,
         bar
       )
     }
 
     "returns empty list when no results are found" in {
-      repository.getAllRepositoryMetrics(repoType = None).futureValue mustBe List()
+      repository.findAll(repoType = None).futureValue shouldBe Seq.empty
     }
 
     "returns only Services when filtered by Service" in {
       repository.insert(foo.repoName, foo).futureValue
       repository.insert(bar.repoName, bar).futureValue
-      repository.getAllRepositoryMetrics(Some(Service)).futureValue mustBe List(foo)
+      repository.findAll(Some(Service)).futureValue shouldBe Seq(foo)
     }
 
     "returns only Prototypes when filtered by Prototype" in {
       repository.insert(foo.repoName, foo).futureValue
       repository.insert(bar.repoName, bar).futureValue
-      repository.getAllRepositoryMetrics(Some(Prototype)).futureValue mustBe List(bar)
+      repository.findAll(Some(Prototype)).futureValue shouldBe Seq(bar)
     }
   }
 }

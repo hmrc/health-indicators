@@ -19,7 +19,6 @@ package uk.gov.hmrc.healthindicators.services
 import org.mockito.ArgumentMatchersSugar.any
 import org.mockito.MockitoSugar
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.matchers.must.Matchers.convertToAnyMustWrapper
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import uk.gov.hmrc.healthindicators.connectors.RepoType.Service
@@ -104,7 +103,7 @@ class HistoricIndicatorServiceSpec extends AnyWordSpec with Matchers with Mockit
 
       val result = historicIndicatorService.historicIndicatorForRepo("foo")
 
-      result.futureValue mustBe Some(
+      result.futureValue shouldBe Some(
         HistoricIndicatorAPI("foo", Seq(DataPoint(now, 100), DataPoint(dayBefore, 50)))
       )
     }
@@ -115,7 +114,7 @@ class HistoricIndicatorServiceSpec extends AnyWordSpec with Matchers with Mockit
 
       val result = historicIndicatorService.historicIndicatorForRepo("foo")
 
-      result.futureValue mustBe None
+      result.futureValue shouldBe None
     }
   }
 
@@ -127,7 +126,7 @@ class HistoricIndicatorServiceSpec extends AnyWordSpec with Matchers with Mockit
 
       val result = historicIndicatorService.historicIndicatorsForAllRepos
 
-      result.futureValue.toSet mustBe Set(
+      result.futureValue.toSet shouldBe Set(
         HistoricIndicatorAPI("foo", Seq(DataPoint(now, 100), DataPoint(dayBefore, 50))),
         HistoricIndicatorAPI("bar", Seq(DataPoint(now, 75), DataPoint(dayBefore, 25))))
     }

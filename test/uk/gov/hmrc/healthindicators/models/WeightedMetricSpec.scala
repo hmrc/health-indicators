@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.healthindicators.models
 
-import org.scalatest.matchers.must.Matchers
+import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import play.api.libs.json.{Writes, _}
 import uk.gov.hmrc.healthindicators.connectors.RepoType.Service
@@ -28,19 +28,19 @@ class WeightedMetricSpec extends AnyWordSpec with Matchers {
   "MetricType" should {
 
     "write ReadMe" in {
-      Json.toJson(GithubMetricType: MetricType) mustBe JsString("github")
+      Json.toJson(GithubMetricType: MetricType) shouldBe JsString("github")
     }
 
     "write LeakDetection" in {
-      Json.toJson(LeakDetectionMetricType: MetricType) mustBe JsString("leak-detection")
+      Json.toJson(LeakDetectionMetricType: MetricType) shouldBe JsString("leak-detection")
     }
 
     "write BobbyRule" in {
-      Json.toJson(BobbyRuleMetricType: MetricType) mustBe JsString("bobby-rule")
+      Json.toJson(BobbyRuleMetricType: MetricType) shouldBe JsString("bobby-rule")
     }
 
     "write BuildStability" in {
-      Json.toJson(BuildStabilityMetricType: MetricType) mustBe JsString("build-stability")
+      Json.toJson(BuildStabilityMetricType: MetricType) shouldBe JsString("build-stability")
     }
 
   }
@@ -50,7 +50,7 @@ class WeightedMetricSpec extends AnyWordSpec with Matchers {
     "write correct json" in {
       val score = Breakdown(10, "Foo", Some("www.google.com"))
 
-      Json.toJson(score) mustBe Json.parse("""{"points":10,"description":"Foo","link":"www.google.com"}""")
+      Json.toJson(score) shouldBe Json.parse("""{"points":10,"description":"Foo","link":"www.google.com"}""")
     }
   }
 
@@ -59,7 +59,7 @@ class WeightedMetricSpec extends AnyWordSpec with Matchers {
     "write correct json" in {
       val score  = Breakdown(10, "Foo", Some("www.google.com"))
       val rating = WeightedMetric(GithubMetricType, 10, Seq(score))
-      Json.toJson(rating) mustBe Json.parse(
+      Json.toJson(rating) shouldBe Json.parse(
       """{"metricType":"github",
           |"score":10,
           |"breakdown":[{"points":10,
@@ -75,7 +75,7 @@ class WeightedMetricSpec extends AnyWordSpec with Matchers {
       val score            = Breakdown(10, "Foo", Some("www.google.com"))
       val rating           = WeightedMetric(GithubMetricType, 10, Seq(score))
       val repositoryRating = Indicator("foo", Service, 10, Seq(rating))
-      Json.toJson(repositoryRating) mustBe Json.parse(
+      Json.toJson(repositoryRating) shouldBe Json.parse(
       """{"repoName":"foo",
           |"repoType":"Service",
           |"overallScore":10,

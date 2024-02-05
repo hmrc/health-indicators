@@ -32,7 +32,9 @@ import scala.concurrent.{ExecutionContext, Future}
 class ServiceDependenciesConnector @Inject() (
   httpClientV2  : HttpClientV2,
   servicesConfig: ServicesConfig
-)(implicit val ec: ExecutionContext) {
+)(implicit
+  ec: ExecutionContext
+) {
   import HttpReads.Implicits._
 
   private implicit val hc: HeaderCarrier = HeaderCarrier()

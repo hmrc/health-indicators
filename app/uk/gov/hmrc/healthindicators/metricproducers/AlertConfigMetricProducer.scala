@@ -19,23 +19,27 @@ package uk.gov.hmrc.healthindicators.metricproducers
 import play.api.Logger
 import uk.gov.hmrc.healthindicators.connectors.{AlertConfig, ServiceConfigsConnector}
 import uk.gov.hmrc.healthindicators.models._
+import uk.gov.hmrc.http.HeaderCarrier
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class AlertConfigMetricProducer @Inject() (serviceConfigConnector: ServiceConfigsConnector)(implicit
-  val ec: ExecutionContext
+class AlertConfigMetricProducer @Inject() (
+  serviceConfigConnector: ServiceConfigsConnector
+)(implicit
+  ec: ExecutionContext
 ) extends MetricProducer {
 
   private val logger = Logger(this.getClass)
 
-  override def produce(repo: String): Future[Metric] = {
-    logger.debug(s"Metric Alert Config for: $repo")
-    serviceConfigConnector.findAlertConfigs(repo).map { response =>
-      Metric(AlertConfigMetricType, getResults(response))
-    }
-  }
+  private implicit val hc: HeaderCarrier = HeaderCarrier()
+
+  override def produce(repo: String): Future[Metric] =
+    for {
+      _        <- Future.successful(logger.debug(s"Metric Alert Config for: $repo"))
+      response <- serviceConfigConnector.findAlertConfigs(repo)
+    } yield Metric(AlertConfigMetricType, getResults(response))
 
   private def getResults(maybeConfig: Option[AlertConfig]): Seq[Result] =
     maybeConfig match {

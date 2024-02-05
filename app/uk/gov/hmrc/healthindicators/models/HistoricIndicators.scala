@@ -22,17 +22,24 @@ import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats
 
 import java.time.Instant
 
-case class DataPoint(timestamp: Instant, overallScore: Int)
+case class DataPoint(
+  timestamp: Instant,
+  overallScore: Int
+)
 
 object DataPoint {
   val format: OFormat[DataPoint] = {
     implicit val instantFormat: Format[Instant] = MongoJavatimeFormats.instantFormat
-    ((__ \ "timestamp").format[Instant]
-      ~ (__ \ "overallScore").format[Int])(DataPoint.apply, unlift(DataPoint.unapply))
+    ( (__ \ "timestamp"   ).format[Instant]
+    ~ (__ \ "overallScore").format[Int]
+    )(DataPoint.apply, unlift(DataPoint.unapply))
   }
 }
 
-case class HistoricIndicatorAPI(repoName: String, dataPoints: Seq[DataPoint])
+case class HistoricIndicatorAPI(
+  repoName  : String,
+  dataPoints: Seq[DataPoint]
+)
 
 object HistoricIndicatorAPI {
   def fromHistoricIndicators(historicIndicator: Seq[HistoricIndicator]): Option[HistoricIndicatorAPI] =
@@ -46,22 +53,24 @@ object HistoricIndicatorAPI {
 
   val format: OFormat[HistoricIndicatorAPI] = {
     implicit val dataFormat: Format[DataPoint] = DataPoint.format
-    ((__ \ "repoName").format[String]
-      ~ (__ \ "dataPoints").format[Seq[DataPoint]])(HistoricIndicatorAPI.apply, unlift(HistoricIndicatorAPI.unapply))
+    ( (__ \ "repoName"  ).format[String]
+    ~ (__ \ "dataPoints").format[Seq[DataPoint]]
+    )(HistoricIndicatorAPI.apply, unlift(HistoricIndicatorAPI.unapply))
   }
 }
 
 case class HistoricIndicator(
-  repoName: String,
-  timestamp: Instant,
+  repoName    : String,
+  timestamp   : Instant,
   overallScore: Int
 )
 
 object HistoricIndicator {
   val format: OFormat[HistoricIndicator] = {
     implicit val instantFormat: Format[Instant] = MongoJavatimeFormats.instantFormat
-    ((__ \ "repoName").format[String]
-      ~ (__ \ "timestamp").format[Instant]
-      ~ (__ \ "overallScore").format[Int])(HistoricIndicator.apply, unlift(HistoricIndicator.unapply))
+    ( (__ \ "repoName"    ).format[String]
+    ~ (__ \ "timestamp"   ).format[Instant]
+    ~ (__ \ "overallScore").format[Int]
+    )(HistoricIndicator.apply, unlift(HistoricIndicator.unapply))
   }
 }

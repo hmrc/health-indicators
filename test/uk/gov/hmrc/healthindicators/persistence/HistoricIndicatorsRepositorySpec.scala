@@ -17,7 +17,7 @@
 package uk.gov.hmrc.healthindicators.persistence
 
 import org.mockito.MockitoSugar
-import org.scalatest.matchers.must.Matchers
+import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import uk.gov.hmrc.healthindicators.models.HistoricIndicator
 import uk.gov.hmrc.mongo.test.DefaultPlayMongoRepositorySupport
@@ -43,7 +43,7 @@ class HistoricIndicatorsRepositorySpec
 
     "insert and find all correctly" in {
       repository.insert(historicIndicatorOneA).futureValue
-      repository.findAll.futureValue must contain(historicIndicatorOneA)
+      repository.findAll.futureValue should contain(historicIndicatorOneA)
     }
 
     "insert and find all for specific repo correctly" in {
@@ -51,10 +51,9 @@ class HistoricIndicatorsRepositorySpec
       repository.insert(historicIndicatorTwo  ).futureValue
       repository.insert(historicIndicatorThree).futureValue
       repository.insert(historicIndicatorOneB ).futureValue
-      repository.findAllForRepo("test1").futureValue must contain(historicIndicatorOneA)
-      repository.findAllForRepo("test1").futureValue must contain(historicIndicatorOneB)
-      repository.findAllForRepo("test1").futureValue mustNot contain(historicIndicatorTwo)
+      repository.findAllForRepo("test1").futureValue should contain(historicIndicatorOneA)
+      repository.findAllForRepo("test1").futureValue should contain(historicIndicatorOneB)
+      repository.findAllForRepo("test1").futureValue shouldNot contain(historicIndicatorTwo)
     }
   }
-
 }

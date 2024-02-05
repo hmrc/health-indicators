@@ -23,6 +23,7 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import play.api.Configuration
 import uk.gov.hmrc.healthindicators.configs.JenkinsConfig
+import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.http.test.{HttpClientV2Support, WireMockSupport}
 
 import java.time.Instant
@@ -46,6 +47,8 @@ class JenkinsConnectorSpec
       )),
       httpClientV2
     )
+
+  private implicit val hc: HeaderCarrier = HeaderCarrier()
 
   "Get build job" should {
     "return health report for build" in {

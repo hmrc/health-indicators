@@ -27,26 +27,25 @@ import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 class BuildStabilityMetricProducer @Inject() (
-  jenkinsConnector: JenkinsConnector,
+  jenkinsConnector             : JenkinsConnector,
   teamsAndRepositoriesConnector: TeamsAndRepositoriesConnector
-)(implicit val ec: ExecutionContext)
-    extends MetricProducer {
+)(implicit
+  ec: ExecutionContext
+) extends MetricProducer {
 
   private val logger = Logger(this.getClass)
 
-  override def produce(repo: String): Future[Metric] = {
+  private implicit val hc: HeaderCarrier = HeaderCarrier()
 
-    implicit val hc = HeaderCarrier()
-    logger.debug(s"Metric BuildStability for: $repo")
-
+  override def produce(repo: String): Future[Metric] =
     for {
+      _           <- Future.successful(logger.debug(s"Metric BuildStability for: $repo"))
       maybeUrl    <- teamsAndRepositoriesConnector.getJenkinsUrl(repo)
-      buildReport <- maybeUrl.map(url => jenkinsConnector.getBuildJob(url.jenkinsURL)).getOrElse(Future.successful(None))
+      buildReport <- maybeUrl.map(url => jenkinsConnector.getBuildJob(url.asString)).getOrElse(Future.successful(None))
       result      =  buildReport
                       .map(i => getResultType(i))
                       .getOrElse(Result(JenkinsBuildNotFound, s"No Jenkins Build Found for: $repo", None))
     } yield Metric(BuildStabilityMetricType, Seq(result))
-  }
 }
 
 object BuildStabilityMetricProducer {
@@ -64,8 +63,10 @@ object BuildStabilityMetricProducer {
       case Some(JenkinsBuildStatus("SUCCESS", _)) =>
         Result(JenkinsBuildStable, "Build Stable: Everything is good", None)
 
-      case Some(JenkinsBuildStatus(status, _)) => Result(JenkinsBuildNotFound, s"Unknown Status: $status", None)
+      case Some(JenkinsBuildStatus(status, _)) =>
+        Result(JenkinsBuildNotFound, s"Unknown Status: $status", None)
 
-      case None => Result(JenkinsBuildNotFound, "Build Not Found: Never been built", None)
+      case None =>
+        Result(JenkinsBuildNotFound, "Build Not Found: Never been built", None)
     }
 }

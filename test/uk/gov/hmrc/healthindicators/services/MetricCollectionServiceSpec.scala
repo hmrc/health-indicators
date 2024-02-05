@@ -51,15 +51,16 @@ class MetricCollectionServiceSpec extends AnyWordSpec with Matchers with Mockito
   "metricCollectionService.collectAll" should {
     "traverse all repos and create a RepositoryMetric for each, inserting them into a mongo collection" in {
       implicit val hc: HeaderCarrier = HeaderCarrier()
-      when(teamsAndRepositoriesConnector.allRepositories) thenReturn
-        Future.successful(
+      when(teamsAndRepositoriesConnector.allRepositories)
+        .thenReturn(Future.successful(
           List(TeamsAndRepos("repo1", Service), TeamsAndRepos("repo2", Service), TeamsAndRepos("repo3", Service))
-        )
+        ))
 
       when(mockProducer.produce(any)) thenReturn
         Future.successful(Metric(GithubMetricType, Seq(Result(CleanGithub, "bar", None))))
 
-      when(repositoryMetricsRepository.insert(any, any)) thenReturn Future.unit
+      when(repositoryMetricsRepository.insert(any, any))
+        .thenReturn(Future.unit)
 
       Await.result(metricCollectionService.collectAll(), 10.seconds) shouldBe ((): Unit)
 
@@ -68,8 +69,8 @@ class MetricCollectionServiceSpec extends AnyWordSpec with Matchers with Mockito
 
     "not insert any RepositoryMetrics when teamsAndRepositoriesConnector returns an empty list" in {
       implicit val hc: HeaderCarrier = HeaderCarrier()
-      when(teamsAndRepositoriesConnector.allRepositories) thenReturn
-        Future.successful(List())
+      when(teamsAndRepositoriesConnector.allRepositories)
+        .thenReturn(Future.successful(List()))
 
       when(mockProducer.produce(any)) thenReturn
         Future.successful(Metric(GithubMetricType, Seq(Result(CleanGithub, "bar", None))))

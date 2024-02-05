@@ -33,26 +33,27 @@ class GitHubProxyConnector @Inject()(
 )(implicit ec: ExecutionContext) {
   import HttpReads.Implicits._
 
-  private implicit val hc: HeaderCarrier = HeaderCarrier()
-
   private val gitHubProxyBaseURL: String = servicesConfig.baseUrl("platops-github-proxy")
 
-  def findReadMe(repo: String): Future[Option[String]] =
+  def findReadMe(repo: String)(implicit hc: HeaderCarrier): Future[Option[String]] =
     httpClientV2
       .get(url"$gitHubProxyBaseURL/platops-github-proxy/github-raw/$repo/HEAD/README.md")
       .execute[Option[HttpResponse]]
       .map(_.map(_.body))
 
-  def getOpenPRs(repo: String): Future[Option[Seq[OpenPR]]] = {
-    val url = url"$gitHubProxyBaseURL/platops-github-proxy/github-rest/$repo/pulls?state=open"
-    implicit val oR: Reads[OpenPR] = OpenPR.reads
+  def getOpenPRs(repo: String)(implicit hc: HeaderCarrier): Future[Option[Seq[OpenPR]]] = {
+    implicit val oprr: Reads[OpenPR] = OpenPR.reads
     httpClientV2
-      .get(url)
+      .get(url"$gitHubProxyBaseURL/platops-github-proxy/github-rest/$repo/pulls?state=open")
       .execute[Option[Seq[OpenPR]]]
   }
 }
 
-case class OpenPR(title: String, createdAt: LocalDate, updatedAt: LocalDate)
+case class OpenPR(
+  title    : String,
+  createdAt: LocalDate,
+  updatedAt: LocalDate
+)
 
 object OpenPR {
   val dateFormatter: DateTimeFormatter = DateTimeFormatter.ISO_DATE_TIME

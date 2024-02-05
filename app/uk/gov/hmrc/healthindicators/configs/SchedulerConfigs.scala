@@ -22,24 +22,24 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.duration.FiniteDuration
 
 case class SchedulerConfig(
-  enabledKey: String,
-  enabled: Boolean,
-  frequency: () => FiniteDuration,
+  enabledKey  : String,
+  enabled     : Boolean,
+  frequency   : () => FiniteDuration,
   initialDelay: () => FiniteDuration
 )
 
 object SchedulerConfig {
 
   def apply(
-    configuration: Configuration,
-    enabledKey: String,
-    frequencyKey: String,
+    configuration  : Configuration,
+    enabledKey     : String,
+    frequencyKey   : String,
     initialDelayKey: String
   ): SchedulerConfig =
     SchedulerConfig(
       enabledKey,
-      enabled = configuration.get[Boolean](enabledKey),
-      frequency = () => configuration.get[FiniteDuration](frequencyKey),
+      enabled      = configuration.get[Boolean](enabledKey),
+      frequency    = () => configuration.get[FiniteDuration](frequencyKey),
       initialDelay = () => configuration.get[FiniteDuration](initialDelayKey)
     )
 }
@@ -49,8 +49,8 @@ class SchedulerConfigs @Inject() (configuration: Configuration) {
 
   val metricScheduler: SchedulerConfig = SchedulerConfig(
     configuration,
-    enabledKey = "metrics.refresh.enabled",
-    frequencyKey = "metrics.refresh.interval",
+    enabledKey      = "metrics.refresh.enabled",
+    frequencyKey    = "metrics.refresh.interval",
     initialDelayKey = "metrics.refresh.initialDelay"
   )
 }

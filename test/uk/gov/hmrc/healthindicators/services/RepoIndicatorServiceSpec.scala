@@ -19,7 +19,7 @@ package uk.gov.hmrc.healthindicators.services
 import java.time.Instant
 import org.mockito.MockitoSugar
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.matchers.must.Matchers
+import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import uk.gov.hmrc.healthindicators.configs.PointsConfig
 import uk.gov.hmrc.healthindicators.connectors.RepoType.Service
@@ -63,14 +63,13 @@ class RepoIndicatorServiceSpec extends AnyWordSpec with Matchers with MockitoSug
   private val leakDetectionViolation  = pointsConfig.points(LeakDetectionViolation)
 
   "RepoIndicatorService" should {
-
     "Return a Indicator for a single Repository" in {
       when(mockRepository.getRepositoryMetrics("foo"))
         .thenReturn(Future.successful(Some(repositoryMetricOne)))
 
       val result = repoIndicatorService.indicatorForRepo("foo")
 
-      result.futureValue mustBe Some(
+      result.futureValue shouldBe Some(
         Indicator(
           "foo",
           Service,
@@ -85,12 +84,12 @@ class RepoIndicatorServiceSpec extends AnyWordSpec with Matchers with MockitoSug
     }
 
     "Return a Indicator for each Repository in ascending order" in {
-      when(mockRepository.getAllRepositoryMetrics(None))
+      when(mockRepository.findAll(None))
         .thenReturn(Future.successful(Seq(repositoryMetricOne, repositoryMetricTwo)))
 
       val result = repoIndicatorService.indicatorsForAllRepos(repoType = None, SortType.Ascending)
 
-      result.futureValue mustBe Seq(
+      result.futureValue shouldBe Seq(
         Indicator(
           "foo",
           Service,
@@ -115,12 +114,12 @@ class RepoIndicatorServiceSpec extends AnyWordSpec with Matchers with MockitoSug
     }
 
     "Return a Indicator for each Repository in descending order, when sort equals true" in {
-      when(mockRepository.getAllRepositoryMetrics(None))
+      when(mockRepository.findAll(None))
         .thenReturn(Future.successful(Seq(repositoryMetricTwo, repositoryMetricOne)))
 
       val result = repoIndicatorService.indicatorsForAllRepos(repoType = None, SortType.Descending)
 
-      result.futureValue mustBe Seq(
+      result.futureValue shouldBe Seq(
         Indicator(
           "bar",
           Service,

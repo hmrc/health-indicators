@@ -29,15 +29,15 @@ import scala.concurrent.{ExecutionContext, Future}
 class LeakDetectionConnector @Inject() (
   httpClientV2  : HttpClientV2,
   servicesConfig: ServicesConfig
-)(implicit val ec: ExecutionContext) {
+)(implicit
+  ec: ExecutionContext
+) {
   import HttpReads.Implicits._
-
-  private implicit val hc: HeaderCarrier = HeaderCarrier()
 
   private val leakDetectionBaseUrl: String =
     servicesConfig.baseUrl("leak-detection")
 
-  def findLeaks(repo: String): Future[Seq[Leak]] = {
+  def findLeaks(repo: String)(implicit hc: HeaderCarrier): Future[Seq[Leak]] = {
     implicit val rF = Leak.reads
     httpClientV2
       .get(url"$leakDetectionBaseUrl/api/leaks?repository=$repo")
@@ -52,10 +52,9 @@ case class Leak(
 )
 
 object Leak {
-  val reads: Reads[Leak] = {
+  val reads: Reads[Leak] =
     ( (__ \ "repoName").read[String]
     ~ (__ \ "branch"  ).read[String]
     ~ (__ \ "ruleId"  ).read[String]
     )(Leak.apply _)
-  }
 }
