@@ -84,7 +84,7 @@ class IntegrationSpec
       )
 
       stubFor(
-        get(urlEqualTo("/api/dependencies/auth"))
+        get(urlEqualTo("/undefined"))
           .willReturn(aResponse().withStatus(200).withBody(serviceDependenciesJson))
       )
 

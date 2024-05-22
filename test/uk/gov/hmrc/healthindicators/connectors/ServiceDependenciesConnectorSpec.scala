@@ -86,7 +86,7 @@ class ServiceDependenciesConnectorSpec
             }"""
 
       stubFor(
-        get(urlEqualTo("/api/dependencies/repo1"))
+        get(urlEqualTo("/undefined"))
           .willReturn(
             aResponse()
               .withStatus(200)
@@ -120,7 +120,7 @@ class ServiceDependenciesConnectorSpec
 
     "return None when a repo does not exist" in {
       stubFor(
-        get(urlEqualTo("/api/dependencies/repo1"))
+        get(urlEqualTo("/undefined"))
           .willReturn(aResponse().withStatus(404))
        )
 

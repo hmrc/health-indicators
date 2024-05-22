@@ -46,7 +46,7 @@ class ServiceDependenciesConnector @Inject() (
 
   def dependencies(repo: String): Future[Option[Dependencies]] = {
     implicit val rF: Reads[Dependencies] = Dependencies.reads
-    val url = url"$serviceDependenciesBaseURL/api/dependencies/$repo"
+    val url = url"$serviceDependenciesBaseURL/undefined"
     httpClientV2
       .get(url)
       .execute[Option[Dependencies]]
