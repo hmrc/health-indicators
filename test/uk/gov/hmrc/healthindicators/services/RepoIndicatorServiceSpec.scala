@@ -33,8 +33,6 @@ class RepoIndicatorServiceSpec extends AnyWordSpec with Matchers with MockitoSug
 
   private val mockRepository: RepositoryMetricsRepository = mock[RepositoryMetricsRepository]
 
-  private val bobbyRulesMetric: Metric =
-    Metric(BobbyRuleMetricType, Seq(Result(BobbyRuleActive, "desc", None)))
   private val GithubMetricOne: Metric = Metric(GithubMetricType, Seq(Result(NoReadme, "desc", None)))
   private val GithubMetricTwo: Metric = Metric(GithubMetricType, Seq(Result(CleanGithub, "desc", None)))
   private val leakDetectionMetric: Metric =
@@ -44,20 +42,19 @@ class RepoIndicatorServiceSpec extends AnyWordSpec with Matchers with MockitoSug
       "foo",
       Instant.now(),
       Service,
-      Seq(bobbyRulesMetric, GithubMetricOne, leakDetectionMetric)
+      Seq(GithubMetricOne, leakDetectionMetric)
     )
   private val repositoryMetricTwo: RepositoryMetrics =
     RepositoryMetrics(
       "bar",
       Instant.now(),
       Service,
-      Seq(bobbyRulesMetric, GithubMetricTwo, leakDetectionMetric)
+      Seq(GithubMetricTwo, leakDetectionMetric)
     )
 
   private val pointsConfig         = new PointsConfig
   private val repoIndicatorService = new RepoIndicatorService(mockRepository, pointsConfig)
 
-  private val bobbyRuleActive         = pointsConfig.points(BobbyRuleActive)
   private val noReadMe                = pointsConfig.points(NoReadme)
   private val cleanGithub             = pointsConfig.points(CleanGithub)
   private val leakDetectionViolation  = pointsConfig.points(LeakDetectionViolation)
@@ -73,9 +70,8 @@ class RepoIndicatorServiceSpec extends AnyWordSpec with Matchers with MockitoSug
         Indicator(
           "foo",
           Service,
-          bobbyRuleActive + noReadMe + leakDetectionViolation,
+          noReadMe + leakDetectionViolation,
           Seq(
-            WeightedMetric(BobbyRuleMetricType, bobbyRuleActive, Seq(Breakdown(bobbyRuleActive, "desc", None))),
             WeightedMetric(GithubMetricType, noReadMe, Seq(Breakdown(noReadMe, "desc", None))),
             WeightedMetric(LeakDetectionMetricType, leakDetectionViolation, Seq(Breakdown(leakDetectionViolation, "desc", None)))
           )
@@ -93,9 +89,8 @@ class RepoIndicatorServiceSpec extends AnyWordSpec with Matchers with MockitoSug
         Indicator(
           "foo",
           Service,
-          bobbyRuleActive + noReadMe + leakDetectionViolation,
+          noReadMe + leakDetectionViolation,
           Seq(
-            WeightedMetric(BobbyRuleMetricType, bobbyRuleActive, Seq(Breakdown(bobbyRuleActive, "desc", None))),
             WeightedMetric(GithubMetricType, noReadMe, Seq(Breakdown(noReadMe, "desc", None))),
             WeightedMetric(LeakDetectionMetricType, leakDetectionViolation, Seq(Breakdown(leakDetectionViolation, "desc", None)))
           )
@@ -103,9 +98,8 @@ class RepoIndicatorServiceSpec extends AnyWordSpec with Matchers with MockitoSug
         Indicator(
           "bar",
           Service,
-          bobbyRuleActive + cleanGithub + leakDetectionViolation,
+          cleanGithub + leakDetectionViolation,
           Seq(
-            WeightedMetric(BobbyRuleMetricType, bobbyRuleActive, Seq(Breakdown(bobbyRuleActive, "desc", None))),
             WeightedMetric(GithubMetricType, cleanGithub, Seq(Breakdown(cleanGithub, "desc", None))),
             WeightedMetric(LeakDetectionMetricType, leakDetectionViolation, Seq(Breakdown(leakDetectionViolation, "desc", None)))
           )
@@ -123,9 +117,8 @@ class RepoIndicatorServiceSpec extends AnyWordSpec with Matchers with MockitoSug
         Indicator(
           "bar",
           Service,
-          bobbyRuleActive + cleanGithub + leakDetectionViolation,
+          cleanGithub + leakDetectionViolation,
           Seq(
-            WeightedMetric(BobbyRuleMetricType, bobbyRuleActive, Seq(Breakdown(bobbyRuleActive, "desc", None))),
             WeightedMetric(GithubMetricType, cleanGithub, Seq(Breakdown(cleanGithub, "desc", None))),
             WeightedMetric(LeakDetectionMetricType, leakDetectionViolation, Seq(Breakdown(leakDetectionViolation, "desc", None)))
           )
@@ -133,9 +126,8 @@ class RepoIndicatorServiceSpec extends AnyWordSpec with Matchers with MockitoSug
         Indicator(
           "foo",
           Service,
-          bobbyRuleActive + noReadMe + leakDetectionViolation,
+          noReadMe + leakDetectionViolation,
           Seq(
-            WeightedMetric(BobbyRuleMetricType, bobbyRuleActive, Seq(Breakdown(bobbyRuleActive, "desc", None))),
             WeightedMetric(GithubMetricType, noReadMe, Seq(Breakdown(noReadMe, "desc", None))),
             WeightedMetric(LeakDetectionMetricType, leakDetectionViolation, Seq(Breakdown(leakDetectionViolation, "desc", None)))
           )

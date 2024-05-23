@@ -34,26 +34,6 @@ class IndicatorsSpec extends AnyWordSpec with Matchers {
       JsString("no-readme").validate[ResultType] shouldBe JsSuccess(NoReadme)
     }
 
-    "parse LeakDetectionViolation" in {
-      JsString("leak-detection-violation").validate[ResultType] shouldBe JsSuccess(LeakDetectionViolation)
-    }
-
-    "parse BobbyRulePending" in {
-      JsString("bobby-rule-pending").validate[ResultType] shouldBe JsSuccess(BobbyRulePending)
-    }
-
-    "parse BobbyRuleActive" in {
-      JsString("bobby-rule-active").validate[ResultType] shouldBe JsSuccess(BobbyRuleActive)
-    }
-
-    "error on unrecognised ResultType" in {
-
-      val exception = intercept[JsResultException] {
-        JsString("bobby-rule").as[ResultType]
-      }
-      exception.getMessage should include("Invalid Result Type")
-    }
-
     "write DefaultReadme" in {
       Json.toJson(DefaultReadme: ResultType) shouldBe JsString("default-readme")
     }
@@ -64,14 +44,6 @@ class IndicatorsSpec extends AnyWordSpec with Matchers {
 
     "write LeakDetectionViolation" in {
       Json.toJson(LeakDetectionViolation: ResultType) shouldBe JsString("leak-detection-violation")
-    }
-
-    "write BobbyRulePending" in {
-      Json.toJson(BobbyRulePending: ResultType) shouldBe JsString("bobby-rule-pending")
-    }
-
-    "write BobbyRuleActive" in {
-      Json.toJson(BobbyRuleActive: ResultType) shouldBe JsString("bobby-rule-active")
     }
   }
 }

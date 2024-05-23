@@ -36,12 +36,6 @@ class PointsConfig {
           case LeakDetectionViolation => -15
           case LeakDetectionNotFound  => 0
         }
-      case b: BobbyRuleResultType =>
-        b match {
-          case BobbyRulePending  => -20
-          case BobbyRuleActive   => -100
-          case NoActiveOrPending => 20
-        }
       case j: JenkinsResultType =>
         j match {
           case JenkinsBuildStable   => 0
