@@ -49,18 +49,6 @@ case object LeakDetectionNotFound extends LeakDetectionResultType {
   override val toString: String = "leak-detection-not-found"
 }
 
-sealed trait BobbyRuleResultType extends ResultType
-
-case object BobbyRulePending extends BobbyRuleResultType {
-  override val toString: String = "bobby-rule-pending"
-}
-case object BobbyRuleActive extends BobbyRuleResultType {
-  override val toString: String = "bobby-rule-active"
-}
-case object NoActiveOrPending extends BobbyRuleResultType {
-  override val toString: String = "no-active-or-pending"
-}
-
 sealed trait JenkinsResultType extends ResultType
 
 case object JenkinsBuildStable extends JenkinsResultType {
@@ -97,9 +85,6 @@ object ResultType {
     CleanGithub,
     LeakDetectionViolation,
     LeakDetectionNotFound,
-    BobbyRulePending,
-    BobbyRuleActive,
-    NoActiveOrPending,
     JenkinsBuildStable,
     JenkinsBuildUnstable,
     JenkinsBuildNotFound,
@@ -142,10 +127,6 @@ case object LeakDetectionMetricType extends MetricType {
   override val toString: String = "leak-detection"
 }
 
-case object BobbyRuleMetricType extends MetricType {
-  override val toString: String = "bobby-rule"
-}
-
 case object BuildStabilityMetricType extends MetricType {
   override val toString: String = "build-stability"
 }
@@ -159,7 +140,6 @@ object MetricType {
   private val metricTypes =
     Set(
       LeakDetectionMetricType,
-      BobbyRuleMetricType,
       BuildStabilityMetricType,
       AlertConfigMetricType,
       GithubMetricType

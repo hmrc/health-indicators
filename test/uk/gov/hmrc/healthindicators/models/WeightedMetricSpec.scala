@@ -35,10 +35,6 @@ class WeightedMetricSpec extends AnyWordSpec with Matchers {
       Json.toJson(LeakDetectionMetricType: MetricType) shouldBe JsString("leak-detection")
     }
 
-    "write BobbyRule" in {
-      Json.toJson(BobbyRuleMetricType: MetricType) shouldBe JsString("bobby-rule")
-    }
-
     "write BuildStability" in {
       Json.toJson(BuildStabilityMetricType: MetricType) shouldBe JsString("build-stability")
     }

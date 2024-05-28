@@ -18,7 +18,7 @@ package uk.gov.hmrc.healthindicators
 
 import com.google.inject.{AbstractModule, Provides}
 import play.api.Logger
-import uk.gov.hmrc.healthindicators.metricproducers.{AlertConfigMetricProducer, BobbyRulesMetricProducer, BuildStabilityMetricProducer, GithubMetricProducer, LeakDetectionMetricProducer, MetricProducer}
+import uk.gov.hmrc.healthindicators.metricproducers.{AlertConfigMetricProducer, BuildStabilityMetricProducer, GithubMetricProducer, LeakDetectionMetricProducer, MetricProducer}
 
 class HealthIndicatorsModule() extends AbstractModule {
 
@@ -29,7 +29,6 @@ class HealthIndicatorsModule() extends AbstractModule {
 
   @Provides
   def producers(
-    bobbyRulesMetricProducer: BobbyRulesMetricProducer,
     leakDetectionMetricProducer: LeakDetectionMetricProducer,
     buildStabilityMetricProducer: BuildStabilityMetricProducer,
     githubMetricProducer: GithubMetricProducer,
@@ -37,7 +36,6 @@ class HealthIndicatorsModule() extends AbstractModule {
   ): List[MetricProducer] = {
     val producers =
       List(
-        bobbyRulesMetricProducer,
         leakDetectionMetricProducer,
         buildStabilityMetricProducer,
         alertConfigMetricProducer,

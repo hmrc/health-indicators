@@ -52,8 +52,6 @@ class IntegrationSpec
           "metrics.refresh.enabled"                           -> "true",
           "metrics.refresh.interval"                          -> "5.minutes",
           "metrics.refresh.initialDelay"                      -> "5.seconds",
-          "microservice.services.service-dependencies.port"   -> wireMockPort,
-          "microservice.services.service-dependencies.host"   -> wireMockHost,
           "microservice.services.leak-detection.port"         -> wireMockPort,
           "microservice.services.leak-detection.host"         -> wireMockHost,
           "microservice.services.platops-github-proxy.port"   -> wireMockPort,
@@ -81,11 +79,6 @@ class IntegrationSpec
       stubFor(
         get(urlEqualTo("/api/repositories"))
           .willReturn(aResponse().withStatus(200).withBody(teamsAndReposJson))
-      )
-
-      stubFor(
-        get(urlEqualTo("/api/dependencies/auth"))
-          .willReturn(aResponse().withStatus(200).withBody(serviceDependenciesJson))
       )
 
       stubFor(
@@ -124,7 +117,6 @@ class IntegrationSpec
         val response = ws.url(s"http://localhost:$port/health-indicators/indicators/auth").get().futureValue
         response.status shouldBe 200
         response.body     should include(expectedResponse)
-        response.body     should include(bobbyRuleResponse)
         response.body     should include(leakDetectionResponse)
         response.body     should include(githubResponse)
         response.body     should include(buildStabilityResponse)
@@ -163,40 +155,6 @@ class IntegrationSpec
       }
     ]"""
 
-  val serviceDependenciesJson =
-    """{
-      "repositoryName": "auth",
-      "libraryDependencies": [
-      {
-        "name": "simple-reactivemongo",
-        "group": "uk.gov.hmrc",
-        "currentVersion": {
-          "major": 7,
-          "minor": 30,
-          "patch": 0,
-          "original": "7.30.0-play-26"
-         },
-        "latestVersion": {
-          "major": 7,
-          "minor": 31,
-          "patch": 0,
-          "original": "7.31.0-play-26"
-        },
-        "bobbyRuleViolations": [
-          {
-            "reason": "TEST DEPRECATION",
-            "from": "2050-05-01",
-            "range": "(,99.99.99)"
-          }
-        ],
-        "isExternal": false
-        }
-      ],
-      "sbtPluginsDependencies": [],
-      "otherDependencies": [],
-      "lastUpdated": "2020-12-07T11:11:53.122Z"
-    }"""
-
   val teamsAndReposJson =
     """
       [{
@@ -224,8 +182,6 @@ class IntegrationSpec
       }
     """
 
-  val bobbyRuleResponse =
-    """{"metricType":"bobby-rule","score":-20,"breakdown":[{"points":-20,"description":"simple-reactivemongo - TEST DEPRECATION"}]}"""
   val leakDetectionResponse =
     """{"metricType":"leak-detection","score":-15,"breakdown":[{"points":-15,"description":"Branch main has an unresolved filename_test leak"}]}"""
   val githubResponse =
@@ -234,5 +190,5 @@ class IntegrationSpec
     """{"metricType":"build-stability","score":0,"breakdown":[{"points":0,"description":"No Jenkins Build Found for: auth"}]}"""
   val alertConfigResponse =
     """{"metricType":"alert-config","score":20,"breakdown":[{"points":20,"description":"Alert Config is Disabled"}]}"""
-  val expectedResponse = """"repoName":"auth","repoType":"Prototype","overallScore":-25,"""
+  val expectedResponse = """"repoName":"auth","repoType":"Prototype","overallScore":-5,"""
 }
