@@ -28,10 +28,13 @@ case class AveragePlatformScore(
 )
 
 object AveragePlatformScore {
-  val format: Format[AveragePlatformScore] = {
-    implicit val instantFormat: Format[Instant] = MongoJavatimeFormats.instantFormat
-    ( (__ \ "timestamp").format[Instant]
+  val mongoFormat: Format[AveragePlatformScore] =
+    ( (__ \ "timestamp"   ).format[Instant](MongoJavatimeFormats.instantFormat)
     ~ (__ \ "averageScore").format[Int]
     )(AveragePlatformScore.apply, unlift(AveragePlatformScore.unapply))
-  }
+
+  val apiFormat: Format[AveragePlatformScore] =
+    ( (__ \ "timestamp"   ).format[Instant]
+    ~ (__ \ "averageScore").format[Int]
+    )(AveragePlatformScore.apply, unlift(AveragePlatformScore.unapply))
 }
