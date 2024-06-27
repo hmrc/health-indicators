@@ -49,21 +49,6 @@ case object LeakDetectionNotFound extends LeakDetectionResultType {
   override val toString: String = "leak-detection-not-found"
 }
 
-sealed trait JenkinsResultType extends ResultType
-
-case object JenkinsBuildStable extends JenkinsResultType {
-  override val toString: String = "jenkins-build-stable"
-}
-case object JenkinsBuildUnstable extends JenkinsResultType {
-  override val toString: String = "jenkins-build-unstable"
-}
-case object JenkinsBuildNotFound extends JenkinsResultType {
-  override val toString: String = "jenkins-build-not-found"
-}
-case object JenkinsBuildOutdated extends JenkinsResultType {
-  override val toString: String = "jenkins-build-outdated"
-}
-
 sealed trait AlertConfigResultType extends ResultType
 
 case object AlertConfigEnabled extends AlertConfigResultType {
@@ -85,10 +70,6 @@ object ResultType {
     CleanGithub,
     LeakDetectionViolation,
     LeakDetectionNotFound,
-    JenkinsBuildStable,
-    JenkinsBuildUnstable,
-    JenkinsBuildNotFound,
-    JenkinsBuildOutdated,
     AlertConfigEnabled,
     AlertConfigDisabled,
     AlertConfigNotFound
@@ -127,10 +108,6 @@ case object LeakDetectionMetricType extends MetricType {
   override val toString: String = "leak-detection"
 }
 
-case object BuildStabilityMetricType extends MetricType {
-  override val toString: String = "build-stability"
-}
-
 case object AlertConfigMetricType extends MetricType {
   override val toString: String = "alert-config"
 }
@@ -140,7 +117,6 @@ object MetricType {
   private val metricTypes =
     Set(
       LeakDetectionMetricType,
-      BuildStabilityMetricType,
       AlertConfigMetricType,
       GithubMetricType
     )

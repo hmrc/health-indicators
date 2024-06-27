@@ -42,13 +42,6 @@ class TeamsAndRepositoriesConnector @Inject() (
       .get(url"$teamsAndRepositoriesBaseUrl/api/repositories")
       .execute[List[TeamsAndRepos]]
   }
-
-  def getJenkinsUrl(repo: String)(implicit hc: HeaderCarrier): Future[Option[JenkinsUrl]] = {
-    implicit val reads: Reads[JenkinsUrl] = JenkinsUrl.jur
-    httpClientV2
-      .get(url"$teamsAndRepositoriesBaseUrl/api/v2/repositories/$repo/jenkins-url")
-      .execute[Option[JenkinsUrl]]
-  }
 }
 
 sealed trait RepoType {
