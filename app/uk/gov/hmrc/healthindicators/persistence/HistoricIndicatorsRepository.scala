@@ -34,7 +34,7 @@ class HistoricIndicatorsRepository @Inject() (
 ) extends PlayMongoRepository[HistoricIndicator](
   collectionName = "historicHealthIndicators",
   mongoComponent = mongoComponent,
-  domainFormat = HistoricIndicator.format,
+  domainFormat = HistoricIndicator.mongoFormat,
   indexes = Seq(
     IndexModel(hashed("repoName"), IndexOptions().background(true)),
     IndexModel(descending("timestamp"), IndexOptions().background(true))

@@ -48,44 +48,6 @@ class TeamsAndRepositoriesConnectorSpec
 
   implicit val headerCarrier: HeaderCarrier = HeaderCarrier()
 
-  "GET jenkinsUrl" should {
-    "use repository name to return a jenkins url" in {
-      stubFor(
-        get(urlEqualTo("/api/v2/repositories/test/jenkins-url"))
-          .willReturn(
-            aResponse()
-              .withStatus(200)
-              .withBody(
-                """{
-                  "jenkinsURL": "https://build.tax.service.gov.uk/job/GG/job/test"
-                }"""
-              )
-          )
-      )
-
-      val response = teamsAndRepositoriesConnector
-        .getJenkinsUrl("test")
-        .futureValue
-
-      val expectedResult = Some(JenkinsUrl("https://build.tax.service.gov.uk/job/GG/job/test"))
-
-      response shouldBe expectedResult
-    }
-
-    "use repository name to return a None when no jenkins url found" in {
-      stubFor(
-        get(urlEqualTo("/api/v2/repositories/test/jenkins-url"))
-          .willReturn(aResponse().withStatus(404))
-      )
-
-      val response = teamsAndRepositoriesConnector
-        .getJenkinsUrl("test")
-        .futureValue
-
-      response shouldBe None
-    }
-  }
-
   "GET allRepositories" should {
     "return a list of all repositories" in {
       stubFor(

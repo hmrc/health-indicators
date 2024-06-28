@@ -35,7 +35,7 @@ class AveragePlatformScoreController @Inject() (
 
   val history: Action[AnyContent] =
     Action.async {
-      implicit val apf: Format[AveragePlatformScore] = AveragePlatformScore.format
+      implicit val apf: Format[AveragePlatformScore] = AveragePlatformScore.apiFormat
       for {
         averages: Seq[AveragePlatformScore] <- averagePlatformScoreService.historic()
       } yield Ok(Json.toJson(averages))
@@ -43,7 +43,7 @@ class AveragePlatformScoreController @Inject() (
 
   val latest: Action[AnyContent] =
     Action.async {
-      implicit val apf: Format[AveragePlatformScore] = AveragePlatformScore.format
+      implicit val apf: Format[AveragePlatformScore] = AveragePlatformScore.apiFormat
       for {
         average: Option[AveragePlatformScore] <- averagePlatformScoreService.latest()
       } yield Ok(Json.toJson(average))

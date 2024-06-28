@@ -18,7 +18,6 @@ package uk.gov.hmrc.healthindicators.models
 
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
-import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats
 
 import java.time.Instant
 
@@ -28,12 +27,10 @@ case class DataPoint(
 )
 
 object DataPoint {
-  val format: OFormat[DataPoint] = {
-    implicit val instantFormat: Format[Instant] = MongoJavatimeFormats.instantFormat
+  val format: OFormat[DataPoint] =
     ( (__ \ "timestamp"   ).format[Instant]
     ~ (__ \ "overallScore").format[Int]
     )(DataPoint.apply, unlift(DataPoint.unapply))
-  }
 }
 
 case class HistoricIndicatorAPI(
@@ -66,11 +63,10 @@ case class HistoricIndicator(
 )
 
 object HistoricIndicator {
-  val format: OFormat[HistoricIndicator] = {
-    implicit val instantFormat: Format[Instant] = MongoJavatimeFormats.instantFormat
+  import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats
+  val mongoFormat: OFormat[HistoricIndicator] =
     ( (__ \ "repoName"    ).format[String]
-    ~ (__ \ "timestamp"   ).format[Instant]
+    ~ (__ \ "timestamp"   ).format[Instant](MongoJavatimeFormats.instantFormat)
     ~ (__ \ "overallScore").format[Int]
     )(HistoricIndicator.apply, unlift(HistoricIndicator.unapply))
-  }
 }

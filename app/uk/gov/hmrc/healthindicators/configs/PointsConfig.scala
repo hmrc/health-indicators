@@ -36,13 +36,6 @@ class PointsConfig {
           case LeakDetectionViolation => -15
           case LeakDetectionNotFound  => 0
         }
-      case j: JenkinsResultType =>
-        j match {
-          case JenkinsBuildStable   => 0
-          case JenkinsBuildUnstable => -50
-          case JenkinsBuildNotFound => 0
-          case JenkinsBuildOutdated => -50
-        }
       case a: AlertConfigResultType =>
         a match {
           case AlertConfigEnabled  => 20

@@ -33,7 +33,7 @@ class AveragePlatformScoreRepository @Inject() (
 ) extends PlayMongoRepository[AveragePlatformScore](
   collectionName = "averagePlatformScores",
   mongoComponent = mongoComponent,
-  domainFormat   = AveragePlatformScore.format,
+  domainFormat   = AveragePlatformScore.mongoFormat,
   indexes        = Seq(IndexModel(descending("timestamp"), IndexOptions().background(true)))
 ) {
 

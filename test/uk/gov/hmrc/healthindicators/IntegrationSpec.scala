@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
 package uk.gov.hmrc.healthindicators
 
 import com.github.tomakehurst.wiremock.client.WireMock._
-import com.google.common.io.BaseEncoding
 import org.scalatest.concurrent.{Eventually, IntegrationPatience, ScalaFutures}
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
@@ -56,8 +55,6 @@ class IntegrationSpec
           "microservice.services.leak-detection.host"         -> wireMockHost,
           "microservice.services.platops-github-proxy.port"   -> wireMockPort,
           "microservice.services.platops-github-proxy.host"   -> wireMockHost,
-          "jenkins.username"                                  -> "test-username",
-          "jenkins.token"                                     -> "test-token",
           "microservice.services.teams-and-repositories.port" -> wireMockPort,
           "microservice.services.teams-and-repositories.host" -> wireMockHost,
           "github.rest.api.url"                               -> wireMockUrl,
@@ -87,20 +84,8 @@ class IntegrationSpec
       )
 
       stubFor(
-        get(urlEqualTo("/api/v2/repositories/auth/jenkins-url"))
-          .willReturn(aResponse().withStatus(200).withBody(teamsAndReposJenkinsJson))
-      )
-
-      stubFor(
         get(urlEqualTo("/service-configs/alert-configs/auth"))
           .willReturn(aResponse().withStatus(200).withBody(serviceConfigsJson))
-      )
-
-      val jenkinsCred = s"Basic ${BaseEncoding.base64().encode("test-username:test-token".getBytes("UTF-8"))}"
-
-      stubFor(
-        get(urlPathEqualTo("/job/GG/job/auth/api/json"))
-          .willReturn(aResponse().withStatus(404))
       )
 
       stubFor(
@@ -119,16 +104,8 @@ class IntegrationSpec
         response.body     should include(expectedResponse)
         response.body     should include(leakDetectionResponse)
         response.body     should include(githubResponse)
-        response.body     should include(buildStabilityResponse)
         response.body     should include(alertConfigResponse)
       }
-
-      verify(
-        getRequestedFor(urlPathEqualTo("/job/GG/job/auth/api/json"))
-          .withQueryParam("depth", equalTo("1"))
-          .withQueryParam("tree" , equalTo("lastCompletedBuild[result,timestamp]"))
-          .withHeader("Authorization", equalTo(jenkinsCred))
-      )
 
       verify(
         getRequestedFor(urlEqualTo("/platops-github-proxy/github-raw/auth/HEAD/README.md"))
@@ -167,13 +144,6 @@ class IntegrationSpec
       }]
     """
 
-  val teamsAndReposJenkinsJson =
-    s"""
-       {
-        "jenkinsURL": "$wireMockUrl/job/GG/job/auth/"
-       }
-     """
-
   val serviceConfigsJson =
     """
       {
@@ -186,8 +156,6 @@ class IntegrationSpec
     """{"metricType":"leak-detection","score":-15,"breakdown":[{"points":-15,"description":"Branch main has an unresolved filename_test leak"}]}"""
   val githubResponse =
     """{"metricType":"github","score":-10,"breakdown":[{"points":-10,"description":"No Readme defined"}]}"""
-  val buildStabilityResponse =
-    """{"metricType":"build-stability","score":0,"breakdown":[{"points":0,"description":"No Jenkins Build Found for: auth"}]}"""
   val alertConfigResponse =
     """{"metricType":"alert-config","score":20,"breakdown":[{"points":20,"description":"Alert Config is Disabled"}]}"""
   val expectedResponse = """"repoName":"auth","repoType":"Prototype","overallScore":-5,"""
