@@ -39,7 +39,7 @@ class TeamsAndRepositoriesConnector @Inject() (
   def allRepositories(implicit hc: HeaderCarrier): Future[List[TeamsAndRepos]] = {
     implicit val reads: Reads[TeamsAndRepos] = TeamsAndRepos.reads
     httpClientV2
-      .get(url"$teamsAndRepositoriesBaseUrl/api/repositories")
+      .get(url"$teamsAndRepositoriesBaseUrl/api/v2/repositories")
       .execute[List[TeamsAndRepos]]
   }
 }
