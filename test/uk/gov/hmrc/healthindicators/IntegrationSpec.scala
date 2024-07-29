@@ -74,7 +74,7 @@ class IntegrationSpec
 
     "return correct json when HealthIndicatorController.indicator receives a get request with valid repo name" in {
       stubFor(
-        get(urlEqualTo("/api/repositories"))
+        get(urlEqualTo("/api/v2/repositories"))
           .willReturn(aResponse().withStatus(200).withBody(teamsAndReposJson))
       )
 

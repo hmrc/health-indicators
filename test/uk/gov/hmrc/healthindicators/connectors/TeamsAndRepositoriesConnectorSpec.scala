@@ -51,34 +51,20 @@ class TeamsAndRepositoriesConnectorSpec
   "GET allRepositories" should {
     "return a list of all repositories" in {
       stubFor(
-        get(urlEqualTo("/api/repositories"))
+        get(urlEqualTo("/api/v2/repositories"))
           .willReturn(
             aResponse()
               .withStatus(200)
               .withBody(
                 """[{
                   "name": "2-way-messaging-prototype",
-                  "createdAt": 1541588042000,
-                  "lastUpdatedAt": 1601630778000,
-                  "repoType": "Prototype",
-                  "language": "HTML",
-                  "archived": false
-                },
-                {
+                  "repoType": "Prototype"
+                }, {
                   "name": "2way-testbed-prototype",
-                  "createdAt": 1570720430000,
-                  "lastUpdatedAt": 1605862299000,
-                  "repoType": "Prototype",
-                  "language": "HTML",
-                  "archived": false
-                },
-                {
+                  "repoType": "Prototype"
+                }, {
                   "name": "5mld-prototype",
-                  "createdAt": 1576747271000,
-                  "lastUpdatedAt": 1581517326000,
-                  "repoType": "Prototype",
-                  "language": "CSS",
-                  "archived": false
+                  "repoType": "Prototype"
                 }]"""
               )
           )
